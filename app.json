@@ -12,7 +12,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ntissot.FairwayProApp",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "FairwayPro needs access to your photo library to upload swing videos.",
+        "NSCameraUsageDescription": "FairwayPro needs access to your camera to record swing videos.",
+        "NSMicrophoneUsageDescription": "FairwayPro needs access to your microphone to record videos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,10 +26,20 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.ntissot.FairwayProApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3aedbcbf-ef94-4851-8d79-4ff5ea49f722"
+      }
+    },
+    "plugins": [
+      "expo-video",
+      "@react-native-community/datetimepicker"
+    ]
   }
 }
