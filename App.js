@@ -16,6 +16,7 @@ import BookingScreen from "./src/BookingScreen"
 import SettingsScreen from "./src/SettingsScreen"
 import { supabase } from "./src/supabase"
 import { registerForPushNotifications, savePushToken } from "./src/notifications"
+import { OnboardingProvider } from "./src/OnboardingContext"
 import * as Notifications from "expo-notifications"
 import { useEffect, useRef } from "react"
 import PlayerHomeScreen from "./src/PlayerHomeScreen"
@@ -86,6 +87,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <OnboardingProvider>
       <NavigationContainer>
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="Welcome" component={WelcomeScreen} />
@@ -96,6 +98,7 @@ export default function App() {
           <RootStack.Screen name="Settings" component={SettingsScreen} />
         </RootStack.Navigator>
       </NavigationContainer>
+      </OnboardingProvider>
     </SafeAreaProvider>
   )
 }

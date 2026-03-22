@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { useOnboarding, OnboardingTooltip } from './OnboardingContext'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import PlayerOnboarding from './PlayerOnboarding'
 import { Svg, Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg'
 
 const G = '#1B5E35'
@@ -16,8 +19,25 @@ export default function PlayerHomeScreen({ navigation }) {
   const [nextBooking, setNextBooking] = useState(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const { start: startOnboarding } = useOnboarding()
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => {
+    fetchAll()
+    checkOnboarding()
+  }, [])
+
+  const checkOnboarding = async () => {
+    try {
+      const seen = await AsyncStorage.getItem('player_onboarding_done')
+      if (!seen) startOnboarding()
+    } catch(e) {}
+  }
+
+  const finishOnboarding = async () => {
+    try { await AsyncStorage.setItem('player_onboarding_done', 'true') } catch(e) {}
+    setShowOnboarding(false)
+  }
 
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -85,6 +105,7 @@ export default function PlayerHomeScreen({ navigation }) {
   }
 
   if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+
 
   if (!player) return (
     <SafeAreaView style={s.safe}>
