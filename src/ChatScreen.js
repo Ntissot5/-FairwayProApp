@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { sendPushNotification } from './notifications'
 
 const G = '#1B5E35'
 const colors = ['#1B5E35','#0891B2','#7C3AED','#DC2626','#D97706','#059669']
@@ -40,6 +41,11 @@ export default function ChatScreen({ navigation }) {
   const sendMessage = async () => {
     if (!input.trim()) return
     await supabase.from('messages').insert({ coach_id: coachId, player_id: selected.id, sender: 'coach', content: input.trim() })
+    // Send push notification to player
+    const { data: tokenRow } = await supabase.from('push_tokens').select('token').eq('user_id', selected.player_user_id).single()
+    if (tokenRow?.token) {
+      await sendPushNotification(tokenRow.token, 'Nouveau message de ton coach', input.trim().slice(0, 80), { type: 'message' })
+    }
     setInput('')
     fetchMessages()
   }

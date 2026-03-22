@@ -1,0 +1,146 @@
+import { useState, useEffect, useRef } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Modal } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import * as ImagePicker from 'expo-image-picker'
+import { VideoView, useVideoPlayer } from 'expo-video'
+import { supabase } from './supabase'
+
+const G = '#1B5E35'
+
+function VideoPlayer({ url, onClose }) {
+  const player = useVideoPlayer(url, p => { p.play() })
+  return (
+    <Modal visible animationType="slide" presentationStyle="fullScreen">
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: 56, right: 20, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#fff', fontSize: 18 }}>✕</Text>
+        </TouchableOpacity>
+        <VideoView player={player} style={{ flex: 1 }} contentFit="contain" allowsFullscreen />
+      </View>
+    </Modal>
+  )
+}
+
+export default function PlayerVideosScreen() {
+  const [videos, setVideos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [playingVideo, setPlayingVideo] = useState(null)
+  const [playerId, setPlayerId] = useState(null)
+
+  useEffect(() => { fetchAll() }, [])
+
+  const fetchAll = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: player } = await supabase.from('players').select('id').eq('player_user_id', user.id).single()
+    if (player) {
+      setPlayerId(player.id)
+      const { data: v } = await supabase.from('swing_videos').select('*').eq('player_id', player.id).order('created_at', { ascending: false })
+      setVideos(v || [])
+    }
+    setLoading(false)
+  }
+
+  const recordVideo = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync()
+    if (status !== 'granted') { Alert.alert('Permission needed'); return }
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 60 })
+    if (result.canceled) return
+    setUploading(true)
+    try {
+      const uri = result.assets[0].uri
+      const fileName = 'swing_player_' + playerId + '_' + Date.now() + '.mp4'
+      const response = await fetch(uri)
+      const blob = await response.blob()
+      const { error } = await supabase.storage.from('swing-videos').upload(fileName, blob, { contentType: 'video/mp4' })
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage.from('swing-videos').getPublicUrl(fileName)
+      await supabase.from('swing_videos').insert({ player_id: playerId, video_url: publicUrl, title: 'Swing ' + new Date().toLocaleDateString('fr-FR') })
+      Alert.alert('✓ Video uploaded!')
+      fetchAll()
+    } catch(e) { Alert.alert('Error', e.message) }
+    setUploading(false)
+  }
+
+  const deleteVideo = async (id) => {
+    Alert.alert('Supprimer ?', 'Cette vidéo sera supprimée.', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => {
+        await supabase.from('swing_videos').delete().eq('id', id)
+        fetchAll()
+      }}
+    ])
+  }
+
+  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+
+  return (
+    <SafeAreaView style={s.safe}>
+      <View style={s.header}>
+        <View>
+          <Text style={s.title}>Swing Videos</Text>
+          <Text style={s.sub}>Your recordings</Text>
+        </View>
+        <TouchableOpacity style={s.addBtn} onPress={recordVideo} disabled={uploading}>
+          <Text style={s.addBtnTxt}>{uploading ? '...' : '🎥 Film'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {playingVideo && <VideoPlayer url={playingVideo} onClose={() => setPlayingVideo(null)} />}
+
+      <ScrollView style={s.scroll}>
+        {videos.length === 0 ? (
+          <View style={{ padding: 40, alignItems: 'center' }}>
+            <Text style={{ fontSize: 40, marginBottom: 16 }}>🎥</Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 }}>No videos yet</Text>
+            <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginBottom: 24 }}>Filme ton swing et partage-le avec ton coach</Text>
+            <TouchableOpacity style={s.addBtn} onPress={recordVideo}>
+              <Text style={s.addBtnTxt}>🎥 Filmer mon swing</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={s.section}>
+            {videos.map(v => (
+              <View key={v.id} style={s.videoRow}>
+                <TouchableOpacity style={s.videoThumb} onPress={() => setPlayingVideo(v.video_url)}>
+                  <Text style={{ fontSize: 28 }}>▶️</Text>
+                </TouchableOpacity>
+                <View style={s.videoInfo}>
+                  <Text style={s.videoTitle}>{v.title || 'Swing video'}</Text>
+                  <Text style={s.videoDate}>{new Date(v.created_at).toLocaleDateString('fr-FR')}</Text>
+                  <TouchableOpacity onPress={() => setPlayingVideo(v.video_url)} style={s.watchBtn}>
+                    <Text style={s.watchBtnTxt}>▶ Regarder</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={() => deleteVideo(v.id)} style={s.deleteBtn}>
+                  <Text style={{ color: '#DC2626', fontSize: 16 }}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
+  )
+}
+
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  header: { backgroundColor: '#fff', padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
+  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
+  sub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  scroll: { flex: 1 },
+  addBtn: { backgroundColor: G, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
+  addBtnTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, borderWidth: 0.5, borderColor: '#E5E7EB', overflow: 'hidden' },
+  videoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: '#F8FAF8' },
+  videoThumb: { width: 60, height: 60, borderRadius: 10, backgroundColor: '#F0FAF4', alignItems: 'center', justifyContent: 'center' },
+  videoInfo: { flex: 1 },
+  videoTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+  videoDate: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  watchBtn: { marginTop: 6, backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
+  watchBtnTxt: { fontSize: 12, fontWeight: '600', color: G },
+  deleteBtn: { padding: 8 },
+})

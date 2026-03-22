@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { registerForPushNotifications, savePushToken } from './notifications'
 
 const G = '#1B5E35'
 
@@ -25,6 +26,12 @@ export default function LoginScreen({ navigation, route }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError('Email ou mot de passe incorrect'); setLoading(false); return }
     }
+    // Save push token after login
+    try {
+      const token = await registerForPushNotifications()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (token && user) await savePushToken(user.id, token)
+    } catch(e) {}
     setLoading(false)
     if (mode === 'coach') {
       navigation.replace('CoachTabs')

@@ -10,6 +10,8 @@ export default function SessionsScreen({ navigation }) {
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
   const [packages, setPackages] = useState([])
+  const [playerPackages, setPlayerPackages] = useState([])
+  const [selectedPackage, setSelectedPackage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [tab, setTab] = useState('sessions')
@@ -44,12 +46,25 @@ export default function SessionsScreen({ navigation }) {
     fetchAll()
   }
 
+  const fetchPlayerPackages = async (playerId) => {
+    const { data } = await supabase.from('packages').select('*').eq('player_id', playerId).eq('payment_status', 'paid')
+    const active = (data || []).filter(p => p.used_sessions < p.total_sessions)
+    setPlayerPackages(active)
+    setSelectedPackage(active.length > 0 ? active[0] : null)
+  }
+
   const addSession = async () => {
     if (!newSession.player_id || !newSession.price) return
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('sessions').insert({ coach_id: user.id, player_id: newSession.player_id, price: parseFloat(newSession.price), session_date: newSession.session_date, notes: newSession.notes, paid: true })
+    // If package selected, increment used_sessions
+    if (selectedPackage) {
+      await supabase.from('packages').update({ used_sessions: selectedPackage.used_sessions + 1 }).eq('id', selectedPackage.id)
+    }
     setNewSession({ player_id: '', price: '', session_date: new Date().toISOString().split('T')[0], notes: '' })
+    setSelectedPackage(null)
+    setPlayerPackages([])
     setShowAddSession(false)
     setSaving(false)
     fetchAll()
@@ -100,12 +115,58 @@ export default function SessionsScreen({ navigation }) {
 
   const incrementPackage = async (pkg) => {
     if (pkg.used_sessions >= pkg.total_sessions) return
-    await supabase.from('packages').update({ used_sessions: pkg.used_sessions + 1 }).eq('id', pkg.id)
-    fetchAll()
+    const today = new Date().toISOString().split('T')[0]
+    Alert.prompt(
+      '+ 1 séance',
+      'Date de la séance (YYYY-MM-DD)',
+      async (date) => {
+        if (!date) return
+        const sessionDate = date.trim() || today
+        const { data: { user } } = await supabase.auth.getUser()
+        // Create session
+        await supabase.from('sessions').insert({
+          coach_id: user.id,
+          player_id: pkg.player_id,
+          price: Math.round((pkg.price || 0) / pkg.total_sessions),
+          session_date: sessionDate,
+          notes: 'Package: ' + pkg.name,
+          paid: true
+        })
+        // Create lesson in calendar
+        await supabase.from('lessons').insert({
+          coach_id: user.id,
+          player_id: pkg.player_id,
+          lesson_date: sessionDate,
+          start_time: '10:00:00',
+          end_time: '11:00:00',
+          duration_minutes: 60,
+          is_group: false,
+          event_type: 'private',
+          title: 'Package: ' + pkg.name,
+          price: Math.round((pkg.price || 0) / pkg.total_sessions)
+        })
+        // Increment package
+        await supabase.from('packages').update({ used_sessions: pkg.used_sessions + 1 }).eq('id', pkg.id)
+        fetchAll()
+      },
+      'plain-text',
+      today
+    )
   }
 
-  const markPaid = async (id) => {
-    await supabase.from('packages').update({ payment_status: 'paid' }).eq('id', id)
+  const markPaid = async (pkg) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    // Mark package as paid
+    await supabase.from('packages').update({ payment_status: 'paid' }).eq('id', pkg.id)
+    // Create a revenue session for the full package price
+    await supabase.from('sessions').insert({
+      coach_id: user.id,
+      player_id: pkg.player_id,
+      price: pkg.price || 0,
+      session_date: new Date().toISOString().split('T')[0],
+      notes: 'Paiement package: ' + pkg.name,
+      paid: true
+    })
     fetchAll()
   }
 
@@ -204,7 +265,7 @@ export default function SessionsScreen({ navigation }) {
                       <Text style={s.aiBtnTxt}>+ 1 séance</Text>
                     </TouchableOpacity>
                     {pkg.payment_status !== 'paid' ? (
-                      <TouchableOpacity onPress={() => markPaid(pkg.id)} style={{ backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
+                      <TouchableOpacity onPress={() => markPaid(pkg)} style={{ backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
                         <Text style={{ color: G, fontSize: 12, fontWeight: '600' }}>✓ Payé</Text>
                       </TouchableOpacity>
                     ) : (
@@ -256,11 +317,26 @@ export default function SessionsScreen({ navigation }) {
             <Text style={s.label}>Player</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {players.map(p => (
-                <TouchableOpacity key={p.id} onPress={() => setNewSession({...newSession, player_id: p.id})} style={[s.chip, newSession.player_id === p.id && s.chipActive]}>
+                <TouchableOpacity key={p.id} onPress={() => { setNewSession({...newSession, player_id: p.id}); fetchPlayerPackages(p.id) }} style={[s.chip, newSession.player_id === p.id && s.chipActive]}>
                   <Text style={[s.chipTxt, newSession.player_id === p.id && { color: '#fff' }]}>{p.full_name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            {playerPackages.length > 0 && (
+              <View style={{ marginTop: 14 }}>
+                <Text style={s.label}>PACKAGE (optionnel)</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <TouchableOpacity onPress={() => setSelectedPackage(null)} style={[s.chip, !selectedPackage && s.chipActive]}>
+                    <Text style={[s.chipTxt, !selectedPackage && { color: '#fff' }]}>Sans package</Text>
+                  </TouchableOpacity>
+                  {playerPackages.map(pkg => (
+                    <TouchableOpacity key={pkg.id} onPress={() => { setSelectedPackage(pkg); setNewSession(prev => ({...prev, price: pkg.price ? Math.round(pkg.price / pkg.total_sessions) : prev.price})) }} style={[s.chip, selectedPackage?.id === pkg.id && s.chipActive]}>
+                      <Text style={[s.chipTxt, selectedPackage?.id === pkg.id && { color: '#fff' }]}>{pkg.name} ({pkg.used_sessions}/{pkg.total_sessions})</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
             <Text style={s.label}>Price (€)</Text>
             <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
             <Text style={s.label}>Date</Text>

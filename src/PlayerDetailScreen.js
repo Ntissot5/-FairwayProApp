@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, TextInput, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, TextInput, Alert, Share } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -41,6 +41,24 @@ export default function PlayerDetailScreen({ route, navigation }) {
     setVideos(v || [])
     setLoading(false)
     setRefreshing(false)
+  }
+
+  const invitePlayer = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      // Check if invite already exists
+      const { data: existing } = await supabase.from('player_invites').select('token').eq('player_id', player.id).eq('used', false).single()
+      let token = existing?.token
+      if (!token) {
+        const { data: invite } = await supabase.from('player_invites').insert({ coach_id: user.id, player_id: player.id }).select('token').single()
+        token = invite?.token
+      }
+      const link = 'https://fairwaypro.io/join/' + token
+      await Share.share({
+        message: 'Salut ' + player.full_name + ' ! Ton coach t\'invite sur FairwayPro. Télécharge l\'app et utilise ce lien pour rejoindre ton espace : ' + link,
+        title: 'Invitation FairwayPro'
+      })
+    } catch(e) { Alert.alert('Erreur', e.message) }
   }
 
   const addHcpEntry = async () => {
@@ -171,6 +189,9 @@ export default function PlayerDetailScreen({ route, navigation }) {
           <Text style={s.backTxt}>‹ Back</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>{player.full_name}</Text>
+        <TouchableOpacity onPress={invitePlayer} style={s.inviteBtn}>
+          <Text style={s.inviteBtnTxt}>🔗 Inviter</Text>
+        </TouchableOpacity>
       </View>
       <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
 

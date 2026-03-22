@@ -4,21 +4,33 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
-const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
-const HOURS = Array.from({length: 24}, (_, i) => (i < 10 ? '0'+i : ''+i) + ':00')
+const DAYS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']
 
 export default function BookingScreen({ navigation }) {
-  const [tab, setTab] = useState('horaires')
+  const [tab, setTab] = useState('agenda')
   const [workHours, setWorkHours] = useState([])
   const [collectifs, setCollectifs] = useState([])
   const [prefs, setPrefs] = useState({ default_duration: 60, max_group_size: 4, private_price: 120, group_price: 25 })
   const [lessons, setLessons] = useState([])
+  const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState(null)
   const [weekOffset, setWeekOffset] = useState(0)
-
+  const [userId, setUserId] = useState(null)
   const [newWH, setNewWH] = useState({ day_of_week: 0, start_time: '08:00', end_time: '12:00' })
   const [newCol, setNewCol] = useState({ day_of_week: 1, start_time: '17:00', duration_minutes: 60, max_players: 3 })
+  
+  // Add lesson modal
+  const [showAddLesson, setShowAddLesson] = useState(false)
+  const [selectedSlot, setSelectedSlot] = useState(null)
+  const [selectedPlayer, setSelectedPlayer] = useState(null)
+  const [lessonType, setLessonType] = useState('private')
+  const [savingLesson, setSavingLesson] = useState(false)
+  const [eventTitle, setEventTitle] = useState('')
+
+  // Slot detail modal
+  const [showSlotDetail, setShowSlotDetail] = useState(false)
+  const [slotDetail, setSlotDetail] = useState(null)
 
   useEffect(() => { fetchAll() }, [])
 
@@ -28,11 +40,13 @@ export default function BookingScreen({ navigation }) {
     const { data: wh } = await supabase.from('work_hours').select('*').eq('coach_id', user.id).order('day_of_week')
     const { data: col } = await supabase.from('availabilities').select('*').eq('coach_id', user.id).order('day_of_week')
     const { data: p } = await supabase.from('coach_preferences').select('*').eq('coach_id', user.id).single()
-    const { data: l } = await supabase.from('lessons').select('*').eq('coach_id', user.id)
+    const { data: l } = await supabase.from('lessons').select('*, players(full_name, current_handicap)').eq('coach_id', user.id).gte('lesson_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+    const { data: pl } = await supabase.from('players').select('*').eq('coach_id', user.id)
     setWorkHours(wh || [])
     setCollectifs(col || [])
     if (p) setPrefs(p)
     setLessons(l || [])
+    setPlayers(pl || [])
     setLoading(false)
   }
 
@@ -58,8 +72,8 @@ export default function BookingScreen({ navigation }) {
   }
 
   const savePrefs = async () => {
-    const { data: existing } = await supabase.from('coach_preferences').select('id').eq('coach_id', userId).single()
-    if (existing) {
+    const existing = await supabase.from('coach_preferences').select('id').eq('coach_id', userId).single()
+    if (existing.data) {
       await supabase.from('coach_preferences').update({ ...prefs, coach_id: userId }).eq('coach_id', userId)
     } else {
       await supabase.from('coach_preferences').insert({ ...prefs, coach_id: userId })
@@ -68,28 +82,69 @@ export default function BookingScreen({ navigation }) {
     fetchAll()
   }
 
+  const addLesson = async () => {
+    if (!selectedSlot) return
+    setSavingLesson(true)
+    const { error } = await supabase.from('lessons').insert({
+      coach_id: userId,
+      player_id: lessonType === 'event' ? null : selectedPlayer,
+      lesson_date: selectedSlot.date,
+      start_time: selectedSlot.time + ':00',
+      end_time: selectedSlot.time + ':00',
+      duration_minutes: prefs.default_duration || 60,
+      is_group: lessonType === 'group',
+      is_private_event: lessonType === 'event',
+      event_type: lessonType,
+      title: lessonType === 'event' ? eventTitle : null,
+      price: lessonType === 'private' ? (prefs.private_price || 120) : lessonType === 'group' ? (prefs.group_price || 25) : 0
+    })
+    if (error) Alert.alert('Erreur', error.message)
+    setSavingLesson(false)
+    setShowAddLesson(false)
+    setSelectedPlayer(null)
+    setEventTitle('')
+    fetchAll()
+  }
+
+  const deleteLesson = async (id) => {
+    Alert.alert('Supprimer ce cours ?', '', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => {
+        await supabase.from('lessons').delete().eq('id', id)
+        setShowSlotDetail(false)
+        fetchAll()
+      }}
+    ])
+  }
+
   const getWeekDates = () => {
     const now = new Date()
     const monday = new Date(now)
-    monday.setDate(now.getDate() - now.getDay() + 1 + weekOffset * 7)
-    return Array.from({length: 7}, (_, i) => {
-      const d = new Date(monday)
-      d.setDate(monday.getDate() + i)
-      return d
-    })
+    monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1) + weekOffset * 7)
+    return Array.from({ length: 7 }, (_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d })
   }
 
   const weekDates = getWeekDates()
   const weekLabel = weekDates[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' — ' + weekDates[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 
-  const getLessonsForDay = (date) => {
+  const getLessonsForSlot = (date, time) => {
     const dateStr = date.toISOString().split('T')[0]
-    return lessons.filter(l => l.lesson_date === dateStr)
+    return lessons.filter(l => l.lesson_date === dateStr && l.start_time?.slice(0,5) === time)
   }
 
   const getCollectifsForDay = (date) => {
     const dow = date.getDay() === 0 ? 6 : date.getDay() - 1
     return collectifs.filter(c => c.day_of_week === dow)
+  }
+
+  const isWorkingHour = (date, time) => {
+    const dow = date.getDay() === 0 ? 6 : date.getDay() - 1
+    const wh = workHours.filter(w => w.day_of_week === dow)
+    return wh.some(w => {
+      const start = w.start_time?.slice(0, 5)
+      const end = w.end_time?.slice(0, 5)
+      return time >= start && time < end
+    })
   }
 
   if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
@@ -99,59 +154,147 @@ export default function BookingScreen({ navigation }) {
       <View style={s.header}>
         <Text style={s.title}>Booking</Text>
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          <TouchableOpacity style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: G, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 }} onPress={() => navigation.navigate('Sessions')}>
-            <Text style={{ fontSize: 11, fontWeight: '600', color: G }}>+ Session</Text>
+          <TouchableOpacity style={[s.btn2, { borderColor: G }]} onPress={() => navigation.navigate('Sessions')}>
+            <Text style={[s.btn2Txt, { color: G }]}>+ Session</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={{ backgroundColor: G, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 }} onPress={() => navigation.navigate('Players')}>
-            <Text style={{ fontSize: 11, fontWeight: '600', color: '#fff' }}>+ Player</Text>
+          <TouchableOpacity style={[s.btn2, { backgroundColor: G, borderColor: G }]} onPress={() => navigation.navigate('Players')}>
+            <Text style={[s.btn2Txt, { color: '#fff' }]}>+ Player</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={s.tabs}>
-        {['horaires','préférences','agenda'].map(t => (
+        {['agenda', 'horaires', 'préférences'].map(t => (
           <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)}>
             <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
+      {tab === 'agenda' && (
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 }}>
+            <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={s.weekBtn}>
+              <Text style={s.weekBtnTxt}>‹ Préc.</Text>
+            </TouchableOpacity>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#374151' }}>{weekLabel}</Text>
+            <TouchableOpacity onPress={() => setWeekOffset(weekOffset + 1)} style={s.weekBtn}>
+              <Text style={s.weekBtnTxt}>Suiv. ›</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View>
+              {/* Day headers */}
+              <View style={{ flexDirection: 'row', paddingLeft: 44 }}>
+                {weekDates.map((date, i) => {
+                  const isToday = date.toDateString() === new Date().toDateString()
+                  return (
+                    <View key={i} style={[s.dayHeader, isToday && { backgroundColor: G }]}>
+                      <Text style={[s.dayName, isToday && { color: '#fff' }]}>{DAYS[i]}</Text>
+                      <Text style={[s.dayNum, isToday && { color: '#fff' }]}>{date.getDate()}</Text>
+                    </View>
+                  )
+                })}
+              </View>
+              
+              {/* Time slots */}
+              <ScrollView style={{ maxHeight: 500 }}>
+                {HOURS.map(time => (
+                  <View key={time} style={{ flexDirection: 'row', alignItems: 'stretch', minHeight: 52 }}>
+                    <View style={{ width: 44, justifyContent: 'center', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 9, color: '#9CA3AF' }}>{time}</Text>
+                    </View>
+                    {weekDates.map((date, i) => {
+                      const dow = date.getDay() === 0 ? 6 : date.getDay() - 1
+                      const isWorking = isWorkingHour(date, time)
+                      const slotLessons = getLessonsForSlot(date, time)
+                      const col = collectifs.find(c => c.day_of_week === dow && c.start_time?.startsWith(time))
+                      const dateStr = date.toISOString().split('T')[0]
+                      const isPast = date < new Date() && date.toDateString() !== new Date().toDateString()
+
+                      return (
+                        <TouchableOpacity
+                          key={i}
+                          style={[s.slot, !isWorking && s.slotEmpty]}
+                          onPress={() => {
+                            if (slotLessons.length > 0 || col) {
+                              setSlotDetail({ date: dateStr, time, lessons: slotLessons, collectif: col })
+                              setShowSlotDetail(true)
+                            } else if (isWorking && !isPast) {
+                              setSelectedSlot({ date: dateStr, time })
+                              setShowAddLesson(true)
+                            }
+                          }}
+                        >
+                          {col && slotLessons.length === 0 && (
+                            <View style={s.collectifBlock}>
+                              <Text style={s.collectifTime}>{time}</Text>
+                              <Text style={s.collectifLabel}>Collectif · max {col.max_players}</Text>
+                              <Text style={s.collectifPrice}>{prefs.group_price || 25}€/él.</Text>
+                            </View>
+                          )}
+                          {slotLessons.map((lesson, li) => (
+                            <View key={li} style={[s.lessonBlock, lesson.is_private_event ? { backgroundColor: '#FEF3C7' } : lesson.is_group ? s.lessonBlockGroup : s.lessonBlockPrivate]}>
+                              <Text style={[s.lessonTime, lesson.is_private_event && { color: '#D97706' }]}>{time}</Text>
+                              <Text style={s.lessonName} numberOfLines={1}>{lesson.is_private_event ? (lesson.title || 'Événement') : (lesson.players?.full_name || 'Cours privé')}</Text>
+                              {!lesson.is_private_event && <Text style={s.lessonPrice}>{lesson.price}€</Text>}
+                            </View>
+                          ))}
+                          {isWorking && slotLessons.length === 0 && !col && (
+                            <Text style={s.addSlotTxt}>+ Ajouter</Text>
+                          )}
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </ScrollView>
+
+          {/* Legend */}
+          <View style={{ flexDirection: 'row', gap: 16, padding: 12, paddingTop: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#E8F5EE' }} /><Text style={{ fontSize: 10, color: '#6B7280' }}>Cours privé</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#EEF2FF' }} /><Text style={{ fontSize: 10, color: '#6B7280' }}>Collectif</Text></View>
+          </View>
+        </View>
+      )}
+
       {tab === 'horaires' && (
         <ScrollView style={s.scroll}>
           <View style={s.section}>
             <Text style={s.sectionTitle}>Mes horaires de travail</Text>
             <Text style={s.sectionSub}>Créneaux générés automatiquement</Text>
-            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.label}>Jour</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {DAYS.map((d, i) => (
-                    <TouchableOpacity key={i} onPress={() => setNewWH({...newWH, day_of_week: i})} style={[s.chip, newWH.day_of_week === i && s.chipActive]}>
-                      <Text style={[s.chipTxt, newWH.day_of_week === i && { color: '#fff' }]}>{d.slice(0,3)}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+            <View style={{ marginBottom: 12 }}>
+              <Text style={s.label}>Jour</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((d, i) => (
+                  <TouchableOpacity key={i} onPress={() => setNewWH({...newWH, day_of_week: i})} style={[s.chip, newWH.day_of_week === i && s.chipActive]}>
+                    <Text style={[s.chipTxt, newWH.day_of_week === i && { color: '#fff' }]}>{d}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.label}>Début</Text>
+                  <TextInput style={s.input} value={newWH.start_time} onChangeText={v => setNewWH({...newWH, start_time: v})} placeholder="08:00" placeholderTextColor="#9CA3AF" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.label}>Fin</Text>
+                  <TextInput style={s.input} value={newWH.end_time} onChangeText={v => setNewWH({...newWH, end_time: v})} placeholder="12:00" placeholderTextColor="#9CA3AF" />
+                </View>
+                <TouchableOpacity style={[s.addBtn, { alignSelf: 'flex-end' }]} onPress={addWorkHour}>
+                  <Text style={s.addBtnTxt}>+ Ajouter</Text>
+                </TouchableOpacity>
               </View>
             </View>
-            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.label}>Début</Text>
-                <TextInput style={s.input} value={newWH.start_time} onChangeText={v => setNewWH({...newWH, start_time: v})} placeholder="08:00" placeholderTextColor="#9CA3AF" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.label}>Fin</Text>
-                <TextInput style={s.input} value={newWH.end_time} onChangeText={v => setNewWH({...newWH, end_time: v})} placeholder="12:00" placeholderTextColor="#9CA3AF" />
-              </View>
-              <TouchableOpacity style={[s.addBtn, { alignSelf: 'flex-end' }]} onPress={addWorkHour}>
-                <Text style={s.addBtnTxt}>+ Ajouter</Text>
-              </TouchableOpacity>
-            </View>
-            {DAYS.map((day, i) => {
+            {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((day, i) => {
               const wh = workHours.filter(w => w.day_of_week === i)
               if (wh.length === 0) return null
               return (
                 <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                  <Text style={{ width: 72, fontSize: 13, color: '#374151', fontWeight: '500' }}>{day}</Text>
+                  <Text style={{ width: 36, fontSize: 12, color: '#374151', fontWeight: '600' }}>{day}</Text>
                   {wh.map(w => (
                     <TouchableOpacity key={w.id} onPress={() => deleteWorkHour(w.id)} style={s.whChip}>
                       <Text style={s.whChipTxt}>{w.start_time?.slice(0,5)} — {w.end_time?.slice(0,5)} ×</Text>
@@ -165,17 +308,15 @@ export default function BookingScreen({ navigation }) {
           <View style={s.section}>
             <Text style={s.sectionTitle}>👥 Créneaux collectifs fixes</Text>
             <Text style={s.sectionSub}>Récurrents chaque semaine</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-              <View style={{ width: '100%' }}>
-                <Text style={s.label}>Jour</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {DAYS.map((d, i) => (
-                    <TouchableOpacity key={i} onPress={() => setNewCol({...newCol, day_of_week: i})} style={[s.chip, newCol.day_of_week === i && s.chipActive]}>
-                      <Text style={[s.chipTxt, newCol.day_of_week === i && { color: '#fff' }]}>{d.slice(0,3)}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+            <Text style={s.label}>Jour</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((d, i) => (
+                <TouchableOpacity key={i} onPress={() => setNewCol({...newCol, day_of_week: i})} style={[s.chip, newCol.day_of_week === i && s.chipActive]}>
+                  <Text style={[s.chipTxt, newCol.day_of_week === i && { color: '#fff' }]}>{d}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Heure</Text>
                 <TextInput style={s.input} value={newCol.start_time} onChangeText={v => setNewCol({...newCol, start_time: v})} placeholder="17:00" placeholderTextColor="#9CA3AF" />
@@ -189,13 +330,15 @@ export default function BookingScreen({ navigation }) {
                 <TextInput style={s.input} value={String(newCol.max_players)} onChangeText={v => setNewCol({...newCol, max_players: v})} keyboardType="numeric" placeholderTextColor="#9CA3AF" />
               </View>
             </View>
-            <TouchableOpacity style={s.addBtn} onPress={addCollectif}>
+            <TouchableOpacity style={[s.addBtn, { marginTop: 10 }]} onPress={addCollectif}>
               <Text style={s.addBtnTxt}>+ Ajouter</Text>
             </TouchableOpacity>
             {collectifs.map(c => (
               <View key={c.id} style={[s.whChip, { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10 }]}>
                 <View>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#3730A3' }}>{DAYS[c.day_of_week]} · {c.start_time?.slice(0,5)} — {new Date(new Date('1970-01-01T'+c.start_time).getTime() + c.duration_minutes*60000).toTimeString().slice(0,5)}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#3730A3' }}>
+                    {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][c.day_of_week]} · {c.start_time?.slice(0,5)}
+                  </Text>
                   <Text style={{ fontSize: 11, color: '#6B7280' }}>max {c.max_players} élèves · {c.duration_minutes} min</Text>
                 </View>
                 <TouchableOpacity onPress={() => deleteCollectif(c.id)}>
@@ -234,9 +377,7 @@ export default function BookingScreen({ navigation }) {
             </View>
             <View style={{ backgroundColor: '#F0FAF4', borderRadius: 12, padding: 14, marginTop: 12 }}>
               <Text style={{ fontSize: 13, color: '#374151', lineHeight: 22 }}>
-                {"• Cours de "}<Text style={{ fontWeight: '700' }}>{prefs.default_duration || 60} min</Text>{"\n"}
-                {"• Privé : "}<Text style={{ fontWeight: '700' }}>{prefs.private_price || 120}€</Text>{" · Collectif : "}<Text style={{ fontWeight: '700' }}>{prefs.group_price || 25}€/élève</Text>{" (max "}{prefs.max_group_size || 4}{")\n"}
-                {"• Revenus collectif max : "}<Text style={{ fontWeight: '700' }}>{(prefs.group_price || 25) * (prefs.max_group_size || 4)}€</Text>
+                {"• Cours de "}<Text style={{ fontWeight: '700' }}>{prefs.default_duration || 60} min</Text>{"\n• Privé : "}<Text style={{ fontWeight: '700' }}>{prefs.private_price || 120}€</Text>{" · Collectif : "}<Text style={{ fontWeight: '700' }}>{prefs.group_price || 25}€/élève</Text>{"\n• Revenus collectif max : "}<Text style={{ fontWeight: '700' }}>{(prefs.group_price || 25) * (prefs.max_group_size || 4)}€</Text>
               </Text>
             </View>
             <TouchableOpacity style={[s.addBtn, { marginTop: 16 }]} onPress={savePrefs}>
@@ -247,52 +388,100 @@ export default function BookingScreen({ navigation }) {
         </ScrollView>
       )}
 
-      {tab === 'agenda' && (
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
-            <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={s.weekBtn}>
-              <Text style={s.weekBtnTxt}>‹ Préc.</Text>
-            </TouchableOpacity>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: '#374151' }}>{weekLabel}</Text>
-            <TouchableOpacity onPress={() => setWeekOffset(weekOffset + 1)} style={s.weekBtn}>
-              <Text style={s.weekBtnTxt}>Suiv. ›</Text>
-            </TouchableOpacity>
+      {/* Add Lesson Modal */}
+      <Modal visible={showAddLesson} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+          <View style={s.modalHead}>
+            <TouchableOpacity onPress={() => setShowAddLesson(false)}><Text style={s.backTxt}>Annuler</Text></TouchableOpacity>
+            <Text style={s.modalTitle}>Ajouter un cours</Text>
+            <View style={{ width: 60 }} />
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={{ flexDirection: 'row' }}>
-              {weekDates.map((date, i) => {
-                const dayLessons = getLessonsForDay(date)
-                const dayCollectifs = getCollectifsForDay(date)
-                const isToday = date.toDateString() === new Date().toDateString()
-                return (
-                  <View key={i} style={{ width: 120, borderRightWidth: 0.5, borderRightColor: '#F0F4F0' }}>
-                    <View style={[s.dayHeader, isToday && { backgroundColor: G }]}>
-                      <Text style={[s.dayName, isToday && { color: '#fff' }]}>{DAYS[i].slice(0,3)}</Text>
-                      <Text style={[s.dayNum, isToday && { color: '#fff' }]}>{date.getDate()}</Text>
-                    </View>
-                    <ScrollView style={{ height: 400 }}>
-                      {dayCollectifs.map(c => (
-                        <View key={c.id} style={s.collectifSlot}>
-                          <Text style={s.collectifTime}>{c.start_time?.slice(0,5)}</Text>
-                          <Text style={s.collectifLabel}>Collectif · max {c.max_players}</Text>
-                          <Text style={s.collectifPrice}>{c.price || (c.max_players * (prefs.group_price || 25))}€/élève</Text>
-                        </View>
-                      ))}
-                      {dayLessons.map(l => (
-                        <View key={l.id} style={s.lessonSlot}>
-                          <Text style={s.lessonTime}>{l.start_time?.slice(0,5)}</Text>
-                          <Text style={s.lessonLabel}>Cours privé</Text>
-                          <Text style={s.lessonPrice}>{prefs.private_price || 120}€</Text>
-                        </View>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )
-              })}
+          <ScrollView style={{ padding: 20 }}>
+            <Text style={{ fontSize: 14, color: '#6B7280', marginBottom: 16 }}>
+              📅 {selectedSlot?.date} à {selectedSlot?.time}
+            </Text>
+            <Text style={s.label}>TYPE</Text>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <TouchableOpacity onPress={() => setLessonType('private')} style={[s.chip, lessonType === 'private' && s.chipActive]}>
+                <Text style={[s.chipTxt, lessonType === 'private' && { color: '#fff' }]}>💚 Cours privé</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setLessonType('group')} style={[s.chip, lessonType === 'group' && s.chipActive]}>
+                <Text style={[s.chipTxt, lessonType === 'group' && { color: '#fff' }]}>👥 Collectif</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setLessonType('event')} style={[s.chip, lessonType === 'event' && { backgroundColor: '#F59E0B', borderColor: '#F59E0B' }]}>
+                <Text style={[s.chipTxt, lessonType === 'event' && { color: '#fff' }]}>📌 Événement perso</Text>
+              </TouchableOpacity>
             </View>
+            {lessonType === 'event' && (
+              <View style={{ marginBottom: 16 }}>
+                <Text style={s.label}>TITRE</Text>
+                <TextInput style={s.input} value={eventTitle} onChangeText={setEventTitle} placeholder="Ex: Amener enfants à l'école" placeholderTextColor="#9CA3AF" />
+              </View>
+            )}
+            {lessonType !== 'event' && <Text style={s.label}>ÉLÈVE</Text>}
+            {lessonType !== 'event' && players.map(p => (
+              <TouchableOpacity key={p.id} onPress={() => setSelectedPlayer(p.id)} style={[s.playerRow, selectedPlayer === p.id && { backgroundColor: '#E8F5EE', borderColor: G }]}>
+                <View style={[s.playerAv, { backgroundColor: G }]}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{p.full_name?.charAt(0)}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#1a1a1a' }}>{p.full_name}</Text>
+                  <Text style={{ fontSize: 11, color: '#9CA3AF' }}>HCP {p.current_handicap}</Text>
+                </View>
+                {selectedPlayer === p.id && <Text style={{ color: G, fontSize: 18 }}>✓</Text>}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={[s.addBtn, { marginTop: 24, marginBottom: 40 }, ((lessonType !== 'event' && !selectedPlayer) || savingLesson) && { opacity: 0.6 }]} onPress={addLesson} disabled={(lessonType !== 'event' && !selectedPlayer) || savingLesson}>
+              <Text style={s.addBtnTxt}>{savingLesson ? 'Ajout...' : '+ Confirmer le cours'}</Text>
+            </TouchableOpacity>
           </ScrollView>
-        </View>
-      )}
+        </SafeAreaView>
+      </Modal>
+
+      {/* Slot Detail Modal */}
+      <Modal visible={showSlotDetail} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+          <View style={s.modalHead}>
+            <TouchableOpacity onPress={() => setShowSlotDetail(false)}><Text style={s.backTxt}>Fermer</Text></TouchableOpacity>
+            <Text style={s.modalTitle}>{slotDetail?.date} à {slotDetail?.time}</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView style={{ padding: 20 }}>
+            {slotDetail?.collectif && (
+              <View style={{ backgroundColor: '#EEF2FF', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#4F46E5' }}>👥 Cours collectif</Text>
+                <Text style={{ fontSize: 12, color: '#6366F1', marginTop: 4 }}>Max {slotDetail.collectif.max_players} élèves · {slotDetail.collectif.duration_minutes} min · {prefs.group_price || 25}€/élève</Text>
+              </View>
+            )}
+            {slotDetail?.lessons?.length === 0 && (
+              <Text style={{ color: '#9CA3AF', textAlign: 'center', marginTop: 20 }}>Aucun cours sur ce créneau</Text>
+            )}
+            {slotDetail?.lessons?.map(lesson => (
+              <View key={lesson.id} style={{ backgroundColor: '#E8F5EE', borderRadius: 14, padding: 16, marginBottom: 10 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: G }}>{lesson.players?.full_name || 'Cours privé'}</Text>
+                    <Text style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>HCP {lesson.players?.current_handicap} · {lesson.duration || 60} min</Text>
+                  </View>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: G }}>{lesson.price}€</Text>
+                </View>
+                <TouchableOpacity onPress={() => deleteLesson(lesson.id)} style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: '#FEF2F2', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
+                  <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600' }}>✕ Supprimer</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {slotDetail && (
+              <TouchableOpacity style={[s.addBtn, { marginTop: 16 }]} onPress={() => {
+                setShowSlotDetail(false)
+                setSelectedSlot({ date: slotDetail.date, time: slotDetail.time })
+                setTimeout(() => setShowAddLesson(true), 300)
+              }}>
+                <Text style={s.addBtnTxt}>+ Ajouter un élève sur ce créneau</Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -300,9 +489,11 @@ export default function BookingScreen({ navigation }) {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f8f8f8' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', padding: 16, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  tabs: { flexDirection: 'row', backgroundColor: '#fff', padding: 4, margin: 16, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: '#E5E7EB' },
+  header: { backgroundColor: '#fff', padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
+  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
+  btn2: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
+  btn2Txt: { fontSize: 11, fontWeight: '600', color: '#374151' },
+  tabs: { flexDirection: 'row', backgroundColor: '#fff', padding: 4, margin: 16, marginBottom: 4, borderRadius: 12, borderWidth: 0.5, borderColor: '#E5E7EB' },
   tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 10 },
   tabActive: { backgroundColor: G },
   tabTxt: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
@@ -320,17 +511,27 @@ const s = StyleSheet.create({
   addBtnTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
   whChip: { backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, marginRight: 6 },
   whChipTxt: { fontSize: 12, color: G, fontWeight: '500' },
-  weekBtn: { padding: 8 },
+  weekBtn: { padding: 4 },
   weekBtnTxt: { fontSize: 13, color: G, fontWeight: '600' },
-  dayHeader: { padding: 8, alignItems: 'center', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB', backgroundColor: '#fff' },
+  dayHeader: { width: 80, alignItems: 'center', padding: 8, borderRadius: 8, marginHorizontal: 2 },
   dayName: { fontSize: 10, fontWeight: '600', color: '#9CA3AF' },
-  dayNum: { fontSize: 18, fontWeight: '800', color: '#1a1a1a' },
-  collectifSlot: { margin: 4, padding: 8, backgroundColor: '#EEF2FF', borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#6366F1' },
-  collectifTime: { fontSize: 12, fontWeight: '700', color: '#4F46E5' },
-  collectifLabel: { fontSize: 10, color: '#6366F1' },
-  collectifPrice: { fontSize: 10, color: '#4F46E5', fontWeight: '600' },
-  lessonSlot: { margin: 4, padding: 8, backgroundColor: '#E8F5EE', borderRadius: 8, borderLeftWidth: 3, borderLeftColor: G },
-  lessonTime: { fontSize: 12, fontWeight: '700', color: G },
-  lessonLabel: { fontSize: 10, color: G },
-  lessonPrice: { fontSize: 10, color: G, fontWeight: '600' },
+  dayNum: { fontSize: 20, fontWeight: '800', color: '#1a1a1a' },
+  slot: { width: 80, minHeight: 52, marginHorizontal: 2, borderRadius: 6, borderWidth: 0.5, borderColor: '#F0F4F0', backgroundColor: '#FAFFFE', justifyContent: 'center', alignItems: 'center', padding: 3, marginBottom: 2 },
+  slotEmpty: { backgroundColor: '#f8f8f8', borderColor: '#F0F0F0' },
+  addSlotTxt: { fontSize: 9, color: '#D1D5DB' },
+  lessonBlock: { width: '100%', borderRadius: 5, padding: 4 },
+  lessonBlockPrivate: { backgroundColor: '#E8F5EE' },
+  lessonBlockGroup: { backgroundColor: '#EEF2FF' },
+  lessonTime: { fontSize: 10, fontWeight: '700', color: G },
+  lessonName: { fontSize: 9, color: '#374151', fontWeight: '500' },
+  lessonPrice: { fontSize: 9, color: G, fontWeight: '600' },
+  collectifBlock: { width: '100%', borderRadius: 5, padding: 4, backgroundColor: '#EEF2FF' },
+  collectifTime: { fontSize: 10, fontWeight: '700', color: '#4F46E5' },
+  collectifLabel: { fontSize: 9, color: '#6366F1' },
+  collectifPrice: { fontSize: 9, color: '#4F46E5', fontWeight: '600' },
+  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  backTxt: { fontSize: 15, color: G, fontWeight: '600' },
+  playerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 8, backgroundColor: '#fff' },
+  playerAv: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 })
