@@ -166,14 +166,7 @@ export default function BookingScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <Text style={s.title}>Booking</Text>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          <TouchableOpacity style={[s.btn2, { borderColor: G }]} onPress={() => navigation.navigate('Sessions')}>
-            <Text style={[s.btn2Txt, { color: G }]}>+ Session</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.btn2, { backgroundColor: G, borderColor: G }]} onPress={() => navigation.navigate('Players')}>
-            <Text style={[s.btn2Txt, { color: '#fff' }]}>+ Player</Text>
-          </TouchableOpacity>
-        </View>
+
       </View>
 
       <View style={s.tabs}>

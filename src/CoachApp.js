@@ -82,9 +82,17 @@ export default function CoachApp({ navigation }) {
           <Text style={styles.headerTitle}>Dashboard</Text>
           <Text style={styles.headerDate}>{now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.signOutBtn}>
-          <Text style={styles.signOutTxt}>⚙️</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => navigation.navigate('Booking')} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: G, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: G }}>+ Session</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Players')} style={{ backgroundColor: G, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>+ Player</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.signOutBtn}>
+            <Text style={styles.signOutTxt}>⚙️</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>

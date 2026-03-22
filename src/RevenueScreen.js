@@ -84,17 +84,9 @@ export default function RevenueScreen({ navigation }) {
           <Text style={s.title}>Revenue</Text>
           <Text style={s.sub}>{sessions.length} sessions</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          <TouchableOpacity onPress={exportRevenue} style={s.btn2}>
-            <Text style={s.btn2Txt}>↑ Export</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.btn2, { borderColor: G }]} onPress={() => setShowAddSession(true)}>
-            <Text style={[s.btn2Txt, { color: G }]}>+ Session</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.btn2, { backgroundColor: G, borderColor: G }]} onPress={() => setShowAddPlayer(true)}>
-            <Text style={[s.btn2Txt, { color: '#fff' }]}>+ Player</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={exportRevenue} style={s.btn2}>
+          <Text style={s.btn2Txt}>↑ Export</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>

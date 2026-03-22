@@ -63,14 +63,9 @@ export default function PlayersScreen({ navigation }) {
           <Text style={s.title}>My players</Text>
           <Text style={s.sub}>{players.length} players</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity style={[s.addBtn, { backgroundColor: '#fff', borderWidth: 1, borderColor: G }]} onPress={() => setShowAddSession(true)}>
-            <Text style={[s.addBtnTxt, { color: G }]}>+ Session</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)}>
-            <Text style={s.addBtnTxt}>+ Player</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)}>
+          <Text style={s.addBtnTxt}>+ Player</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>

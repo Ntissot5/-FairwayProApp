@@ -107,14 +107,7 @@ export default function ChatScreen({ navigation }) {
           <Text style={s.title}>Chat</Text>
           <Text style={s.sub}>Conversations</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          <TouchableOpacity style={s.btn2} onPress={() => setShowAddSession(true)}>
-            <Text style={s.btn2Txt}>+ Session</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.btn2, { backgroundColor: G, borderColor: G }]} onPress={() => setShowAddPlayer(true)}>
-            <Text style={[s.btn2Txt, { color: '#fff' }]}>+ Player</Text>
-          </TouchableOpacity>
-        </View>
+
       </View>
       <ScrollView style={s.scroll}>
         {players.map((p, i) => (

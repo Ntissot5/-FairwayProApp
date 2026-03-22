@@ -346,55 +346,13 @@ export default function SessionsScreen({ navigation }) {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1.5 }}>
                 <Text style={s.label}>Date</Text>
-                <TouchableOpacity style={[s.input, { justifyContent: 'center' }]} onPress={() => setShowCalendar(!showCalendar)}>
-                  <Text style={{ color: '#1a1a1a', fontSize: 15 }}>📅 {newSession.session_date}</Text>
-                </TouchableOpacity>
+                <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholder="2026-03-22" placeholderTextColor="#9CA3AF" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Heure</Text>
                 <TextInput style={s.input} value={newSession.start_time} onChangeText={v => setNewSession({...newSession, start_time: v})} placeholder="09:00" placeholderTextColor="#9CA3AF" />
               </View>
             </View>
-            {showCalendar && (() => {
-              const DAYS = ['L','M','M','J','V','S','D']
-              const MONTHS = ['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec']
-              const year = calViewDate.getFullYear()
-              const month = calViewDate.getMonth()
-              const firstDay = new Date(year, month, 1).getDay()
-              const daysInMonth = new Date(year, month + 1, 0).getDate()
-              const offset = firstDay === 0 ? 6 : firstDay - 1
-              const days = []
-              for (let i = 0; i < offset; i++) days.push(null)
-              for (let i = 1; i <= daysInMonth; i++) days.push(i)
-              return (
-                <View style={{ backgroundColor: '#F8FAF8', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <TouchableOpacity onPress={() => setCalViewDate(new Date(year, month - 1, 1))} style={{ padding: 6 }}>
-                      <Text style={{ fontSize: 18, color: '#1B5E35', fontWeight: '700' }}>‹</Text>
-                    </TouchableOpacity>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1a1a1a' }}>{MONTHS[month]} {year}</Text>
-                    <TouchableOpacity onPress={() => setCalViewDate(new Date(year, month + 1, 1))} style={{ padding: 6 }}>
-                      <Text style={{ fontSize: 18, color: '#1B5E35', fontWeight: '700' }}>›</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={{ flexDirection: 'row', marginBottom: 4 }}>
-                    {DAYS.map((d, i) => <Text key={i} style={{ flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '600', color: '#9CA3AF' }}>{d}</Text>)}
-                  </View>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                    {days.map((day, i) => {
-                      const dateStr = day ? year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0') : null
-                      const isSelected = dateStr === newSession.session_date
-                      const isToday = day && new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year
-                      return (
-                        <TouchableOpacity key={i} style={[{ width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 20 }, isSelected && { backgroundColor: '#1B5E35' }, isToday && !isSelected && { borderWidth: 1.5, borderColor: '#1B5E35' }]} onPress={() => { if (day) { setNewSession({...newSession, session_date: dateStr}); setShowCalendar(false) } }}>
-                          <Text style={[{ fontSize: 13, color: '#1a1a1a' }, isSelected && { color: '#fff', fontWeight: '700' }, isToday && !isSelected && { color: '#1B5E35', fontWeight: '700' }]}>{day || ''}</Text>
-                        </TouchableOpacity>
-                      )
-                    })}
-                  </View>
-                </View>
-              )
-            })()}
             <Text style={s.label}>Notes</Text>
             <TextInput style={[s.input, { height: 80 }]} value={newSession.notes} onChangeText={v => setNewSession({...newSession, notes: v})} placeholder="Putting, drive..." placeholderTextColor="#9CA3AF" multiline />
             <TouchableOpacity style={[s.btn, saving && { opacity: 0.7 }]} onPress={addSession} disabled={saving}>
