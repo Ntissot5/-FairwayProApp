@@ -98,7 +98,19 @@ export default function BookingScreen({ navigation }) {
       title: lessonType === 'event' ? eventTitle : null,
       price: lessonType === 'private' ? (prefs.private_price || 120) : lessonType === 'group' ? (prefs.group_price || 25) : 0
     })
-    if (error) Alert.alert('Erreur', error.message)
+    if (error) {
+      Alert.alert('Erreur', error.message)
+    } else if (lessonType !== 'event' && selectedPlayer) {
+      // Also create a session for revenue tracking
+      await supabase.from('sessions').insert({
+        coach_id: userId,
+        player_id: selectedPlayer,
+        price: lessonType === 'private' ? (prefs.private_price || 120) : (prefs.group_price || 25),
+        session_date: selectedSlot.date,
+        notes: lessonType === 'group' ? 'Cours collectif' : 'Cours privé',
+        paid: false
+      })
+    }
     setSavingLesson(false)
     setShowAddLesson(false)
     setSelectedPlayer(null)
@@ -140,9 +152,10 @@ export default function BookingScreen({ navigation }) {
   const isWorkingHour = (date, time) => {
     const dow = date.getDay() === 0 ? 6 : date.getDay() - 1
     const wh = workHours.filter(w => w.day_of_week === dow)
+    if (wh.length === 0) return true // Show all slots if no work hours set
     return wh.some(w => {
-      const start = w.start_time?.slice(0, 5)
-      const end = w.end_time?.slice(0, 5)
+      const start = (w.start_time || '').slice(0, 5)
+      const end = (w.end_time || '').slice(0, 5)
       return time >= start && time < end
     })
   }
@@ -221,7 +234,7 @@ export default function BookingScreen({ navigation }) {
                             if (slotLessons.length > 0 || col) {
                               setSlotDetail({ date: dateStr, time, lessons: slotLessons, collectif: col })
                               setShowSlotDetail(true)
-                            } else if (isWorking && !isPast) {
+                            } else {
                               setSelectedSlot({ date: dateStr, time })
                               setShowAddLesson(true)
                             }
@@ -242,7 +255,9 @@ export default function BookingScreen({ navigation }) {
                             </View>
                           ))}
                           {isWorking && slotLessons.length === 0 && !col && (
-                            <Text style={s.addSlotTxt}>+ Ajouter</Text>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                              <Text style={{ fontSize: 18, color: '#D1D5DB', fontWeight: '300' }}>+</Text>
+                            </View>
                           )}
                         </TouchableOpacity>
                       )
