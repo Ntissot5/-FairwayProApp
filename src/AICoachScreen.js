@@ -48,7 +48,6 @@ Answer in the same language as the coach's question.`
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZGlmemdxZmVtZmRjaWd4c2d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMDY0NTQsImV4cCI6MjA1Nzg4MjQ1NH0.xFbFMWEpAiiGATRbGhiMHHaKKVFMSEcbGxBIaBBkFhA',
-          'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
