@@ -50,7 +50,7 @@ Answer in the same language as the coach's question.`
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZGlmemdxZmVtZmRjaWd4c2d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMDY0NTQsImV4cCI6MjA1Nzg4MjQ1NH0.xFbFMWEpAiiGATRbGhiMHHaKKVFMSEcbGxBIaBBkFhA',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
+          model: 'claude-haiku-4-5-20251001',
           max_tokens: 500,
           system: systemPrompt,
           messages: newMessages.map(m => ({ role: m.role, content: m.content }))
