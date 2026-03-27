@@ -76,13 +76,10 @@ export default function PlayerDetailScreen({ route, navigation }) {
     setGenerating(session.id)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('https://aqdifzgqfemfdcigxsgw.supabase.co/functions/v1/claude-proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 500, messages: [{ role: 'user', content: 'Generate 3 golf training exercises. Return ONLY a JSON array, no other text: [{"title":"...","description":"..."}]
-
-Player: ' + player.full_name + ', HCP: ' + player.current_handicap + '
-Session notes: ' + (session.notes || 'General') }] })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 500, messages: [{ role: 'user', content: 'Generate 3 golf training exercises. Return ONLY a JSON array: [{"title":"...","description":"..."}] Player: ' + player.full_name + ', HCP: ' + player.current_handicap + ', Notes: ' + (session.notes || 'General') }] })
       })
       const data = await response.json()
       const text = data.content?.[0]?.text || '[]'
