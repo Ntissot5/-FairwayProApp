@@ -297,7 +297,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
                 <Text style={[s.exTitle, ex.completed && s.exTitleDone]}>{ex.title}</Text>
                 {ex.description ? <Text style={s.exDesc}>{ex.description}</Text> : null}
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 

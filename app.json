@@ -50,6 +50,10 @@
           "sounds": []
         }
       ]
-    ]
+    ],
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/3aedbcbf-ef94-4851-8d79-4ff5ea49f722"
+    }
   }
 }
