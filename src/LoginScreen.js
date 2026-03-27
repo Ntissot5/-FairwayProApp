@@ -34,7 +34,15 @@ export default function LoginScreen({ navigation, route }) {
     } catch(e) {}
     setLoading(false)
     if (mode === 'coach') {
-      navigation.replace('CoachTabs')
+      // Vérifier l'abonnement
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: coach } = await supabase.from('coaches').select('subscription_status').eq('id', user.id).single()
+      const status = coach?.subscription_status
+      if (status === 'active' || status === 'trial') {
+        navigation.replace('CoachTabs')
+      } else {
+        navigation.replace('Subscribe')
+      }
     } else {
       navigation.replace('PlayerApp')
     }

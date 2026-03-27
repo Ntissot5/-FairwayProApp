@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
+const ANTHROPIC_KEY = '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'
 
 export default function AICoachScreen() {
   const [players, setPlayers] = useState([])
@@ -42,14 +43,16 @@ Sessions: ${JSON.stringify(sessions.map(s => ({ player_id: s.player_id, date: s.
 Total revenue: ${sessions.reduce((sum, s) => sum + (s.price || 0), 0)}€
 Answer in the same language as the coach's question.`
 
-      const response = await fetch('https://aqdifzgqfemfdcigxsgw.supabase.co/functions/v1/claude-proxy', {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZGlmemdxZmVtZmRjaWd4c2d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMDY0NTQsImV4cCI6MjA1Nzg4MjQ1NH0.xFbFMWEpAiiGATRbGhiMHHaKKVFMSEcbGxBIaBBkFhA',
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
+          model: 'claude-sonnet-4-6',
           max_tokens: 500,
           system: systemPrompt,
           messages: newMessages.map(m => ({ role: m.role, content: m.content }))
