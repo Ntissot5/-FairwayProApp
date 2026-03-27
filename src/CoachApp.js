@@ -53,10 +53,10 @@ export default function CoachApp({ navigation }) {
       const { data: slots } = await supabase.from('availabilities').select('*').order('day_of_week')
       const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
       const slotText = slots && slots.length > 0 ? 'Créneaux disponibles: ' + slots.map(s => DAYS[s.day_of_week] + ' ' + s.start_time?.slice(0,5)).join(', ') : ''
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('https://aqdifzgqfemfdcigxsgw.supabase.co/functions/v1/claude-proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': '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', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 200, messages: [{ role: 'user', content: `Tu es un coach de golf professionnel. Écris un message court et chaleureux pour relancer un élève inactif sur le practice. Élève: ${player.full_name}, HCP: ${player.current_handicap}, inactif depuis ${days} jours. ${slotText ? slotText + '. Propose un créneau précis.' : ''} 2-3 phrases max, pas de signature.` }] })
+        headers: { 'Content-Type': 'application/json', 'x-api-key': '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', },
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: `Tu es un coach de golf professionnel. Écris un message court et chaleureux pour relancer un élève inactif sur le practice. Élève: ${player.full_name}, HCP: ${player.current_handicap}, inactif depuis ${days} jours. ${slotText ? slotText + '. Propose un créneau précis.' : ''} 2-3 phrases max, pas de signature.` }] })
       })
       const data = await response.json()
       const msg = data.content?.[0]?.text?.trim()
