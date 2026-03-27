@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+const ANTHROPIC_KEY = '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'
 
 const G = '#1B5E35'
-const ANTHROPIC_KEY = 'process.env.EXPO_PUBLIC_ANTHROPIC_KEY'
+const ANTHROPIC_KEY = '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'
 
 export default function SessionsScreen({ navigation }) {
   const [players, setPlayers] = useState([])
@@ -88,19 +89,19 @@ export default function SessionsScreen({ navigation }) {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: 'Tu es un coach de golf expert. Génère un plan dentraînement personnalisé. Joueur: ' + player.full_name + ', HCP: ' + player.current_handicap + '. Notes: ' + (session.notes || 'Séance standard') + '. Crée 3-4 exercices avec titre et description. Format: liste numérotée.' }] })
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 500, messages: [{ role: 'user', content: 'Generate 3 golf training exercises. Return ONLY a JSON array, no other text: [{"title":"...","description":"..."}]
+
+Player: ' + player.full_name + ', HCP: ' + player.current_handicap + '
+Session notes: ' + (session.notes || 'General') }] })
       })
       const data = await response.json()
-      const plan = data.content?.[0]?.text?.trim()
-      if (plan) {
-        const lines = plan.split('\n').filter(l => l.match(/^\d+\./))
-        for (const line of lines) {
-          const title = line.replace(/^\d+\.\s*/, '').split(':')[0].replace(/[*]/g, '').trim()
-          const desc = line.split(':').slice(1).join(':').trim()
-          if (title) await supabase.from('exercises').insert({ player_id: player.id, coach_id: user.id, title, description: desc, completed: false })
-        }
-        Alert.alert('✓ Plan généré!', 'Envoyé à ' + player.full_name)
+      const text = data.content?.[0]?.text || '[]'
+      const clean = text.replace(/```json|```/g, '').trim()
+      const exercises = JSON.parse(clean)
+      for (const ex of exercises) {
+        await supabase.from('exercises').insert({ player_id: player.id, coach_id: user.id, title: ex.title, description: ex.description, completed: false })
       }
+      Alert.alert('✓ Plan généré!', '3 exercices ajoutés pour ' + player.full_name)
     } catch(e) { Alert.alert('Erreur', e.message) }
     setGenerating(null)
   }
