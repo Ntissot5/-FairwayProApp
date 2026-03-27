@@ -14,7 +14,6 @@ import RevenueScreen from "./src/RevenueScreen"
 import ChatScreen from "./src/ChatScreen"
 import BookingScreen from "./src/BookingScreen"
 import SettingsScreen from "./src/SettingsScreen"
-import AICoachScreen from "./src/AICoachScreen"
 import { supabase } from "./src/supabase"
 import { registerForPushNotifications, savePushToken } from "./src/notifications"
 import { OnboardingProvider } from "./src/OnboardingContext"
@@ -41,7 +40,6 @@ function CoachTabs() {
       <CoachTab.Screen name="Sessions" component={SessionsScreen} options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 16, color }}>{"🏌️"}</Text>, tabBarLabel: "Sessions" }} />
       <CoachTab.Screen name="Revenue" component={RevenueScreen} options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 16, color }}>{"💰"}</Text>, tabBarLabel: "Revenue" }} />
       <CoachTab.Screen name="Chat" component={ChatScreen} options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 16, color }}>{"💬"}</Text>, tabBarLabel: "Chat" }} />
-      <CoachTab.Screen name="AICoach" component={AICoachScreen} options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 16, color }}>{"🤖"}</Text>, tabBarLabel: "AI Coach" }} />
       <CoachTab.Screen name="Booking" component={BookingScreen} options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 16, color }}>{"📅"}</Text>, tabBarLabel: "Booking" }} />
     </CoachTab.Navigator>
   )
