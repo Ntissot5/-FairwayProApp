@@ -7,7 +7,6 @@ import { Svg, Path, Circle, Text as SvgText, Line, Defs, LinearGradient, Stop } 
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
-const ANTHROPIC_KEY = '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'
 
 export default function PlayerDetailScreen({ route, navigation }) {
   const { player: initialPlayer } = route.params
