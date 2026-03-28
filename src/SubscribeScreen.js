@@ -1,15 +1,9 @@
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { supabase } from './supabase'
 
 const G = '#1B5E35'
 
 export default function SubscribeScreen({ navigation }) {
-  const () => navigation.replace('Welcome') = async () => {
-    await supabase.auth.() => navigation.replace('Welcome')()
-    navigation.replace('Welcome')
-  }
-
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.container}>
@@ -22,7 +16,7 @@ export default function SubscribeScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity style={s.btnGhost} onPress={() => navigation.replace('Welcome')}>
-          <Text style={s.btnGhostTxt}>Se connecter avec un autre compte</Text>
+          <Text style={s.btnGhostTxt}>Se connecter</Text>
         </TouchableOpacity>
 
         <Text style={s.note}>Tu as déjà un abonnement ? Connecte-toi sur fairwaypro.io pour vérifier ton compte.</Text>
