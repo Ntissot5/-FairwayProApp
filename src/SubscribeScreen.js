@@ -5,8 +5,8 @@ import { supabase } from './supabase'
 const G = '#1B5E35'
 
 export default function SubscribeScreen({ navigation }) {
-  const signOut = async () => {
-    await supabase.auth.signOut()
+  const () => navigation.replace('Welcome') = async () => {
+    await supabase.auth.() => navigation.replace('Welcome')()
     navigation.replace('Welcome')
   }
 
@@ -21,8 +21,8 @@ export default function SubscribeScreen({ navigation }) {
           <Text style={s.btnPrimaryTxt}>Voir les offres →</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.btnGhost} onPress={signOut}>
-          <Text style={s.btnGhostTxt}>Se déconnecter</Text>
+        <TouchableOpacity style={s.btnGhost} onPress={() => navigation.replace('Welcome')}>
+          <Text style={s.btnGhostTxt}>Se connecter avec un autre compte</Text>
         </TouchableOpacity>
 
         <Text style={s.note}>Tu as déjà un abonnement ? Connecte-toi sur fairwaypro.io pour vérifier ton compte.</Text>
