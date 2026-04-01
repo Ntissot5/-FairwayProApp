@@ -70,7 +70,6 @@ export default function PlayerDetailScreen({ route, navigation }) {
   }
 
   const generateAIPlan = async (session) => {
-    const player = players.find(p => p.id === session.player_id)
     if (!player) return
     setGenerating(session.id)
     try {
@@ -88,6 +87,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
         await supabase.from('exercises').insert({ player_id: player.id, coach_id: user.id, title: ex.title, description: ex.description, completed: false })
       }
       Alert.alert('✓ Plan généré!', '3 exercices ajoutés pour ' + player.full_name)
+    fetchAll()
     } catch(e) { Alert.alert('Erreur', e.message) }
     setGenerating(null)
   }
