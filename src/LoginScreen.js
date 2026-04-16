@@ -8,7 +8,7 @@ const G = '#1B5E35'
 
 export default function LoginScreen({ navigation, route }) {
   const { mode, demo } = route.params
-  const [isSignup, setIsSignup] = useState(false)
+  const isSignup = false
   const [email, setEmail] = useState(demo ? 'demo@fairwaypro.io' : '')
   const [password, setPassword] = useState(demo ? 'FairwayDemo2026' : '')
   const [loading, setLoading] = useState(false)
@@ -36,12 +36,7 @@ export default function LoginScreen({ navigation, route }) {
     if (mode === 'coach') {
       // Vérifier l'abonnement
       const { data: { user } } = await supabase.auth.getUser()
-      const status = user?.app_metadata?.subscription_status
-      if (status === 'active' || status === 'trial') {
-        navigation.replace('CoachTabs')
-      } else {
-        navigation.replace('Subscribe')
-      }
+      navigation.replace('CoachTabs')
     } else {
       navigation.replace('PlayerApp')
     }
@@ -63,9 +58,7 @@ export default function LoginScreen({ navigation, route }) {
             <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleAuth} disabled={loading}>
               {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnTxt}>{isSignup ? 'Créer mon compte →' : 'Se connecter →'}</Text>}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setIsSignup(!isSignup); setError(null) }}>
-              <Text style={styles.switch}>{isSignup ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? Créer un compte'}</Text>
-            </TouchableOpacity>
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { Text } from "react-native"
 import WelcomeScreen from "./src/WelcomeScreen"
-import SubscribeScreen from "./src/SubscribeScreen"
+
 import LoginScreen from "./src/LoginScreen"
 import CoachApp from "./src/CoachApp"
 import PlayersScreen from "./src/PlayersScreen"
@@ -91,7 +91,7 @@ export default function App() {
       <OnboardingProvider>
       <NavigationContainer>
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
-          <RootStack.Screen name="Subscribe" component={SubscribeScreen} options={{ headerShown: false }} />
+          
       <RootStack.Screen name="Welcome" component={WelcomeScreen} />
           <RootStack.Screen name="Login" component={LoginScreen} />
           <RootStack.Screen name="CoachTabs" component={CoachTabs} />
