@@ -1,14 +1,20 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native'
-
-const G = '#1B5E35'
-const DAYS = ['L','M','M','J','V','S','D']
-const MONTHS = ['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre']
+import { Ionicons } from '@expo/vector-icons'
+import { useTheme } from './ThemeContext'
+import { useTranslation } from 'react-i18next'
+import AnimatedPressable from './components/AnimatedPressable'
 
 export default function CalendarPicker({ value, onChange, onClose }) {
+  const { colors } = useTheme()
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const initial = value ? new Date(value) : new Date()
   const [viewDate, setViewDate] = useState(new Date(initial.getFullYear(), initial.getMonth(), 1))
   const selected = value ? new Date(value) : null
+
+  const DAYS = ['L','M','M','J','V','S','D']
+  const MONTHS = t('calendar.months', { returnObjects: true })
 
   const prevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))
   const nextMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))
@@ -49,13 +55,13 @@ export default function CalendarPicker({ value, onChange, onClose }) {
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity style={s.container} activeOpacity={1}>
           <View style={s.header}>
-            <TouchableOpacity onPress={prevMonth} style={s.navBtn}>
-              <Text style={s.navTxt}>{"<"}</Text>
-            </TouchableOpacity>
+            <AnimatedPressable onPress={prevMonth} style={s.navBtn}>
+              <Ionicons name="chevron-back" size={18} color={colors.primary} />
+            </AnimatedPressable>
             <Text style={s.monthTitle}>{MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}</Text>
-            <TouchableOpacity onPress={nextMonth} style={s.navBtn}>
-              <Text style={s.navTxt}>{">"}</Text>
-            </TouchableOpacity>
+            <AnimatedPressable onPress={nextMonth} style={s.navBtn}>
+              <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+            </AnimatedPressable>
           </View>
           <View style={s.daysHeader}>
             {DAYS.map((d, i) => (
@@ -71,31 +77,30 @@ export default function CalendarPicker({ value, onChange, onClose }) {
               </TouchableOpacity>
             ))}
           </View>
-          <TouchableOpacity style={s.cancelBtn} onPress={onClose}>
-            <Text style={s.cancelTxt}>Annuler</Text>
-          </TouchableOpacity>
+          <AnimatedPressable style={s.cancelBtn} onPress={onClose} haptic={false}>
+            <Text style={s.cancelTxt}>{t('common.cancel')}</Text>
+          </AnimatedPressable>
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>
   )
 }
 
-const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-  container: { backgroundColor: '#fff', borderRadius: 20, padding: 20, width: 320 },
+const makeStyles = (c) => StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: c.overlay, justifyContent: 'center', alignItems: 'center' },
+  container: { backgroundColor: c.card, borderRadius: 20, padding: 20, width: 320 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  navBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F8FAF8', alignItems: 'center', justifyContent: 'center' },
-  navTxt: { fontSize: 18, color: G, fontWeight: '600' },
-  monthTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  navBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: c.bgSecondary, alignItems: 'center', justifyContent: 'center' },
+  monthTitle: { fontSize: 16, fontWeight: '700', color: c.text },
   daysHeader: { flexDirection: 'row', marginBottom: 8 },
-  dayLabel: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '600', color: '#9CA3AF' },
+  dayLabel: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '600', color: c.textTertiary },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   dayCell: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 20 },
-  dayCellSelected: { backgroundColor: G },
-  dayCellToday: { borderWidth: 1.5, borderColor: G },
-  dayTxt: { fontSize: 14, color: '#1a1a1a', fontWeight: '500' },
+  dayCellSelected: { backgroundColor: c.primary },
+  dayCellToday: { borderWidth: 1.5, borderColor: c.primary },
+  dayTxt: { fontSize: 14, color: c.text, fontWeight: '500' },
   dayTxtSelected: { color: '#fff', fontWeight: '700' },
-  dayTxtToday: { color: G, fontWeight: '700' },
+  dayTxtToday: { color: c.primary, fontWeight: '700' },
   cancelBtn: { marginTop: 16, alignItems: 'center', padding: 10 },
-  cancelTxt: { fontSize: 15, color: '#9CA3AF', fontWeight: '600' },
+  cancelTxt: { fontSize: 15, color: c.textTertiary, fontWeight: '600' },
 })

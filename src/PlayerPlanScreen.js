@@ -1,11 +1,18 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
+import { useState, useEffect, useMemo } from 'react'
+import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from './supabase'
-
-const G = '#1B5E35'
+import { useTheme } from './ThemeContext'
+import { useTranslation } from 'react-i18next'
+import AnimatedPressable from './components/AnimatedPressable'
+import AnimatedListItem from './components/AnimatedListItem'
+import { CardListSkeleton } from './components/Skeleton'
 
 export default function PlayerPlanScreen() {
+  const { colors } = useTheme()
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -33,41 +40,47 @@ export default function PlayerPlanScreen() {
   const total = exercises.length
   const done = total - todo
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <SafeAreaView style={s.safe}><View style={s.header}><Text style={s.title}>{t('playerPlan.title')}</Text></View><CardListSkeleton /></SafeAreaView>
 
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.title}>Training plan</Text>
+        <Text style={s.title}>{t('playerPlan.title')}</Text>
         <Text style={s.sub}>{today}</Text>
       </View>
-      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
+      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
         <View style={s.statsRow}>
           <View style={[s.stat, s.statGreen]}>
-            <Text style={s.statValue}>{done}</Text>
+            <Text style={s.statValueGreen}>{done}</Text>
+            <Text style={[s.statLabel, { color: colors.primary }]}>{t('playerPlan.done')}</Text>
           </View>
           <View style={s.stat}>
-            <Text style={[s.statValue, { color: "#1a1a1a" }]}>{todo}</Text>
-            <Text style={s.statLabel}>To do</Text>
+            <Text style={s.statValue}>{todo}</Text>
+            <Text style={s.statLabel}>{t('playerPlan.todo')}</Text>
           </View>
           <View style={s.stat}>
-            <Text style={[s.statValue, { color: "#1a1a1a" }]}>{total}</Text>
-            <Text style={s.statLabel}>Total</Text>
+            <Text style={s.statValue}>{total}</Text>
+            <Text style={s.statLabel}>{t('playerPlan.total')}</Text>
           </View>
         </View>
         <View style={s.section}>
           {exercises.length === 0 ? (
-            <Text style={s.empty}>No exercises this week</Text>
-          ) : exercises.map(ex => (
-            <TouchableOpacity key={ex.id} style={s.exRow} onPress={() => toggleExercise(ex)}>
-              <View style={[s.checkbox, ex.completed && s.checkboxDone]}>
-                {ex.completed && <Text style={{ color: "#fff", fontSize: 12 }}>✓</Text>}
-              </View>
-              <View style={s.exInfo}>
-                <Text style={[s.exTitle, ex.completed && s.exTitleDone]}>{ex.title}</Text>
-                {ex.description ? <Text style={s.exDesc}>{ex.description}</Text> : null}
-              </View>
-            </TouchableOpacity>
+            <View style={s.emptyWrap}>
+              <Ionicons name="clipboard-outline" size={40} color={colors.separator} />
+              <Text style={s.empty}>{t('playerPlan.noExercises')}</Text>
+            </View>
+          ) : exercises.map((ex, i) => (
+            <AnimatedListItem key={ex.id} index={i}>
+              <AnimatedPressable style={s.exRow} onPress={() => toggleExercise(ex)} hapticStyle={ex.completed ? 'light' : 'medium'}>
+                <View style={[s.checkbox, ex.completed && s.checkboxDone]}>
+                  {ex.completed && <Ionicons name="checkmark" size={14} color="#fff" />}
+                </View>
+                <View style={s.exInfo}>
+                  <Text style={[s.exTitle, ex.completed && s.exTitleDone]}>{ex.title}</Text>
+                  {ex.description ? <Text style={s.exDesc}>{ex.description}</Text> : null}
+                </View>
+              </AnimatedPressable>
+            </AnimatedListItem>
           ))}
         </View>
         <View style={{ height: 40 }} />
@@ -76,25 +89,26 @@ export default function PlayerPlanScreen() {
   )
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f8f8f8" },
-  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: { backgroundColor: "#fff", padding: 16, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: "#E5E7EB" },
-  title: { fontSize: 22, fontWeight: "800", color: "#1a1a1a" },
-  sub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+const makeStyles = (c) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bgSecondary },
+  header: { backgroundColor: c.card, padding: 16, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: c.separator },
+  title: { fontSize: 22, fontWeight: '800', color: c.text },
+  sub: { fontSize: 12, color: c.textTertiary, marginTop: 2 },
   scroll: { flex: 1 },
-  statsRow: { flexDirection: "row", gap: 12, padding: 16 },
-  stat: { flex: 1, backgroundColor: "#fff", borderRadius: 14, padding: 16, alignItems: "center", borderWidth: 0.5, borderColor: "#E5E7EB" },
-  statGreen: { backgroundColor: "#E8F5EE", borderColor: G },
-  statValue: { fontSize: 28, fontWeight: "800", color: G },
-  statLabel: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
-  section: { backgroundColor: "#fff", borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: "#E5E7EB", overflow: "hidden" },
-  empty: { padding: 32, textAlign: "center", color: "#9CA3AF", fontSize: 13 },
-  exRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#F8FAF8" },
-  checkbox: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: "#E5E7EB", alignItems: "center", justifyContent: "center", marginTop: 2 },
-  checkboxDone: { backgroundColor: G, borderColor: G },
+  statsRow: { flexDirection: 'row', gap: 12, padding: 16 },
+  stat: { flex: 1, backgroundColor: c.card, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 0.5, borderColor: c.separator },
+  statGreen: { backgroundColor: c.primaryLight, borderColor: c.primary },
+  statValueGreen: { fontSize: 28, fontWeight: '800', color: c.primary },
+  statValue: { fontSize: 28, fontWeight: '800', color: c.text },
+  statLabel: { fontSize: 11, color: c.textTertiary, marginTop: 2 },
+  section: { backgroundColor: c.card, borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: c.separator, overflow: 'hidden' },
+  emptyWrap: { padding: 40, alignItems: 'center', gap: 12 },
+  empty: { textAlign: 'center', color: c.textTertiary, fontSize: 13 },
+  exRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: c.separatorLight },
+  checkbox: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: c.separator, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  checkboxDone: { backgroundColor: c.primary, borderColor: c.primary },
   exInfo: { flex: 1 },
-  exTitle: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  exTitleDone: { color: "#9CA3AF", textDecorationLine: "line-through" },
-  exDesc: { fontSize: 12, color: "#6B7280", marginTop: 4, lineHeight: 18 },
+  exTitle: { fontSize: 14, fontWeight: '600', color: c.text },
+  exTitleDone: { color: c.textTertiary, textDecorationLine: 'line-through' },
+  exDesc: { fontSize: 12, color: c.textSecondary, marginTop: 4, lineHeight: 18 },
 })

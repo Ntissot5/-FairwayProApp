@@ -1,12 +1,18 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native'
+import { useState, useEffect, useMemo } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { Svg, Path, Circle, Line, Text as SvgText, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { supabase } from './supabase'
+import { useTheme } from './ThemeContext'
+import { useTranslation } from 'react-i18next'
+import AnimatedPressable from './components/AnimatedPressable'
+import AnimatedListItem from './components/AnimatedListItem'
+import { CardListSkeleton } from './components/Skeleton'
 
-const G = '#1B5E35'
-
-function QuickModeScreen({ onSave, onBack }) {
+function QuickModeScreen({ onSave, onBack, colors }) {
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [course, setCourse] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [score, setScore] = useState('')
@@ -31,81 +37,95 @@ function QuickModeScreen({ onSave, onBack }) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: colors.card }}>
       <View style={s.modalHead}>
-        <TouchableOpacity onPress={onBack}><Text style={s.backTxt}>‹ Back</Text></TouchableOpacity>
-        <Text style={s.modalTitle}>Quick mode</Text>
+        <TouchableOpacity onPress={onBack}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="chevron-back" size={20} color={colors.primary} />
+            <Text style={s.backTxt}>{t('common.back')}</Text>
+          </View>
+        </TouchableOpacity>
+        <Text style={s.modalTitle}>{t('rounds.quickMode')}</Text>
         <View style={{ width: 50 }} />
       </View>
       <ScrollView style={{ padding: 20 }}>
-        <Text style={s.label}>COURSE</Text>
-        <TextInput style={s.input} value={course} onChangeText={setCourse} placeholder="Golf de Lausanne..." placeholderTextColor="#9CA3AF" />
-        <Text style={s.label}>DATE</Text>
-        <TextInput style={s.input} value={date} onChangeText={setDate} placeholderTextColor="#9CA3AF" />
-        <Text style={s.label}>TOTAL SCORE</Text>
-        <TextInput style={s.input} value={score} onChangeText={setScore} placeholder="82" keyboardType="numeric" placeholderTextColor="#9CA3AF" />
-        <Text style={s.label}>NEW HANDICAP (optionnel)</Text>
-        <TextInput style={s.input} value={newHcp} onChangeText={setNewHcp} placeholder="8.4" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
-        <TouchableOpacity style={[s.saveBtn, saving && { opacity: 0.7 }]} onPress={save} disabled={saving}>
-          <Text style={s.saveBtnTxt}>{saving ? "Saving..." : "Save"}</Text>
-        </TouchableOpacity>
+        <Text style={s.label}>{t('rounds.course')}</Text>
+        <TextInput style={s.input} value={course} onChangeText={setCourse} placeholder={t('rounds.coursePlaceholder')} placeholderTextColor={colors.textTertiary} />
+        <Text style={s.label}>{t('rounds.date')}</Text>
+        <TextInput style={s.input} value={date} onChangeText={setDate} placeholderTextColor={colors.textTertiary} />
+        <Text style={s.label}>{t('rounds.totalScore')}</Text>
+        <TextInput style={s.input} value={score} onChangeText={setScore} placeholder="82" keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+        <Text style={s.label}>{t('rounds.newHcp')}</Text>
+        <TextInput style={s.input} value={newHcp} onChangeText={setNewHcp} placeholder="8.4" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
+        <AnimatedPressable style={[s.saveBtn, saving && { opacity: 0.7 }]} onPress={save} disabled={saving}>
+          <Text style={s.saveBtnTxt}>{saving ? t('rounds.saving') : t('common.save')}</Text>
+        </AnimatedPressable>
       </ScrollView>
     </View>
   )
 }
 
-function DetailedSetupScreen({ onStart, onBack }) {
+function DetailedSetupScreen({ onStart, onBack, colors }) {
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [course, setCourse] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [holes, setHoles] = useState(18)
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: colors.card }}>
       <View style={s.modalHead}>
-        <TouchableOpacity onPress={onBack}><Text style={s.backTxt}>‹ Back</Text></TouchableOpacity>
-        <Text style={s.modalTitle}>Detailed mode</Text>
+        <TouchableOpacity onPress={onBack}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="chevron-back" size={20} color={colors.primary} />
+            <Text style={s.backTxt}>{t('common.back')}</Text>
+          </View>
+        </TouchableOpacity>
+        <Text style={s.modalTitle}>{t('rounds.detailedMode')}</Text>
         <View style={{ width: 50 }} />
       </View>
       <View style={{ padding: 20 }}>
-        <Text style={s.label}>COURSE</Text>
-        <TextInput style={s.input} value={course} onChangeText={setCourse} placeholder="Golf de Lausanne..." placeholderTextColor="#9CA3AF" />
-        <Text style={s.label}>DATE</Text>
-        <TextInput style={s.input} value={date} onChangeText={setDate} placeholderTextColor="#9CA3AF" />
-        <Text style={s.label}>NUMBER OF HOLES</Text>
+        <Text style={s.label}>{t('rounds.course')}</Text>
+        <TextInput style={s.input} value={course} onChangeText={setCourse} placeholder={t('rounds.coursePlaceholder')} placeholderTextColor={colors.textTertiary} />
+        <Text style={s.label}>{t('rounds.date')}</Text>
+        <TextInput style={s.input} value={date} onChangeText={setDate} placeholderTextColor={colors.textTertiary} />
+        <Text style={s.label}>{t('rounds.holes')}</Text>
         <View style={{ flexDirection: "row", gap: 12, marginTop: 4 }}>
           {[9, 18].map(h => (
             <TouchableOpacity key={h} onPress={() => setHoles(h)} style={[s.holeBtn, holes === h && s.holeBtnActive]}>
-              <Text style={[s.holeBtnTxt, holes === h && s.holeBtnTxtActive]}>{h} holes</Text>
+              <Text style={[s.holeBtnTxt, holes === h && s.holeBtnTxtActive]}>{h === 9 ? t('rounds.holes9') : t('rounds.holes18')}</Text>
             </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity style={[s.saveBtn, { marginTop: 24 }]} onPress={() => onStart({ course, date, holes })}>
-          <Text style={s.saveBtnTxt}>Start →</Text>
-        </TouchableOpacity>
+        <AnimatedPressable style={[s.saveBtn, { marginTop: 24 }]} onPress={() => onStart({ course, date, holes })}>
+          <Text style={s.saveBtnTxt}>{t('rounds.start')} <Ionicons name="arrow-forward" size={16} color="#fff" /></Text>
+        </AnimatedPressable>
       </View>
     </View>
   )
 }
 
-function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack, isLast, holesData, currentHoleNum }) {
+function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack, isLast, holesData, currentHoleNum, colors }) {
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [localStrokes, setLocalStrokes] = useState(holeData.strokes || 0)
   const otherHolesScore = Object.entries(holesData || {}).filter(([k]) => parseInt(k) !== currentHoleNum).reduce((sum, [, h]) => sum + (h.strokes || 0), 0)
   const totalScore = otherHolesScore + localStrokes
   const par = holeData.par || 4
   const strokes = localStrokes
   const diff = strokes > 0 ? strokes - par : null
-  const scoreLabel = diff === null ? '' : diff === -2 ? 'Eagle 🦅' : diff === -1 ? 'Birdie 🐦' : diff === 0 ? 'Par ✓' : diff === 1 ? 'Bogey' : diff === 2 ? 'Double Bogey' : '+' + diff
-  const scoreColor = diff === null ? '#9CA3AF' : diff < 0 ? '#16A34A' : diff === 0 ? G : diff === 1 ? '#F59E0B' : '#DC2626'
+  const scoreLabel = diff === null ? '' : diff === -2 ? t('rounds.eagle') : diff === -1 ? t('rounds.birdie') : diff === 0 ? t('rounds.par') : diff === 1 ? t('rounds.bogey') : diff === 2 ? t('rounds.doubleBogey') : '+' + diff
+  const scoreColor = diff === null ? colors.textTertiary : diff < 0 ? '#16A34A' : diff === 0 ? colors.primary : diff === 1 ? '#F59E0B' : colors.destructive
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f8f8f8" }}>
+    <View style={{ flex: 1, backgroundColor: colors.bgSecondary }}>
       <View style={s.holeHeader}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-          <TouchableOpacity onPress={() => Alert.alert('Quitter ?', 'Ton round ne sera pas sauvegardé.', [{ text: 'Annuler', style: 'cancel' }, { text: 'Quitter', style: 'destructive', onPress: onBack }])} style={{ marginRight: 12 }}>
-            <Text style={{ color: '#fff', fontSize: 22, fontWeight: '300' }}>✕</Text>
+          <TouchableOpacity onPress={() => Alert.alert(t('rounds.quitQuestion'), t('rounds.quitMsg'), [{ text: t('common.cancel'), style: 'cancel' }, { text: t('rounds.quit'), style: 'destructive', onPress: onBack }])} style={{ marginRight: 12 }}>
+            <Ionicons name="close" size={22} color="#fff" />
           </TouchableOpacity>
-          <Text style={[s.holeTitle, { flex: 1 }]}>Hole {hole}</Text>
-          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>Score: {totalScore}</Text>
+          <Text style={[s.holeTitle, { flex: 1 }]}>{t('rounds.hole', { n: hole })}</Text>
+          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{t('rounds.score', { score: totalScore })}</Text>
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -121,7 +141,7 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
         <View style={s.holeCard}>
-          <Text style={s.cardLabel}>HOLE PAR</Text>
+          <Text style={s.cardLabel}>{t('rounds.holePar')}</Text>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
             {[3, 4, 5].map(p => (
               <TouchableOpacity key={p} onPress={() => onUpdate({ ...holeData, par: p })} style={[s.parBtn, par === p && s.parBtnActive]}>
@@ -132,10 +152,10 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
         </View>
 
         <View style={s.holeCard}>
-          <Text style={s.cardLabel}>STROKES</Text>
+          <Text style={s.cardLabel}>{t('rounds.strokes')}</Text>
           <View style={s.counter}>
             <TouchableOpacity onPress={() => { const v = Math.max(0, strokes - 1); setLocalStrokes(v); onUpdate({ ...holeData, strokes: v }) }} style={s.counterBtn}>
-              <Text style={s.counterBtnTxt}>−</Text>
+              <Text style={s.counterBtnTxt}>{'\u2212'}</Text>
             </TouchableOpacity>
             <View style={{ alignItems: "center" }}>
               <Text style={s.counterValue}>{strokes}</Text>
@@ -148,10 +168,10 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
         </View>
 
         <View style={s.holeCard}>
-          <Text style={s.cardLabel}>PUTTS</Text>
+          <Text style={s.cardLabel}>{t('rounds.putts')}</Text>
           <View style={s.counter}>
             <TouchableOpacity onPress={() => onUpdate({ ...holeData, putts: Math.max(0, (holeData.putts || 0) - 1) })} style={s.counterBtn}>
-              <Text style={s.counterBtnTxt}>−</Text>
+              <Text style={s.counterBtnTxt}>{'\u2212'}</Text>
             </TouchableOpacity>
             <Text style={s.counterValue}>{holeData.putts || 0}</Text>
             <TouchableOpacity onPress={() => onUpdate({ ...holeData, putts: (holeData.putts || 0) + 1 })} style={[s.counterBtn, s.counterBtnGreen]}>
@@ -161,9 +181,9 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
         </View>
 
         <View style={s.holeCard}>
-          <Text style={s.cardLabel}>FAIRWAY</Text>
+          <Text style={s.cardLabel}>{t('rounds.fairway')}</Text>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-            {[["left", "← Left"], ["hit", "✓ Hit"], ["right", "Right →"]].map(([val, label]) => (
+            {[["left", "\u2190 " + t('rounds.left')], ["hit", "\u2713 " + t('rounds.hit')], ["right", t('rounds.right') + " \u2192"]].map(([val, label]) => (
               <TouchableOpacity key={val} onPress={() => onUpdate({ ...holeData, fairway: holeData.fairway === val ? null : val })} style={[s.toggleBtn, holeData.fairway === val && (val === "hit" ? s.toggleBtnGreen : s.toggleBtnRed)]}>
                 <Text style={[s.toggleBtnTxt, holeData.fairway === val && { color: "#fff" }]}>{label}</Text>
               </TouchableOpacity>
@@ -172,9 +192,9 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
         </View>
 
         <View style={s.holeCard}>
-          <Text style={s.cardLabel}>GREEN IN REGULATION</Text>
+          <Text style={s.cardLabel}>{t('rounds.gir')}</Text>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-            {[["yes", "✓ Oui"], ["no", "✗ Non"]].map(([val, label]) => (
+            {[["yes", "\u2713 Oui"], ["no", "\u2717 Non"]].map(([val, label]) => (
               <TouchableOpacity key={val} onPress={() => onUpdate({ ...holeData, gir: holeData.gir === val ? null : val })} style={[s.toggleBtn, { flex: 1 }, holeData.gir === val && (val === "yes" ? s.toggleBtnGreen : s.toggleBtnRed)]}>
                 <Text style={[s.toggleBtnTxt, holeData.gir === val && { color: "#fff" }]}>{label}</Text>
               </TouchableOpacity>
@@ -185,7 +205,7 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
         <View style={s.holeCard}>
           <Text style={s.cardLabel}>BUNKER</Text>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-            {[["no", "✓ Non"], ["yes", "✗ Oui"]].map(([val, label]) => (
+            {[["no", "\u2713 Non"], ["yes", "\u2717 Oui"]].map(([val, label]) => (
               <TouchableOpacity key={val} onPress={() => onUpdate({ ...holeData, bunker: holeData.bunker === val ? null : val })} style={[s.toggleBtn, { flex: 1 }, holeData.bunker === val && (val === "no" ? s.toggleBtnGreen : s.toggleBtnRed)]}>
                 <Text style={[s.toggleBtnTxt, holeData.bunker === val && { color: "#fff" }]}>{label}</Text>
               </TouchableOpacity>
@@ -193,16 +213,17 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
           </View>
         </View>
 
-        <TouchableOpacity style={s.saveBtn} onPress={isLast ? onFinish : onNext}>
-          <Text style={s.saveBtnTxt}>{isLast ? "Finish round ✓" : "Next hole →"}</Text>
-        </TouchableOpacity>
+        <AnimatedPressable style={s.saveBtn} onPress={isLast ? onFinish : onNext}>
+          <Text style={s.saveBtnTxt}>{isLast ? t('rounds.finishRound') : t('rounds.nextHole')} <Ionicons name={isLast ? "checkmark" : "arrow-forward"} size={16} color="#fff" /></Text>
+        </AnimatedPressable>
         <View style={{ height: 20 }} />
       </ScrollView>
     </View>
   )
 }
 
-function StatsView({ rounds }) {
+function StatsView({ rounds, colors }) {
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [period, setPeriod] = useState('1M')
 
   const filterByPeriod = (rounds, period) => {
@@ -221,7 +242,7 @@ function StatsView({ rounds }) {
 
   if (rounds.length < 2) return (
     <View style={{ padding: 32, alignItems: 'center' }}>
-      <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center' }}>Ajoute au moins 2 rounds pour voir tes stats</Text>
+      <Text style={{ fontSize: 13, color: colors.textTertiary, textAlign: 'center' }}>Ajoute au moins 2 rounds pour voir tes stats</Text>
     </View>
   )
 
@@ -232,7 +253,6 @@ function StatsView({ rounds }) {
   const avgGir = avg(filtered.map(r => r.gir).filter(Boolean))
   const avgFw = avg(filtered.map(r => r.fairways_hit).filter(Boolean))
 
-  // Trend
   const prevPeriod = (() => {
     const now = new Date()
     const start2 = new Date(), end2 = new Date()
@@ -244,7 +264,6 @@ function StatsView({ rounds }) {
   const prevAvg = avg(prevPeriod.map(r => r.score).filter(Boolean))
   const trend = prevAvg && avgScore ? avgScore - prevAvg : 0
 
-  // Score distribution from holes_data
   const scoreDist = { eagle: 0, birdie: 0, par: 0, bogey: 0, double: 0, worse: 0 }
   filtered.forEach(r => {
     if (r.holes_data) {
@@ -264,7 +283,6 @@ function StatsView({ rounds }) {
   })
   const totalHoles = Object.values(scoreDist).reduce((a, b) => a + b, 0)
 
-  // Chart data
   const chartRounds = [...filtered].reverse().slice(-8)
   const chartScores = chartRounds.map(r => r.score).filter(Boolean)
   const W = 300, H = 120, padL = 28, padR = 8, padT = 10, padB = 20
@@ -286,8 +304,8 @@ function StatsView({ rounds }) {
       {/* Period selector */}
       <View style={{ flexDirection: "row", gap: 6, padding: 16, paddingBottom: 8 }}>
         {["1S","1M","6M","1A","Tout"].map(p => (
-          <TouchableOpacity key={p} onPress={() => setPeriod(p)} style={{ flex: 1, paddingVertical: 7, alignItems: "center", borderRadius: 10, borderWidth: 1, borderColor: period === p ? G : "#E5E7EB", backgroundColor: period === p ? G : "#fff" }}>
-            <Text style={{ fontSize: 12, fontWeight: "700", color: period === p ? "#fff" : "#6B7280" }}>{p}</Text>
+          <TouchableOpacity key={p} onPress={() => setPeriod(p)} style={{ flex: 1, paddingVertical: 7, alignItems: "center", borderRadius: 10, borderWidth: 1, borderColor: period === p ? colors.primary : colors.separator, backgroundColor: period === p ? colors.primary : colors.card }}>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: period === p ? "#fff" : colors.textTertiary }}>{p}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -295,17 +313,20 @@ function StatsView({ rounds }) {
       {/* Key stats */}
       <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 8 }}>
         {[
-          { label: "MEILLEUR", value: best || "—", color: G },
-          { label: "MOYENNE", value: avgScore || "—", color: "#1a1a1a", trend },
-          { label: "PUTTS MOY.", value: avgPutts || "—", color: "#1a1a1a" },
-          { label: "ROUNDS", value: filtered.length, color: "#1a1a1a" },
+          { label: "MEILLEUR", value: best || "\u2014", clr: colors.primary },
+          { label: "MOYENNE", value: avgScore || "\u2014", clr: colors.text, trend },
+          { label: "PUTTS MOY.", value: avgPutts || "\u2014", clr: colors.text },
+          { label: "ROUNDS", value: filtered.length, clr: colors.text },
         ].map((stat, i) => (
-          <View key={i} style={[s.statCard, i === 0 && { borderTopWidth: 3, borderTopColor: G }]}>
-            <Text style={[s.statCardValue, { color: stat.color }]}>{stat.value}</Text>
+          <View key={i} style={[s.statCard, i === 0 && { borderTopWidth: 3, borderTopColor: colors.primary }]}>
+            <Text style={[s.statCardValue, { color: stat.clr }]}>{stat.value}</Text>
             {stat.trend !== undefined && stat.trend !== 0 && (
-              <Text style={{ fontSize: 10, fontWeight: "700", color: stat.trend < 0 ? G : "#EF4444" }}>
-                {stat.trend < 0 ? "↓ " + Math.abs(stat.trend) : "↑ +" + stat.trend}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name={stat.trend < 0 ? "arrow-down" : "arrow-up"} size={10} color={stat.trend < 0 ? colors.primary : colors.destructive} />
+                <Text style={{ fontSize: 10, fontWeight: "700", color: stat.trend < 0 ? colors.primary : colors.destructive }}>
+                  {' '}{Math.abs(stat.trend)}
+                </Text>
+              </View>
             )}
             <Text style={s.statCardLabel}>{stat.label}</Text>
           </View>
@@ -315,25 +336,25 @@ function StatsView({ rounds }) {
       {/* Score chart */}
       {pts.length >= 2 && (
         <View style={s.chartSection}>
-          <Text style={s.chartTitle}>Évolution du score</Text>
+          <Text style={s.chartTitle}>Evolution du score</Text>
           <Svg width={W} height={H}>
             <Defs>
               <LinearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={G} stopOpacity="0.2" />
-                <Stop offset="1" stopColor={G} stopOpacity="0.02" />
+                <Stop offset="0" stopColor={colors.primary} stopOpacity="0.2" />
+                <Stop offset="1" stopColor={colors.primary} stopOpacity="0.02" />
               </LinearGradient>
             </Defs>
-            <Line x1={padL} y1={padT} x2={padL} y2={padT + chartH} stroke="#E5E7EB" strokeWidth="1" />
-            <Line x1={padL} y1={padT + chartH} x2={W - padR} y2={padT + chartH} stroke="#E5E7EB" strokeWidth="1" />
-            <SvgText x={padL - 4} y={padT + 4} fontSize="9" fill="#9CA3AF" textAnchor="end">{maxS}</SvgText>
-            <SvgText x={padL - 4} y={padT + chartH} fontSize="9" fill="#9CA3AF" textAnchor="end">{minS}</SvgText>
+            <Line x1={padL} y1={padT} x2={padL} y2={padT + chartH} stroke={colors.separator} strokeWidth="1" />
+            <Line x1={padL} y1={padT + chartH} x2={W - padR} y2={padT + chartH} stroke={colors.separator} strokeWidth="1" />
+            <SvgText x={padL - 4} y={padT + 4} fontSize="9" fill={colors.textTertiary} textAnchor="end">{maxS}</SvgText>
+            <SvgText x={padL - 4} y={padT + chartH} fontSize="9" fill={colors.textTertiary} textAnchor="end">{minS}</SvgText>
             <Path d={areaPath} fill="url(#scoreGrad)" />
-            <Path d={linePath} stroke={G} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            <Path d={linePath} stroke={colors.primary} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             {pts.map((p, i) => (
-              <Circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 3} fill={i === pts.length - 1 ? G : "#86EFAC"} stroke="white" strokeWidth="1.5" />
+              <Circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 3} fill={i === pts.length - 1 ? colors.primary : "#86EFAC"} stroke={colors.card} strokeWidth="1.5" />
             ))}
-            <SvgText x={pts[0]?.x} y={H} fontSize="9" fill="#9CA3AF" textAnchor="start">{pts[0]?.date}</SvgText>
-            <SvgText x={pts[pts.length-1]?.x} y={H} fontSize="9" fill="#9CA3AF" textAnchor="end">{pts[pts.length-1]?.date}</SvgText>
+            <SvgText x={pts[0]?.x} y={H} fontSize="9" fill={colors.textTertiary} textAnchor="start">{pts[0]?.date}</SvgText>
+            <SvgText x={pts[pts.length-1]?.x} y={H} fontSize="9" fill={colors.textTertiary} textAnchor="end">{pts[pts.length-1]?.date}</SvgText>
           </Svg>
         </View>
       )}
@@ -341,15 +362,15 @@ function StatsView({ rounds }) {
       {/* Score distribution */}
       {totalHoles > 0 && (
         <View style={s.chartSection}>
-          <Text style={s.chartTitle}>Répartition des scores</Text>
+          <Text style={s.chartTitle}>Repartition des scores</Text>
           <View style={{ flexDirection: "row", gap: 4, marginTop: 12, height: 60, alignItems: "flex-end" }}>
             {[
               { label: "Eagle", count: scoreDist.eagle, color: "#7C3AED" },
-              { label: "Birdie", count: scoreDist.birdie, color: G },
+              { label: "Birdie", count: scoreDist.birdie, color: colors.primary },
               { label: "Par", count: scoreDist.par, color: "#0891B2" },
               { label: "Bogey", count: scoreDist.bogey, color: "#F59E0B" },
               { label: "Dbl", count: scoreDist.double, color: "#EF4444" },
-              { label: "+3", count: scoreDist.worse, color: "#DC2626" },
+              { label: "+3", count: scoreDist.worse, color: colors.destructive },
             ].map((item, i) => {
               const maxCount = Math.max(scoreDist.eagle, scoreDist.birdie, scoreDist.par, scoreDist.bogey, scoreDist.double, scoreDist.worse, 1)
               const h = Math.max((item.count / maxCount) * 44, item.count > 0 ? 4 : 0)
@@ -357,7 +378,7 @@ function StatsView({ rounds }) {
                 <View key={i} style={{ flex: 1, alignItems: "center", justifyContent: "flex-end" }}>
                   {item.count > 0 && <Text style={{ fontSize: 10, color: item.color, fontWeight: "700", marginBottom: 2 }}>{item.count}</Text>}
                   <View style={{ width: "80%", height: h, backgroundColor: item.color, borderRadius: 4, opacity: item.count > 0 ? 1 : 0.15 }} />
-                  <Text style={{ fontSize: 9, color: "#9CA3AF", marginTop: 4 }}>{item.label}</Text>
+                  <Text style={{ fontSize: 9, color: colors.textTertiary, marginTop: 4 }}>{item.label}</Text>
                 </View>
               )
             })}
@@ -367,25 +388,25 @@ function StatsView({ rounds }) {
 
       {/* Detailed stats */}
       <View style={s.chartSection}>
-        <Text style={s.chartTitle}>Statistiques détaillées</Text>
+        <Text style={s.chartTitle}>Statistiques detaillees</Text>
         {[
           { label: "Putts moyens", value: avgPutts, target: 30, unit: "putts", lower: true },
           { label: "GIR moyen", value: avgGir, target: 12, unit: "/18", lower: false },
-          { label: "Fairways touchés", value: avgFw, target: 10, unit: "/14", lower: false },
+          { label: "Fairways touches", value: avgFw, target: 10, unit: "/14", lower: false },
         ].map((stat, i) => {
           const val = stat.value || 0
           const pct = val ? Math.min((stat.lower ? stat.target / val : val / stat.target) * 100, 100) : 0
-          const color = val ? (stat.lower ? (val <= stat.target ? G : "#EF4444") : (val >= stat.target ? G : "#F59E0B")) : "#E5E7EB"
+          const clr = val ? (stat.lower ? (val <= stat.target ? colors.primary : colors.destructive) : (val >= stat.target ? colors.primary : '#F59E0B')) : colors.separator
           return (
             <View key={i} style={{ marginBottom: 14 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
-                <Text style={{ fontSize: 13, color: "#374151", fontWeight: "500" }}>{stat.label}</Text>
-                <Text style={{ fontSize: 13, fontWeight: "800", color: val ? color : "#9CA3AF" }}>{val || "—"}{val ? " " + stat.unit : ""}</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, fontWeight: "500" }}>{stat.label}</Text>
+                <Text style={{ fontSize: 13, fontWeight: "800", color: val ? clr : colors.textTertiary }}>{val || "\u2014"}{val ? " " + stat.unit : ""}</Text>
               </View>
-              <View style={{ height: 8, backgroundColor: "#F0F4F0", borderRadius: 4 }}>
-                <View style={{ height: 8, width: pct + "%", backgroundColor: color, borderRadius: 4 }} />
+              <View style={{ height: 8, backgroundColor: colors.separatorLight, borderRadius: 4 }}>
+                <View style={{ height: 8, width: pct + "%", backgroundColor: clr, borderRadius: 4 }} />
               </View>
-              <Text style={{ fontSize: 10, color: "#9CA3AF", marginTop: 3 }}>Objectif: {stat.target} {stat.unit}</Text>
+              <Text style={{ fontSize: 10, color: colors.textTertiary, marginTop: 3 }}>Objectif: {stat.target} {stat.unit}</Text>
             </View>
           )
         })}
@@ -395,6 +416,10 @@ function StatsView({ rounds }) {
 }
 
 export default function PlayerRoundsScreen({ navigation }) {
+  const { colors, isDark } = useTheme()
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
+
   const [rounds, setRounds] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -419,9 +444,9 @@ export default function PlayerRoundsScreen({ navigation }) {
 
   const getLiveScore = (currentHoleData) => { const base = Object.entries(holesData).filter(([k]) => parseInt(k) !== currentHole).reduce((sum, [, h]) => sum + (h.strokes || 0), 0); return base + (currentHoleData?.strokes || 0) }
   const deleteRound = async (id) => {
-    Alert.alert('Supprimer ce round ?', 'Cette action est irréversible.', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: async () => {
+    Alert.alert(t('rounds.deleteRound'), t('rounds.deleteRoundMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: async () => {
         await supabase.from('rounds').delete().eq('id', id)
         fetchRounds()
       }}
@@ -448,7 +473,7 @@ export default function PlayerRoundsScreen({ navigation }) {
       holes_data: JSON.stringify(holesData)
     })
     if (error) { Alert.alert('Erreur', error.message); return }
-    Alert.alert("Round saved! 🏌️", "Score: " + totalScore + " | Putts: " + totalPutts)
+    Alert.alert(t('rounds.roundSaved'), "Score: " + totalScore + " | Putts: " + totalPutts)
     setScreen("list")
     fetchRounds()
   }
@@ -456,35 +481,40 @@ export default function PlayerRoundsScreen({ navigation }) {
   if (screen === "choose") return (
     <SafeAreaView style={s.safe}>
       <View style={s.modalHead}>
-        <TouchableOpacity onPress={() => setScreen("list")}><Text style={s.backTxt}>‹ Back</Text></TouchableOpacity>
-        <Text style={s.modalTitle}>New round</Text>
+        <TouchableOpacity onPress={() => setScreen("list")}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="chevron-back" size={20} color={colors.primary} />
+            <Text style={s.backTxt}>{t('common.back')}</Text>
+          </View>
+        </TouchableOpacity>
+        <Text style={s.modalTitle}>{t('rounds.newRound')}</Text>
         <View style={{ width: 50 }} />
       </View>
       <View style={{ padding: 20 }}>
-        <Text style={{ fontSize: 14, color: "#6B7280", textAlign: "center", marginBottom: 20 }}>Choisis ton mode de saisie</Text>
+        <Text style={{ fontSize: 14, color: colors.textTertiary, textAlign: "center", marginBottom: 20 }}>{t('rounds.chooseMode')}</Text>
         <TouchableOpacity style={s.modeCard} onPress={() => setScreen("quick")}>
-          <Text style={s.modeIcon}>⚡</Text>
+          <Ionicons name="flash-outline" size={28} color={colors.text} />
           <View style={{ flex: 1 }}>
-            <Text style={s.modeTitle}>Quick mode</Text>
-            <Text style={s.modeSub}>Score total + parcours — 30 secondes</Text>
+            <Text style={s.modeTitle}>{t('rounds.quickMode')}</Text>
+            <Text style={s.modeSub}>{t('rounds.quickModeSub')}</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={[s.modeCard, s.modeCardActive]} onPress={() => setScreen("detailedSetup")}>
-          <Text style={s.modeIcon}>📊</Text>
+          <Ionicons name="bar-chart-outline" size={28} color={colors.primary} />
           <View style={{ flex: 1 }}>
-            <Text style={[s.modeTitle, { color: G }]}>Detailed mode</Text>
-            <Text style={s.modeSub}>Hole par trou — Par, coups, putts, fairway, GIR</Text>
+            <Text style={[s.modeTitle, { color: colors.primary }]}>{t('rounds.detailedMode')}</Text>
+            <Text style={s.modeSub}>{t('rounds.detailedModeSub')}</Text>
           </View>
-          <View style={s.recommendedBadge}><Text style={s.recommendedTxt}>RECOMMANDÉ</Text></View>
+          <View style={s.recommendedBadge}><Text style={s.recommendedTxt}>{t('rounds.recommended')}</Text></View>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   )
 
-  if (screen === "quick") return <SafeAreaView style={s.safe}><QuickModeScreen onSave={() => { setScreen("list"); fetchRounds() }} onBack={() => setScreen("choose")} /></SafeAreaView>
-  if (screen === "detailedSetup") return <SafeAreaView style={s.safe}><DetailedSetupScreen onStart={(config) => { setRoundConfig(config); setCurrentHole(1); setHolesData({}); setScreen("detailed") }} onBack={() => setScreen("choose")} /></SafeAreaView>
+  if (screen === "quick") return <SafeAreaView style={s.safe}><QuickModeScreen onSave={() => { setScreen("list"); fetchRounds() }} onBack={() => setScreen("choose")} colors={colors} /></SafeAreaView>
+  if (screen === "detailedSetup") return <SafeAreaView style={s.safe}><DetailedSetupScreen onStart={(config) => { setRoundConfig(config); setCurrentHole(1); setHolesData({}); setScreen("detailed") }} onBack={() => setScreen("choose")} colors={colors} /></SafeAreaView>
   if (screen === "detailed" && roundConfig) return (
-    <SafeAreaView style={[s.safe, { backgroundColor: G }]}>
+    <SafeAreaView style={[s.safe, { backgroundColor: colors.primary }]}>
       <HoleScreen
         hole={currentHole} total={roundConfig.holes}
         holeData={holesData[currentHole] || { par: 4, strokes: 0, putts: 0 }}
@@ -495,66 +525,73 @@ export default function PlayerRoundsScreen({ navigation }) {
         isLast={currentHole === roundConfig.holes}
         holesData={holesData}
         currentHoleNum={currentHole}
+        colors={colors}
       />
     </SafeAreaView>
   )
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return (
+    <View style={s.loading}>
+      <CardListSkeleton />
+    </View>
+  )
 
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>My rounds</Text>
-          <Text style={s.sub}>{rounds.length} rounds played</Text>
+          <Text style={s.title}>{t('rounds.title')}</Text>
+          <Text style={s.sub}>{rounds.length} {t('rounds.played')}</Text>
         </View>
-        <TouchableOpacity style={s.addBtn} onPress={() => setScreen("choose")}>
-          <Text style={s.addBtnTxt}>+ Round</Text>
-        </TouchableOpacity>
+        <AnimatedPressable style={s.addBtn} onPress={() => setScreen("choose")}>
+          <Text style={s.addBtnTxt}>{t('rounds.addRound')}</Text>
+        </AnimatedPressable>
       </View>
 
       <View style={s.tabs}>
-        {['rounds', 'stats'].map(t => (
-          <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)}>
-            <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>{t === 'rounds' ? '🏌️ Rounds' : '📊 Stats'}</Text>
+        {['rounds', 'stats'].map(tt => (
+          <TouchableOpacity key={tt} style={[s.tab, tab === tt && s.tabActive]} onPress={() => setTab(tt)}>
+            <Ionicons name={tt === 'rounds' ? 'flag' : 'bar-chart-outline'} size={14} color={tab === tt ? '#fff' : colors.textTertiary} />
+            <Text style={[s.tabTxt, tab === tt && s.tabTxtActive]}> {tt === 'rounds' ? t('rounds.roundsTab') : t('rounds.statsTab')}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRounds() }} tintColor={G} />}>
+      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRounds() }} tintColor={colors.primary} />}>
         {tab === 'stats' ? (
-          <StatsView rounds={rounds} />
+          <StatsView rounds={rounds} colors={colors} />
         ) : (
           <>
             {rounds.length === 0 ? (
               <View style={{ padding: 40, alignItems: "center" }}>
-                <Text style={{ fontSize: 40, marginBottom: 16 }}>⛳</Text>
-                <Text style={{ fontSize: 16, fontWeight: "700", color: "#1a1a1a", marginBottom: 16 }}>No rounds yet</Text>
-                <TouchableOpacity style={s.addBtn} onPress={() => setScreen("choose")}>
-                  <Text style={s.addBtnTxt}>+ Add your first round</Text>
-                </TouchableOpacity>
+                <Ionicons name="flag" size={40} color={colors.textTertiary} />
+                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.text, marginBottom: 16, marginTop: 12 }}>{t('rounds.noRounds')}</Text>
+                <AnimatedPressable style={s.addBtn} onPress={() => setScreen("choose")}>
+                  <Text style={s.addBtnTxt}>{t('rounds.addFirst')}</Text>
+                </AnimatedPressable>
               </View>
-            ) : rounds.map(r => (
-              <View key={r.id} style={s.roundCard}>
-                <View style={s.roundCardTop}>
-                  <View style={s.roundInfo}>
-                    <Text style={s.roundCourse}>{r.course_name || "Golf course"}</Text>
-                    <Text style={s.roundDate}>{r.played_at}</Text>
+            ) : rounds.map((r, idx) => (
+              <AnimatedListItem key={r.id} index={idx}>
+                <View style={s.roundCard}>
+                  <View style={s.roundCardTop}>
+                    <View style={s.roundInfo}>
+                      <Text style={s.roundCourse}>{r.course_name || t('playerDetail.golfCourse')}</Text>
+                      <Text style={s.roundDate}>{r.played_at}</Text>
+                    </View>
+                    <Text style={s.roundScore}>{r.score}</Text>
+                    <TouchableOpacity onPress={() => deleteRound(r.id)} style={{ marginLeft: 12, padding: 6, backgroundColor: colors.destructiveBg, borderRadius: 8 }}>
+                      <Ionicons name="close" size={14} color={colors.destructive} />
+                    </TouchableOpacity>
                   </View>
-                  <Text style={s.roundScore}>{r.score}</Text>
-                  <TouchableOpacity onPress={() => deleteRound(r.id)} style={{ marginLeft: 12, padding: 6, backgroundColor: '#FEF2F2', borderRadius: 8 }}>
-                    <Text style={{ fontSize: 13, color: '#DC2626', fontWeight: '700' }}>✕</Text>
-                  </TouchableOpacity>
+                  {(r.putts || r.gir) ? (
+                    <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+                      {r.putts ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag" size={12} color={colors.textTertiary} /><Text style={s.roundStat}>{r.putts} putts</Text></View> : null}
+                      {r.gir ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="locate-outline" size={12} color={colors.textTertiary} /><Text style={s.roundStat}>{r.gir} GIR</Text></View> : null}
+                      {r.fairways_hit ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="trending-up" size={12} color={colors.textTertiary} /><Text style={s.roundStat}>{r.fairways_hit} FW</Text></View> : null}
+                    </View>
+                  ) : null}
                 </View>
-                {(r.putts || r.gir) ? (
-                  <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
-                    {r.putts ? <Text style={s.roundStat}>⛳ {r.putts} putts</Text> : null}
-                    {r.gir ? <Text style={s.roundStat}>🎯 {r.gir} GIR</Text> : null}
-                    {r.fairways_hit ? <Text style={s.roundStat}>🏹 {r.fairways_hit} FW</Text> : null}
-                  </View>
-                ) : null}
-
-              </View>
+              </AnimatedListItem>
             ))}
           </>
         )}
@@ -564,70 +601,69 @@ export default function PlayerRoundsScreen({ navigation }) {
   )
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f8f8f8" },
-  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: { backgroundColor: "#fff", padding: 16, paddingTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 0.5, borderBottomColor: "#E5E7EB" },
-  title: { fontSize: 22, fontWeight: "800", color: "#1a1a1a", letterSpacing: -0.5 },
-  sub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+const makeStyles = (c) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bgSecondary },
+  loading: { flex: 1, backgroundColor: c.bgSecondary },
+  header: { backgroundColor: c.card, padding: 16, paddingTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 0.5, borderBottomColor: c.separator },
+  title: { fontSize: 22, fontWeight: "800", color: c.text, letterSpacing: -0.5 },
+  sub: { fontSize: 12, color: c.textTertiary, marginTop: 2 },
   scroll: { flex: 1 },
-  tabs: { flexDirection: "row", backgroundColor: "#fff", padding: 4, margin: 16, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: "#E5E7EB" },
-  tab: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10 },
-  tabActive: { backgroundColor: G },
-  tabTxt: { fontSize: 13, fontWeight: "600", color: "#6B7280" },
+  tabs: { flexDirection: "row", backgroundColor: c.card, padding: 4, margin: 16, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: c.separator },
+  tab: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10, flexDirection: 'row', justifyContent: 'center' },
+  tabActive: { backgroundColor: c.primary },
+  tabTxt: { fontSize: 13, fontWeight: "600", color: c.textTertiary },
   tabTxtActive: { color: "#fff" },
-  addBtn: { backgroundColor: G, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
+  addBtn: { backgroundColor: c.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
   addBtnTxt: { color: "#fff", fontSize: 13, fontWeight: "700" },
-  roundCard: { backgroundColor: "#fff", borderRadius: 12, margin: 16, marginBottom: 8, padding: 14, borderWidth: 0.5, borderColor: "#E5E7EB", position: 'relative' },
+  roundCard: { backgroundColor: c.card, borderRadius: 12, margin: 16, marginBottom: 8, padding: 14, borderWidth: 0.5, borderColor: c.separator, position: 'relative' },
   roundCardTop: { flexDirection: "row", alignItems: "center" },
   roundInfo: { flex: 1 },
-  roundCourse: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  roundDate: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
-  roundScore: { fontSize: 28, fontWeight: "800", color: G },
-  roundStat: { fontSize: 12, color: "#6B7280" },
-  statCard: { flex: 1, backgroundColor: "#fff", borderRadius: 12, padding: 10, alignItems: "center", borderWidth: 0.5, borderColor: "#E5E7EB" },
+  roundCourse: { fontSize: 14, fontWeight: "600", color: c.text },
+  roundDate: { fontSize: 11, color: c.textTertiary, marginTop: 2 },
+  roundScore: { fontSize: 28, fontWeight: "800", color: c.primary },
+  roundStat: { fontSize: 12, color: c.textTertiary },
+  statCard: { flex: 1, backgroundColor: c.card, borderRadius: 12, padding: 10, alignItems: "center", borderWidth: 0.5, borderColor: c.separator },
   statCardValue: { fontSize: 20, fontWeight: "800" },
-  statCardLabel: { fontSize: 9, color: "#9CA3AF", fontWeight: "600", marginTop: 3 },
-  chartSection: { backgroundColor: "#fff", margin: 16, marginTop: 0, marginBottom: 8, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: "#E5E7EB" },
-  chartTitle: { fontSize: 13, fontWeight: "700", color: "#1a1a1a", marginBottom: 8 },
-  modalHead: { backgroundColor: "#fff", flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16, borderBottomWidth: 0.5, borderBottomColor: "#E5E7EB" },
-  modalTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a1a" },
-  backTxt: { fontSize: 16, color: G, fontWeight: "600" },
-  label: { fontSize: 11, fontWeight: "600", color: "#6B7280", marginBottom: 6, marginTop: 14 },
-  input: { backgroundColor: "#F8FAF8", borderWidth: 1, borderColor: "#E0E5E0", borderRadius: 12, padding: 14, fontSize: 15, color: "#1a1a1a" },
-  saveBtn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: "center", marginTop: 24 },
+  statCardLabel: { fontSize: 9, color: c.textTertiary, fontWeight: "600", marginTop: 3 },
+  chartSection: { backgroundColor: c.card, margin: 16, marginTop: 0, marginBottom: 8, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: c.separator },
+  chartTitle: { fontSize: 13, fontWeight: "700", color: c.text, marginBottom: 8 },
+  modalHead: { backgroundColor: c.card, flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16, borderBottomWidth: 0.5, borderBottomColor: c.separator },
+  modalTitle: { fontSize: 17, fontWeight: "700", color: c.text },
+  backTxt: { fontSize: 16, color: c.primary, fontWeight: "600" },
+  label: { fontSize: 11, fontWeight: "600", color: c.textTertiary, marginBottom: 6, marginTop: 14 },
+  input: { backgroundColor: c.inputBg, borderWidth: 1, borderColor: c.inputBorder, borderRadius: 12, padding: 14, fontSize: 15, color: c.text },
+  saveBtn: { backgroundColor: c.primary, borderRadius: 14, padding: 16, alignItems: "center", marginTop: 24 },
   saveBtnTxt: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  modeCard: { backgroundColor: "#fff", borderRadius: 14, padding: 16, marginBottom: 12, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: "#E5E7EB" },
-  modeCardActive: { borderColor: G, borderWidth: 2 },
-  modeIcon: { fontSize: 28 },
-  modeTitle: { fontSize: 16, fontWeight: "700", color: "#1a1a1a" },
-  modeSub: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  recommendedBadge: { backgroundColor: G, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  modeCard: { backgroundColor: c.card, borderRadius: 14, padding: 16, marginBottom: 12, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: c.separator },
+  modeCardActive: { borderColor: c.primary, borderWidth: 2 },
+  modeTitle: { fontSize: 16, fontWeight: "700", color: c.text },
+  modeSub: { fontSize: 12, color: c.textTertiary, marginTop: 2 },
+  recommendedBadge: { backgroundColor: c.primary, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   recommendedTxt: { fontSize: 9, fontWeight: "700", color: "#fff" },
-  holeHeader: { backgroundColor: G, padding: 16, paddingTop: 8 },
+  holeHeader: { backgroundColor: c.primary, padding: 16, paddingTop: 8 },
   holeTitle: { fontSize: 22, fontWeight: "800", color: "#fff" },
   progressBar: { flexDirection: "row", gap: 3 },
   progressDot: { flex: 1, height: 3, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 2 },
   progressDotDone: { backgroundColor: "rgba(255,255,255,0.6)" },
   progressDotCurrent: { backgroundColor: "#fff" },
-  holeCard: { backgroundColor: "#fff", borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: "#E5E7EB" },
-  cardLabel: { fontSize: 11, fontWeight: "600", color: "#9CA3AF" },
+  holeCard: { backgroundColor: c.card, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: c.separator },
+  cardLabel: { fontSize: 11, fontWeight: "600", color: c.textTertiary },
   counter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
-  counterBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: "#E5E7EB", alignItems: "center", justifyContent: "center" },
-  counterBtnGreen: { backgroundColor: G, borderColor: G },
-  counterBtnTxt: { fontSize: 24, color: "#374151", lineHeight: 28 },
-  counterValue: { fontSize: 40, fontWeight: "800", color: "#1a1a1a" },
+  counterBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: c.separator, alignItems: "center", justifyContent: "center" },
+  counterBtnGreen: { backgroundColor: c.primary, borderColor: c.primary },
+  counterBtnTxt: { fontSize: 24, color: c.textSecondary, lineHeight: 28 },
+  counterValue: { fontSize: 40, fontWeight: "800", color: c.text },
   scoreLabel: { fontSize: 13, fontWeight: "700", marginTop: 2 },
-  parBtn: { flex: 1, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "#E5E7EB", alignItems: "center" },
-  parBtnActive: { backgroundColor: G, borderColor: G },
-  parBtnTxt: { fontSize: 13, fontWeight: "600", color: "#374151" },
+  parBtn: { flex: 1, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: c.separator, alignItems: "center" },
+  parBtnActive: { backgroundColor: c.primary, borderColor: c.primary },
+  parBtnTxt: { fontSize: 13, fontWeight: "600", color: c.textSecondary },
   parBtnTxtActive: { color: "#fff" },
-  toggleBtn: { flex: 1, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "#E5E7EB", alignItems: "center" },
-  toggleBtnGreen: { backgroundColor: G, borderColor: G },
+  toggleBtn: { flex: 1, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: c.separator, alignItems: "center" },
+  toggleBtnGreen: { backgroundColor: c.primary, borderColor: c.primary },
   toggleBtnRed: { backgroundColor: "#EF4444", borderColor: "#EF4444" },
-  toggleBtnTxt: { fontSize: 13, fontWeight: "600", color: "#374151" },
-  holeBtn: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#E5E7EB", alignItems: "center" },
-  holeBtnActive: { backgroundColor: G, borderColor: G },
-  holeBtnTxt: { fontSize: 15, fontWeight: "600", color: "#374151" },
+  toggleBtnTxt: { fontSize: 13, fontWeight: "600", color: c.textSecondary },
+  holeBtn: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: c.separator, alignItems: "center" },
+  holeBtnActive: { backgroundColor: c.primary, borderColor: c.primary },
+  holeBtnTxt: { fontSize: 15, fontWeight: "600", color: c.textSecondary },
   holeBtnTxtActive: { color: "#fff" },
 })

@@ -14,5 +14,14 @@
     "production": {
       "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "noa.tissot@icloud.com",
+        "ascAppId": "6743967729",
+        "appleTeamId": "9X7DX748SB"
+      }
+    }
   }
 }

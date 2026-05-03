@@ -1,12 +1,18 @@
-import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { View, Text, ScrollView, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from './supabase'
+import { useTheme } from './ThemeContext'
+import { useTranslation } from 'react-i18next'
+import AnimatedPressable from './components/AnimatedPressable'
 
-const G = '#1B5E35'
 const ANTHROPIC_KEY = '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'
 
 export default function AICoachScreen() {
+  const { colors } = useTheme()
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
   const [messages, setMessages] = useState([{ role: 'assistant', content: '' }])
@@ -23,7 +29,7 @@ export default function AICoachScreen() {
     const { data: s } = await supabase.from('sessions').select('*').eq('coach_id', user.id)
     setPlayers(p || [])
     setSessions(s || [])
-    setMessages([{ role: 'assistant', content: `Hello Coach! I have access to your ${(p||[]).length} player(s) and ${(s||[]).length} session(s). How can I help you?` }])
+    setMessages([{ role: 'assistant', content: t('aiCoach.greeting', { players: (p||[]).length, sessions: (s||[]).length }) }])
     setDataLoaded(true)
   }
 
@@ -62,7 +68,7 @@ Answer in the same language as the coach's question.`
       const reply = data.content?.[0]?.text || 'Sorry, I could not process your request.'
       setMessages([...newMessages, { role: 'assistant', content: reply }])
     } catch (e) {
-      setMessages([...newMessages, { role: 'assistant', content: 'Connection error. Please try again.' }])
+      setMessages([...newMessages, { role: 'assistant', content: t('aiCoach.connectionError') }])
     }
     setLoading(false)
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)
@@ -71,15 +77,16 @@ Answer in the same language as the coach's question.`
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.title}>AI Coach</Text>
+        <Ionicons name="sparkles" size={20} color={colors.primary} />
+        <Text style={s.title}>{t('aiCoach.title')}</Text>
         <View style={s.dot} />
-        <Text style={s.powered}>Powered by Claude</Text>
+        <Text style={s.powered}>{t('aiCoach.powered')}</Text>
       </View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }} keyboardVerticalOffset={90}>
         <ScrollView ref={scrollRef} style={s.scroll} contentContainerStyle={{ padding: 16 }}>
           {messages.map((m, i) => (
             <View key={i} style={[s.msgWrap, m.role === 'user' ? s.msgUser : s.msgAI]}>
-              {m.role === 'assistant' && <Text style={s.aiLabel}>COACH IA</Text>}
+              {m.role === 'assistant' && <Text style={s.aiLabel}>{t('aiCoach.label')}</Text>}
               <View style={[s.bubble, m.role === 'user' ? s.bubbleUser : s.bubbleAI]}>
                 <Text style={[s.bubbleTxt, m.role === 'user' && { color: '#fff' }]}>{m.content}</Text>
               </View>
@@ -87,41 +94,40 @@ Answer in the same language as the coach's question.`
           ))}
           {loading && (
             <View style={s.msgAI}>
-              <Text style={s.aiLabel}>COACH IA</Text>
+              <Text style={s.aiLabel}>{t('aiCoach.label')}</Text>
               <View style={s.bubbleAI}>
-                <ActivityIndicator color={G} size="small" />
+                <ActivityIndicator color={colors.primary} size="small" />
               </View>
             </View>
           )}
         </ScrollView>
         <View style={s.inputRow}>
-          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder="Ask a question about your players..." placeholderTextColor="#9CA3AF" multiline onSubmitEditing={sendMessage} />
-          <TouchableOpacity style={[s.sendBtn, (!input.trim() || loading) && { backgroundColor: '#c7c7cc' }]} onPress={sendMessage} disabled={!input.trim() || loading}>
-            <Text style={s.sendTxt}>↑</Text>
-          </TouchableOpacity>
+          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder={t('aiCoach.placeholder')} placeholderTextColor={colors.textTertiary} multiline onSubmitEditing={sendMessage} />
+          <AnimatedPressable style={[s.sendBtn, (!input.trim() || loading) && { backgroundColor: colors.separator }]} onPress={sendMessage} disabled={!input.trim() || loading}>
+            <Ionicons name="arrow-up" size={18} color="#fff" />
+          </AnimatedPressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB', flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
+const makeStyles = (c) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bgSecondary },
+  header: { backgroundColor: c.card, padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: c.separator, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: { fontSize: 24, fontWeight: '800', color: c.text, letterSpacing: -0.5 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e' },
-  powered: { fontSize: 12, color: '#9CA3AF' },
+  powered: { fontSize: 12, color: c.textTertiary },
   scroll: { flex: 1 },
   msgWrap: { marginBottom: 16 },
   msgUser: { alignItems: 'flex-end' },
   msgAI: { alignItems: 'flex-start' },
-  aiLabel: { fontSize: 9, color: '#9CA3AF', fontWeight: '600', letterSpacing: 0.1, marginBottom: 4 },
+  aiLabel: { fontSize: 9, color: c.textTertiary, fontWeight: '600', letterSpacing: 0.1, marginBottom: 4 },
   bubble: { maxWidth: '85%', padding: 14, borderRadius: 16 },
-  bubbleUser: { backgroundColor: G, borderBottomRightRadius: 4 },
-  bubbleAI: { backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: '#E5E7EB', minWidth: 60, minHeight: 44, justifyContent: 'center' },
-  bubbleTxt: { fontSize: 14, color: '#1a1a1a', lineHeight: 21 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: '#fff', borderTopWidth: 0.5, borderTopColor: '#E5E7EB' },
-  inputMsg: { flex: 1, backgroundColor: '#f2f2f7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#1a1a1a', maxHeight: 100 },
-  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
-  sendTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  bubbleUser: { backgroundColor: c.primary, borderBottomRightRadius: 4 },
+  bubbleAI: { backgroundColor: c.card, borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: c.separator, minWidth: 60, minHeight: 44, justifyContent: 'center' },
+  bubbleTxt: { fontSize: 14, color: c.text, lineHeight: 21 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: c.card, borderTopWidth: 0.5, borderTopColor: c.separator },
+  inputMsg: { flex: 1, backgroundColor: c.bgSecondary, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: c.text, maxHeight: 100 },
+  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' },
 })

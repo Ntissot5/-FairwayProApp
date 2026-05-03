@@ -1,20 +1,24 @@
-import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Modal } from 'react-native'
+import { useState, useEffect, useMemo } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { VideoView, useVideoPlayer } from 'expo-video'
 import { supabase } from './supabase'
-
-const G = '#1B5E35'
+import { useTheme } from './ThemeContext'
+import { useTranslation } from 'react-i18next'
+import AnimatedPressable from './components/AnimatedPressable'
+import AnimatedListItem from './components/AnimatedListItem'
+import { CardListSkeleton } from './components/Skeleton'
 
 function VideoPlayer({ url, onClose }) {
   const player = useVideoPlayer(url, p => { p.play() })
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen">
       <View style={{ flex: 1, backgroundColor: '#000' }}>
-        <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: 56, right: 20, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#fff', fontSize: 18 }}>✕</Text>
-        </TouchableOpacity>
+        <AnimatedPressable onPress={onClose} style={{ position: 'absolute', top: 56, right: 20, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="close" size={20} color="#fff" />
+        </AnimatedPressable>
         <VideoView player={player} style={{ flex: 1 }} contentFit="contain" allowsFullscreen />
       </View>
     </Modal>
@@ -22,6 +26,9 @@ function VideoPlayer({ url, onClose }) {
 }
 
 export default function PlayerVideosScreen() {
+  const { colors } = useTheme()
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -43,7 +50,7 @@ export default function PlayerVideosScreen() {
 
   const recordVideo = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
-    if (status !== 'granted') { Alert.alert('Permission needed'); return }
+    if (status !== 'granted') { Alert.alert(t('common.permissionNeeded')); return }
     const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 60 })
     if (result.canceled) return
     setUploading(true)
@@ -56,66 +63,71 @@ export default function PlayerVideosScreen() {
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from('swing-videos').getPublicUrl(fileName)
       await supabase.from('swing_videos').insert({ player_id: playerId, video_url: publicUrl, title: 'Swing ' + new Date().toLocaleDateString('fr-FR') })
-      Alert.alert('✓ Video uploaded!')
+      Alert.alert(t('playerVideos.uploaded'))
       fetchAll()
-    } catch(e) { Alert.alert('Error', e.message) }
+    } catch(e) { Alert.alert(t('common.error'), e.message) }
     setUploading(false)
   }
 
   const deleteVideo = async (id) => {
-    Alert.alert('Supprimer ?', 'Cette vidéo sera supprimée.', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: async () => {
+    Alert.alert(t('playerVideos.deleteQuestion'), t('playerVideos.deleteMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: async () => {
         await supabase.from('swing_videos').delete().eq('id', id)
         fetchAll()
       }}
     ])
   }
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <SafeAreaView style={s.safe}><View style={s.header}><View><Text style={s.title}>{t('playerVideos.title')}</Text></View></View><CardListSkeleton /></SafeAreaView>
 
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>Swing Videos</Text>
-          <Text style={s.sub}>Your recordings</Text>
+          <Text style={s.title}>{t('playerVideos.title')}</Text>
+          <Text style={s.sub}>{t('playerVideos.recordings')}</Text>
         </View>
-        <TouchableOpacity style={s.addBtn} onPress={recordVideo} disabled={uploading}>
-          <Text style={s.addBtnTxt}>{uploading ? '...' : '🎥 Film'}</Text>
-        </TouchableOpacity>
+        <AnimatedPressable style={s.addBtn} onPress={recordVideo} disabled={uploading}>
+          <Ionicons name="videocam" size={16} color="#fff" />
+          <Text style={s.addBtnTxt}>{uploading ? '...' : t('playerVideos.film')}</Text>
+        </AnimatedPressable>
       </View>
 
       {playingVideo && <VideoPlayer url={playingVideo} onClose={() => setPlayingVideo(null)} />}
 
       <ScrollView style={s.scroll}>
         {videos.length === 0 ? (
-          <View style={{ padding: 40, alignItems: 'center' }}>
-            <Text style={{ fontSize: 40, marginBottom: 16 }}>🎥</Text>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 }}>No videos yet</Text>
-            <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginBottom: 24 }}>Filme ton swing et partage-le avec ton coach</Text>
-            <TouchableOpacity style={s.addBtn} onPress={recordVideo}>
-              <Text style={s.addBtnTxt}>🎥 Filmer mon swing</Text>
-            </TouchableOpacity>
+          <View style={s.emptyWrap}>
+            <Ionicons name="videocam-outline" size={48} color={colors.separator} />
+            <Text style={s.emptyTitle}>{t('playerVideos.noVideos')}</Text>
+            <Text style={s.emptySub}>{t('playerVideos.noVideosSub')}</Text>
+            <AnimatedPressable style={s.addBtn} onPress={recordVideo}>
+              <Ionicons name="videocam" size={16} color="#fff" />
+              <Text style={s.addBtnTxt}>{t('playerVideos.filmSwing')}</Text>
+            </AnimatedPressable>
           </View>
         ) : (
           <View style={s.section}>
-            {videos.map(v => (
-              <View key={v.id} style={s.videoRow}>
-                <TouchableOpacity style={s.videoThumb} onPress={() => setPlayingVideo(v.video_url)}>
-                  <Text style={{ fontSize: 28 }}>▶️</Text>
-                </TouchableOpacity>
-                <View style={s.videoInfo}>
-                  <Text style={s.videoTitle}>{v.title || 'Swing video'}</Text>
-                  <Text style={s.videoDate}>{new Date(v.created_at).toLocaleDateString('fr-FR')}</Text>
-                  <TouchableOpacity onPress={() => setPlayingVideo(v.video_url)} style={s.watchBtn}>
-                    <Text style={s.watchBtnTxt}>▶ Regarder</Text>
-                  </TouchableOpacity>
+            {videos.map((v, i) => (
+              <AnimatedListItem key={v.id} index={i}>
+                <View style={s.videoRow}>
+                  <AnimatedPressable style={s.videoThumb} onPress={() => setPlayingVideo(v.video_url)}>
+                    <Ionicons name="play" size={24} color={colors.primary} />
+                  </AnimatedPressable>
+                  <View style={s.videoInfo}>
+                    <Text style={s.videoTitle}>{v.title || t('playerVideos.swingVideo')}</Text>
+                    <Text style={s.videoDate}>{new Date(v.created_at).toLocaleDateString('fr-FR')}</Text>
+                    <AnimatedPressable onPress={() => setPlayingVideo(v.video_url)} style={s.watchBtn}>
+                      <Ionicons name="play" size={12} color={colors.primary} />
+                      <Text style={s.watchBtnTxt}>{t('playerVideos.watch')}</Text>
+                    </AnimatedPressable>
+                  </View>
+                  <AnimatedPressable onPress={() => deleteVideo(v.id)} style={s.deleteBtn}>
+                    <Ionicons name="close" size={18} color={colors.destructive} />
+                  </AnimatedPressable>
                 </View>
-                <TouchableOpacity onPress={() => deleteVideo(v.id)} style={s.deleteBtn}>
-                  <Text style={{ color: '#DC2626', fontSize: 16 }}>✕</Text>
-                </TouchableOpacity>
-              </View>
+              </AnimatedListItem>
             ))}
           </View>
         )}
@@ -125,22 +137,24 @@ export default function PlayerVideosScreen() {
   )
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
-  sub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+const makeStyles = (c) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: c.bgSecondary },
+  header: { backgroundColor: c.card, padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: c.separator },
+  title: { fontSize: 22, fontWeight: '800', color: c.text },
+  sub: { fontSize: 12, color: c.textTertiary, marginTop: 2 },
   scroll: { flex: 1 },
-  addBtn: { backgroundColor: G, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: c.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
   addBtnTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, borderWidth: 0.5, borderColor: '#E5E7EB', overflow: 'hidden' },
-  videoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: '#F8FAF8' },
-  videoThumb: { width: 60, height: 60, borderRadius: 10, backgroundColor: '#F0FAF4', alignItems: 'center', justifyContent: 'center' },
+  section: { backgroundColor: c.card, borderRadius: 16, margin: 16, borderWidth: 0.5, borderColor: c.separator, overflow: 'hidden' },
+  emptyWrap: { padding: 40, alignItems: 'center', gap: 12 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: c.text },
+  emptySub: { fontSize: 13, color: c.textTertiary, textAlign: 'center', marginBottom: 12 },
+  videoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: c.separatorLight },
+  videoThumb: { width: 60, height: 60, borderRadius: 10, backgroundColor: c.primaryLight, alignItems: 'center', justifyContent: 'center' },
   videoInfo: { flex: 1 },
-  videoTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  videoDate: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
-  watchBtn: { marginTop: 6, backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
-  watchBtnTxt: { fontSize: 12, fontWeight: '600', color: G },
+  videoTitle: { fontSize: 14, fontWeight: '600', color: c.text },
+  videoDate: { fontSize: 11, color: c.textTertiary, marginTop: 2 },
+  watchBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, backgroundColor: c.primaryLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
+  watchBtnTxt: { fontSize: 12, fontWeight: '600', color: c.primary },
   deleteBtn: { padding: 8 },
 })

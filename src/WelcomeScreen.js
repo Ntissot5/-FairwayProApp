@@ -1,56 +1,60 @@
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native'
+import { useMemo } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
-const G = '#1B5E35'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { useTheme } from './ThemeContext'
+import { useTranslation } from 'react-i18next'
+import AnimatedPressable from './components/AnimatedPressable'
 
 export default function WelcomeScreen({ navigation }) {
+  const { colors, isDark } = useTheme()
+  const { t } = useTranslation()
+  const s = useMemo(() => makeStyles(colors, isDark), [colors, isDark])
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.top}>
-        <Text style={styles.logo}>Fairway<Text style={styles.pro}>Pro</Text></Text>
-        <Text style={styles.tagline}>Le cockpit du coach de golf</Text>
+    <SafeAreaView style={s.safe}>
+      <View style={s.top}>
+        <Text style={s.logo}>Fairway<Text style={s.pro}>Pro</Text></Text>
+        <Text style={s.tagline}>{t('welcome.tagline')}</Text>
       </View>
-      <View style={styles.bottom}>
-        <Text style={styles.question}>Qui êtes-vous ?</Text>
-        <TouchableOpacity style={styles.btnCoach} onPress={() => navigation.navigate('Login', { mode: 'coach' })}>
-          <Text style={styles.btnIcon}>🏌️</Text>
-          <View style={styles.btnText}>
-            <Text style={styles.btnTitle}>Je suis coach</Text>
-            <Text style={styles.btnDesc}>Gérer mes élèves, séances et revenus</Text>
+      <View style={s.bottom}>
+        <Text style={s.question}>{t('welcome.question')}</Text>
+        <AnimatedPressable style={s.btnCoach} onPress={() => navigation.navigate('Login', { mode: 'coach' })}>
+          <MaterialCommunityIcons name="golf" size={28} color={colors.primary} />
+          <View style={s.btnText}>
+            <Text style={s.btnTitle}>{t('welcome.coach')}</Text>
+            <Text style={s.btnDesc}>{t('welcome.coachDesc')}</Text>
           </View>
-          <Text style={styles.arrow}>›</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btnPlayer} onPress={() => navigation.navigate('Login', { mode: 'player' })}>
-          <Text style={styles.btnIcon}>⛳</Text>
-          <View style={styles.btnText}>
-            <Text style={styles.btnTitle}>Je suis joueur</Text>
-            <Text style={styles.btnDesc}>Accéder à mon app et mes cours</Text>
+          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        </AnimatedPressable>
+        <AnimatedPressable style={s.btnPlayer} onPress={() => navigation.navigate('Login', { mode: 'player' })}>
+          <Ionicons name="flag" size={28} color={colors.primary} />
+          <View style={s.btnText}>
+            <Text style={s.btnTitle}>{t('welcome.player')}</Text>
+            <Text style={s.btnDesc}>{t('welcome.playerDesc')}</Text>
           </View>
-          <Text style={styles.arrow}>›</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Login', { mode: 'coach', demo: true })}>
-          <Text style={styles.demo}>Voir la démo →</Text>
-        </TouchableOpacity>
+          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        </AnimatedPressable>
+        <AnimatedPressable haptic={false} onPress={() => navigation.navigate('Login', { mode: 'coach', demo: true })}>
+          <Text style={s.demo}>{t('welcome.demo')}</Text>
+        </AnimatedPressable>
       </View>
     </SafeAreaView>
   )
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: G },
+const makeStyles = (c, isDark) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: isDark ? '#0A2E1A' : c.primary },
   top: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   logo: { fontSize: 44, fontWeight: '800', color: '#fff', letterSpacing: -1 },
   pro: { color: '#4ade80' },
   tagline: { fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 8 },
-  bottom: { backgroundColor: '#fff', borderRadius: 28, padding: 28, margin: 12, paddingBottom: 36 },
-  question: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', marginBottom: 20, letterSpacing: -0.5 },
-  btnCoach: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0faf4', borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1.5, borderColor: G },
-  btnPlayer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fafafa', borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1.5, borderColor: '#E5E7EB' },
-  btnIcon: { fontSize: 28, marginRight: 14 },
-  btnText: { flex: 1 },
-  btnTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  btnDesc: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  arrow: { fontSize: 24, color: '#9CA3AF' },
-  demo: { textAlign: 'center', color: G, fontSize: 14, fontWeight: '600', marginTop: 16 },
+  bottom: { backgroundColor: c.card, borderRadius: 28, padding: 28, margin: 12, paddingBottom: 36 },
+  question: { fontSize: 22, fontWeight: '800', color: c.text, marginBottom: 20, letterSpacing: -0.5 },
+  btnCoach: { flexDirection: 'row', alignItems: 'center', backgroundColor: c.primaryLight, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1.5, borderColor: c.primary },
+  btnPlayer: { flexDirection: 'row', alignItems: 'center', backgroundColor: c.bgSecondary, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1.5, borderColor: c.separator },
+  btnText: { flex: 1, marginLeft: 14 },
+  btnTitle: { fontSize: 16, fontWeight: '700', color: c.text },
+  btnDesc: { fontSize: 12, color: c.textTertiary, marginTop: 2 },
+  demo: { textAlign: 'center', color: c.primary, fontSize: 14, fontWeight: '600', marginTop: 16 },
 })
