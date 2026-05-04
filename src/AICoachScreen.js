@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
-const ANTHROPIC_KEY = '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'
+const CLAUDE_PROXY = 'https://aqdifzgqfemfdcigxsgw.supabase.co/functions/v1/claude-proxy'
 
 export default function AICoachScreen() {
   const [players, setPlayers] = useState([])
@@ -43,14 +43,9 @@ Sessions: ${JSON.stringify(sessions.map(s => ({ player_id: s.player_id, date: s.
 Total revenue: ${sessions.reduce((sum, s) => sum + (s.price || 0), 0)}€
 Answer in the same language as the coach's question.`
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch(CLAUDE_PROXY, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 500,
