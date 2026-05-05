@@ -37,6 +37,10 @@ export default function SettingsScreen({ navigation }) {
         </View>
         <View style={s.section}>
           <Text style={s.sectionTitle}>App</Text>
+          <TouchableOpacity style={s.infoRow} onPress={() => navigation.navigate('Plans')}>
+            <Text style={s.infoLabel}>Tarifs</Text>
+            <Text style={s.infoValue}>›</Text>
+          </TouchableOpacity>
           <View style={s.infoRow}>
             <Text style={s.infoLabel}>Version</Text>
             <Text style={s.infoValue}>1.0.0</Text>

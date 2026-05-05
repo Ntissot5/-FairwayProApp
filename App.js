@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { SafeAreaProvider } from "react-native-safe-area-context"
-import { Text } from "react-native"
+import { Text, View, ActivityIndicator } from "react-native"
 import WelcomeScreen from "./src/WelcomeScreen"
 import SubscribeScreen from "./src/SubscribeScreen"
 import LoginScreen from "./src/LoginScreen"
@@ -19,7 +19,7 @@ import { supabase } from "./src/supabase"
 import { registerForPushNotifications, savePushToken } from "./src/notifications"
 import { OnboardingProvider } from "./src/OnboardingContext"
 import * as Notifications from "expo-notifications"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import PlayerHomeScreen from "./src/PlayerHomeScreen"
 import PlayerRoundsScreen from "./src/PlayerRoundsScreen"
 import PlayerPlanScreen from "./src/PlayerPlanScreen"
@@ -63,8 +63,33 @@ function PlayerTabs() {
 export default function App() {
   const notificationListener = useRef()
   const responseListener = useRef()
+  const [initialRoute, setInitialRoute] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Check existing auth session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          // Check if user is a coach (has players assigned)
+          const { data: players } = await supabase
+            .from('players')
+            .select('id')
+            .eq('coach_id', session.user.id)
+            .limit(1)
+          setInitialRoute(players && players.length > 0 ? 'CoachTabs' : 'PlayerApp')
+        } else {
+          setInitialRoute('Welcome')
+        }
+      } catch {
+        setInitialRoute('Welcome')
+      }
+      setIsLoading(false)
+    }
+    checkSession()
+
+    // Push notifications
     registerForPushNotifications().then(async token => {
       if (token) {
         const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
@@ -86,18 +111,27 @@ export default function App() {
     }
   }, [])
 
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: G, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 36, fontWeight: '800', color: '#fff', letterSpacing: -1 }}>Fairway<Text style={{ color: '#4ade80' }}>Pro</Text></Text>
+        <ActivityIndicator color="#fff" style={{ marginTop: 20 }} />
+      </View>
+    )
+  }
+
   return (
     <SafeAreaProvider>
       <OnboardingProvider>
       <NavigationContainer>
-        <RootStack.Navigator screenOptions={{ headerShown: false }}>
-          <RootStack.Screen name="Subscribe" component={SubscribeScreen} options={{ headerShown: false }} />
-      <RootStack.Screen name="Welcome" component={WelcomeScreen} />
+        <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
+          <RootStack.Screen name="Welcome" component={WelcomeScreen} />
           <RootStack.Screen name="Login" component={LoginScreen} />
           <RootStack.Screen name="CoachTabs" component={CoachTabs} />
           <RootStack.Screen name="PlayerApp" component={PlayerTabs} />
           <RootStack.Screen name="PlayerDetail" component={PlayerDetailScreen} />
           <RootStack.Screen name="Settings" component={SettingsScreen} />
+          <RootStack.Screen name="Plans" component={SubscribeScreen} />
         </RootStack.Navigator>
       </NavigationContainer>
       </OnboardingProvider>

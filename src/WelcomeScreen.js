@@ -32,6 +32,9 @@ export default function WelcomeScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.navigate('Login', { mode: 'coach', demo: true })}>
           <Text style={styles.demo}>Voir la démo →</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Plans')}>
+          <Text style={styles.plans}>Voir nos plans</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   )
@@ -53,4 +56,5 @@ const styles = StyleSheet.create({
   btnDesc: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
   arrow: { fontSize: 24, color: '#9CA3AF' },
   demo: { textAlign: 'center', color: G, fontSize: 14, fontWeight: '600', marginTop: 16 },
+  plans: { textAlign: 'center', color: '#9CA3AF', fontSize: 12, marginTop: 12 },
 })
