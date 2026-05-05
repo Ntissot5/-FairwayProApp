@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
@@ -90,7 +91,7 @@ export default function CoachApp({ navigation }) {
             <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>+ Player</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.signOutBtn}>
-            <Text style={styles.signOutTxt}>⚙️</Text>
+            <Ionicons name="settings-outline" size={22} color="#6B7280" />
           </TouchableOpacity>
         </View>
       </View>
@@ -99,7 +100,7 @@ export default function CoachApp({ navigation }) {
 
         {inactivePlayers.length > 0 && (
           <View style={styles.alert}>
-            <Text style={styles.alertTitle}>⚠️ {inactivePlayers.length} élève{inactivePlayers.length > 1 ? 's' : ''} inactif{inactivePlayers.length > 1 ? 's' : ''} depuis +14 jours</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="alert-circle-outline" size={18} color="#DC2626" /><Text style={styles.alertTitle}>{inactivePlayers.length} élève{inactivePlayers.length > 1 ? 's' : ''} inactif{inactivePlayers.length > 1 ? 's' : ''} depuis +14 jours</Text></View>
             {inactivePlayers.map(p => (
               <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 10, marginTop: 8, borderTopWidth: 0.5, borderTopColor: '#FECACA' }}>
                 <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#FCA5A5', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>

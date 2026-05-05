@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { Ionicons } from '@expo/vector-icons'
 
 const G = '#1B5E35'
 
@@ -61,7 +62,7 @@ export default function PlayerPlanScreen() {
           ) : exercises.map(ex => (
             <TouchableOpacity key={ex.id} style={s.exRow} onPress={() => toggleExercise(ex)}>
               <View style={[s.checkbox, ex.completed && s.checkboxDone]}>
-                {ex.completed && <Text style={{ color: "#fff", fontSize: 12 }}>✓</Text>}
+                {ex.completed && <Ionicons name="checkmark" size={14} color="#fff" />}
               </View>
               <View style={s.exInfo}>
                 <Text style={[s.exTitle, ex.completed && s.exTitleDone]}>{ex.title}</Text>

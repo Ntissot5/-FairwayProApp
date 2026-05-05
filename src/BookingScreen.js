@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { Ionicons } from '@expo/vector-icons'
 
 const G = '#1B5E35'
 const DAYS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
@@ -314,7 +315,7 @@ export default function BookingScreen({ navigation }) {
           </View>
 
           <View style={s.section}>
-            <Text style={s.sectionTitle}>👥 Créneaux collectifs fixes</Text>
+            <Text style={s.sectionTitle}>Créneaux collectifs fixes</Text>
             <Text style={s.sectionSub}>Récurrents chaque semaine</Text>
             <Text style={s.label}>Jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -379,7 +380,7 @@ export default function BookingScreen({ navigation }) {
                 <TextInput style={s.input} value={String(prefs.private_price || 120)} onChangeText={v => setPrefs({...prefs, private_price: parseInt(v) || 120})} keyboardType="numeric" placeholderTextColor="#9CA3AF" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.label}>👥 Collectif/élève (€)</Text>
+                <Text style={s.label}>Collectif/élève (€)</Text>
                 <TextInput style={s.input} value={String(prefs.group_price || 25)} onChangeText={v => setPrefs({...prefs, group_price: parseInt(v) || 25})} keyboardType="numeric" placeholderTextColor="#9CA3AF" />
               </View>
             </View>
@@ -389,7 +390,7 @@ export default function BookingScreen({ navigation }) {
               </Text>
             </View>
             <TouchableOpacity style={[s.addBtn, { marginTop: 16 }]} onPress={savePrefs}>
-              <Text style={s.addBtnTxt}>✓ Sauvegarder</Text>
+              <Text style={s.addBtnTxt}>Sauvegarder</Text>
             </TouchableOpacity>
           </View>
           <View style={{ height: 40 }} />
@@ -406,7 +407,7 @@ export default function BookingScreen({ navigation }) {
           </View>
           <ScrollView style={{ padding: 20 }}>
             <Text style={{ fontSize: 14, color: '#6B7280', marginBottom: 16 }}>
-              📅 {selectedSlot?.date} à {selectedSlot?.time}
+              {selectedSlot?.date} à {selectedSlot?.time}
             </Text>
             <Text style={s.label}>TYPE</Text>
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
@@ -414,7 +415,7 @@ export default function BookingScreen({ navigation }) {
                 <Text style={[s.chipTxt, lessonType === 'private' && { color: '#fff' }]}>💚 Cours privé</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setLessonType('group')} style={[s.chip, lessonType === 'group' && s.chipActive]}>
-                <Text style={[s.chipTxt, lessonType === 'group' && { color: '#fff' }]}>👥 Collectif</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="people-outline" size={14} color={lessonType === 'group' ? '#fff' : '#6B7280'} /><Text style={[s.chipTxt, lessonType === 'group' && { color: '#fff' }]}>Collectif</Text></View>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setLessonType('event')} style={[s.chip, lessonType === 'event' && { backgroundColor: '#F59E0B', borderColor: '#F59E0B' }]}>
                 <Text style={[s.chipTxt, lessonType === 'event' && { color: '#fff' }]}>📌 Événement perso</Text>
@@ -436,7 +437,7 @@ export default function BookingScreen({ navigation }) {
                   <Text style={{ fontSize: 14, fontWeight: '600', color: '#1a1a1a' }}>{p.full_name}</Text>
                   <Text style={{ fontSize: 11, color: '#9CA3AF' }}>HCP {p.current_handicap}</Text>
                 </View>
-                {selectedPlayer === p.id && <Text style={{ color: G, fontSize: 18 }}>✓</Text>}
+                {selectedPlayer === p.id && <Ionicons name="checkmark" size={18} color={G} />}
               </TouchableOpacity>
             ))}
             <TouchableOpacity style={[s.addBtn, { marginTop: 24, marginBottom: 40 }, ((lessonType !== 'event' && !selectedPlayer) || savingLesson) && { opacity: 0.6 }]} onPress={addLesson} disabled={(lessonType !== 'event' && !selectedPlayer) || savingLesson}>
@@ -457,7 +458,7 @@ export default function BookingScreen({ navigation }) {
           <ScrollView style={{ padding: 20 }}>
             {slotDetail?.collectif && (
               <View style={{ backgroundColor: '#EEF2FF', borderRadius: 14, padding: 16, marginBottom: 12 }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#4F46E5' }}>👥 Cours collectif</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="people-outline" size={14} color="#4F46E5" /><Text style={{ fontSize: 14, fontWeight: '700', color: '#4F46E5' }}>Cours collectif</Text></View>
                 <Text style={{ fontSize: 12, color: '#6366F1', marginTop: 4 }}>Max {slotDetail.collectif.max_players} élèves · {slotDetail.collectif.duration_minutes} min · {prefs.group_price || 25}€/élève</Text>
               </View>
             )}

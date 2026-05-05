@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { Ionicons } from '@expo/vector-icons'
 
 const G = '#1B5E35'
 const colors = ['#1B5E35','#0891B2','#7C3AED','#DC2626','#D97706','#059669']
@@ -106,10 +107,10 @@ export default function PlayerCommunityScreen() {
                 <Text style={s.hcp}>{p.current_handicap || 0}</Text>
                 <Text style={s.hcpLabel}>HCP</Text>
                 <TouchableOpacity style={s.msgBtn} onPress={() => setSelectedPlayer(p)}>
-                  <Text style={s.msgBtnTxt}>💬 Message</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="chatbubble-outline" size={12} color="#fff" /><Text style={s.msgBtnTxt}>Message</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.gameBtn} onPress={() => requestGame(p)}>
-                  <Text style={s.gameBtnTxt}>⛳ Partie</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={12} color={G} /><Text style={s.gameBtnTxt}>Partie</Text></View>
                 </TouchableOpacity>
               </View>
             ))}
@@ -140,7 +141,7 @@ export default function PlayerCommunityScreen() {
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                   <TouchableOpacity style={[s.gameBtn, { flex: 1, alignItems: 'center' }]}
                     onPress={async () => { await supabase.from('game_requests').update({ status: 'accepted' }).eq('id', gr.id); fetchAll() }}>
-                    <Text style={s.gameBtnTxt}>✓ Accepter</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="checkmark" size={14} color={G} /><Text style={s.gameBtnTxt}>Accepter</Text></View>
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.msgBtn, { flex: 1, alignItems: 'center' }]}
                     onPress={async () => { await supabase.from('game_requests').update({ status: 'declined' }).eq('id', gr.id); fetchAll() }}>

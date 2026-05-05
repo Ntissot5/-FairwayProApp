@@ -1,37 +1,38 @@
 import { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 
 const G = '#1B5E35'
 const { width } = Dimensions.get('window')
 
 const SLIDES = [
   {
-    icon: '⛳',
+    icon: 'flag-outline',
     title: 'Bienvenue sur FairwayPro',
     sub: 'Ton espace personnel pour progresser au golf avec ton coach.',
     color: '#1B5E35',
   },
   {
-    icon: '📊',
+    icon: 'stats-chart-outline',
     title: 'Suis ta progression',
     sub: 'Ajoute tes rounds, suis ton handicap et analyse tes stats trou par trou.',
     color: '#0891B2',
   },
   {
-    icon: '📋',
+    icon: 'clipboard-outline',
     title: "Ton plan d'entrainement",
     sub: "Ton coach t'assigne des exercices personnalises. Complete-les pour progresser.",
     color: '#7C3AED',
   },
   {
-    icon: '📅',
+    icon: 'calendar-outline',
     title: 'Réserve tes cours',
     sub: "Consulte le calendrier de ton coach et reserve tes creneaux directement depuis l'app.",
     color: '#D97706',
   },
   {
-    icon: '💬',
+    icon: 'chatbubbles-outline',
     title: 'Reste connecté',
     sub: 'Envoie des messages à ton coach, partage tes vidéos de swing et rejoins la communauté.',
     color: '#DC2626',
@@ -55,7 +56,7 @@ export default function PlayerOnboarding({ playerName, onFinish }) {
 
         {/* Content */}
         <View style={s.content}>
-          <Text style={s.icon}>{slide.icon}</Text>
+          <Ionicons name={slide.icon} size={48} color={slide.color} />
           {step === 0 && playerName && (
             <Text style={s.welcome}>Salut {playerName} !</Text>
           )}

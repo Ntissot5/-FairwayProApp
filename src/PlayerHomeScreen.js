@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { Ionicons } from '@expo/vector-icons'
 import { useOnboarding, OnboardingTooltip } from './OnboardingContext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import PlayerOnboarding from './PlayerOnboarding'
@@ -110,7 +111,7 @@ export default function PlayerHomeScreen({ navigation }) {
   if (!player) return (
     <SafeAreaView style={s.safe}>
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
-        <Text style={{ fontSize: 40, marginBottom: 16 }}>⛳</Text>
+        <Ionicons name="flag-outline" size={40} color={G} style={{ marginBottom: 16 }} />
         <Text style={{ fontSize: 20, fontWeight: "800", color: "#1a1a1a", textAlign: "center", marginBottom: 8 }}>Compte joueur non trouvé</Text>
         <Text style={{ fontSize: 14, color: "#6B7280", textAlign: "center" }}>Demande à ton coach de t'inviter sur FairwayPro.</Text>
       </View>
@@ -153,7 +154,7 @@ export default function PlayerHomeScreen({ navigation }) {
         {nextBooking && (
           <View style={s.card}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={s.cardIcon}><Text style={{ fontSize: 22 }}>📅</Text></View>
+              <View style={s.cardIcon}><Ionicons name="calendar-outline" size={22} color={G} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cardLabel}>PROCHAIN COURS</Text>
                 <Text style={s.cardTitle}>{nextBooking.lesson_date} à {nextBooking.start_time?.slice(0,5)}</Text>
@@ -167,7 +168,7 @@ export default function PlayerHomeScreen({ navigation }) {
         {lastMessage && (
           <TouchableOpacity style={s.card} onPress={() => navigation.navigate("PlayerChat")}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={[s.cardIcon, { backgroundColor: '#E8F5EE' }]}><Text style={{ fontSize: 22 }}>💬</Text></View>
+              <View style={[s.cardIcon, { backgroundColor: '#E8F5EE' }]}><Ionicons name="chatbubbles-outline" size={22} color={G} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cardLabel}>MESSAGE DE TON COACH</Text>
                 <Text style={s.cardTitle} numberOfLines={2}>{lastMessage.content}</Text>
@@ -182,7 +183,7 @@ export default function PlayerHomeScreen({ navigation }) {
         {todoExercises.length > 0 && (
           <TouchableOpacity style={s.card} onPress={() => navigation.navigate("PlayerPlan")}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={[s.cardIcon, { backgroundColor: '#FEF3C7' }]}><Text style={{ fontSize: 22 }}>📋</Text></View>
+              <View style={[s.cardIcon, { backgroundColor: '#FEF3C7' }]}><Ionicons name="clipboard-outline" size={22} color="#D97706" /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cardLabel}>PLAN D'ENTRAÎNEMENT</Text>
                 <Text style={s.cardTitle}>{todoExercises.length} exercice{todoExercises.length > 1 ? 's' : ''} à faire</Text>
@@ -217,7 +218,7 @@ export default function PlayerHomeScreen({ navigation }) {
         {/* Empty state */}
         {rounds.length === 0 && todoExercises.length === 0 && !lastMessage && (
           <View style={s.emptyState}>
-            <Text style={{ fontSize: 48, marginBottom: 16 }}>🏌️</Text>
+            <Ionicons name="flag-outline" size={48} color={G} style={{ marginBottom: 16 }} />
             <Text style={s.emptyTitle}>Prêt à jouer ?</Text>
             <Text style={s.emptySub}>Ajoute ton premier round ou attends que ton coach t'assigne des exercices.</Text>
           </View>

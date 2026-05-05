@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from './supabase'
 import { registerForPushNotifications, savePushToken } from './notifications'
 
@@ -49,7 +50,7 @@ export default function LoginScreen({ navigation, route }) {
           </TouchableOpacity>
           <View style={styles.card}>
             <Text style={styles.title}>{isSignup ? 'Créer un compte' : 'Connexion'}</Text>
-            <Text style={styles.sub}>{mode === 'coach' ? '🏌️ Coach' : '⛳ Joueur'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Ionicons name={mode === 'coach' ? 'flag-outline' : 'person-outline'} size={16} color="#9CA3AF" /><Text style={styles.sub}>{mode === 'coach' ? 'Coach' : 'Joueur'}</Text></View>
             {error && <View style={styles.errorBox}><Text style={styles.errorTxt}>{error}</Text></View>}
             <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#9CA3AF" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} />
             <TextInput style={styles.input} placeholder={isSignup ? 'Mot de passe (min. 6 caractères)' : 'Mot de passe'} placeholderTextColor="#9CA3AF" value={password} onChangeText={setPassword} secureTextEntry />

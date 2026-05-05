@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { Ionicons } from '@expo/vector-icons'
 import { Svg, Path, Circle, Text as SvgText, Line, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { supabase } from './supabase'
 
@@ -273,7 +274,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
           ) : videos.map(v => (
             <View key={v.id} style={s.sessionRow}>
               <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: "#f0faf4", alignItems: "center", justifyContent: "center", marginRight: 8 }}>
-                <Text style={{ fontSize: 20 }}>🎥</Text>
+                <Ionicons name="videocam-outline" size={20} color={G} />
               </View>
               <View style={s.sessionInfo}>
                 <Text style={s.sessionDate}>{v.title || "Swing video"}</Text>

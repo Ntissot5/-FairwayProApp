@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 
 const G = '#1B5E35'
 
@@ -64,7 +65,7 @@ export default function SubscribeScreen({ navigation }) {
             <View style={s.features}>
               {plan.features.map((feat) => (
                 <View key={feat} style={s.featRow}>
-                  <Text style={s.check}>✓</Text>
+                  <Ionicons name="checkmark" size={16} color={G} style={s.check} />
                   <Text style={s.featText}>{feat}</Text>
                 </View>
               ))}

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Svg, Path, Circle, Line, Text as SvgText, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { supabase } from './supabase'
+import { Ionicons } from '@expo/vector-icons'
 
 const G = '#1B5E35'
 
@@ -470,7 +471,7 @@ export default function PlayerRoundsScreen({ navigation }) {
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={[s.modeCard, s.modeCardActive]} onPress={() => setScreen("detailedSetup")}>
-          <Text style={s.modeIcon}>📊</Text>
+          <Ionicons name="stats-chart-outline" size={20} color={G} />
           <View style={{ flex: 1 }}>
             <Text style={[s.modeTitle, { color: G }]}>Detailed mode</Text>
             <Text style={s.modeSub}>Hole par trou — Par, coups, putts, fairway, GIR</Text>
@@ -516,7 +517,7 @@ export default function PlayerRoundsScreen({ navigation }) {
       <View style={s.tabs}>
         {['rounds', 'stats'].map(t => (
           <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)}>
-            <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>{t === 'rounds' ? '🏌️ Rounds' : '📊 Stats'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name={t === 'rounds' ? 'flag-outline' : 'stats-chart-outline'} size={14} color={tab === t ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>{t === 'rounds' ? 'Rounds' : 'Stats'}</Text></View>
           </TouchableOpacity>
         ))}
       </View>
@@ -528,7 +529,7 @@ export default function PlayerRoundsScreen({ navigation }) {
           <>
             {rounds.length === 0 ? (
               <View style={{ padding: 40, alignItems: "center" }}>
-                <Text style={{ fontSize: 40, marginBottom: 16 }}>⛳</Text>
+                <Ionicons name="flag-outline" size={40} color={G} style={{ marginBottom: 16 }} />
                 <Text style={{ fontSize: 16, fontWeight: "700", color: "#1a1a1a", marginBottom: 16 }}>No rounds yet</Text>
                 <TouchableOpacity style={s.addBtn} onPress={() => setScreen("choose")}>
                   <Text style={s.addBtnTxt}>+ Add your first round</Text>
@@ -548,7 +549,7 @@ export default function PlayerRoundsScreen({ navigation }) {
                 </View>
                 {(r.putts || r.gir) ? (
                   <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
-                    {r.putts ? <Text style={s.roundStat}>⛳ {r.putts} putts</Text> : null}
+                    {r.putts ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Ionicons name="flag-outline" size={12} color="#9CA3AF" /><Text style={s.roundStat}>{r.putts} putts</Text></View> : null}
                     {r.gir ? <Text style={s.roundStat}>🎯 {r.gir} GIR</Text> : null}
                     {r.fairways_hit ? <Text style={s.roundStat}>🏹 {r.fairways_hit} FW</Text> : null}
                   </View>

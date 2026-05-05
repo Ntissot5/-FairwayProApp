@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
 import { VideoView, useVideoPlayer } from 'expo-video'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
@@ -82,7 +83,7 @@ export default function PlayerVideosScreen() {
           <Text style={s.sub}>Your recordings</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={recordVideo} disabled={uploading}>
-          <Text style={s.addBtnTxt}>{uploading ? '...' : '🎥 Film'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="videocam-outline" size={14} color="#fff" /><Text style={s.addBtnTxt}>{uploading ? '...' : 'Film'}</Text></View>
         </TouchableOpacity>
       </View>
 
@@ -91,11 +92,11 @@ export default function PlayerVideosScreen() {
       <ScrollView style={s.scroll}>
         {videos.length === 0 ? (
           <View style={{ padding: 40, alignItems: 'center' }}>
-            <Text style={{ fontSize: 40, marginBottom: 16 }}>🎥</Text>
+            <Ionicons name="videocam-outline" size={40} color={G} style={{ marginBottom: 16 }} />
             <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 }}>No videos yet</Text>
             <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginBottom: 24 }}>Filme ton swing et partage-le avec ton coach</Text>
             <TouchableOpacity style={s.addBtn} onPress={recordVideo}>
-              <Text style={s.addBtnTxt}>🎥 Filmer mon swing</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="videocam-outline" size={16} color="#fff" /><Text style={s.addBtnTxt}>Filmer mon swing</Text></View>
             </TouchableOpacity>
           </View>
         ) : (
@@ -103,7 +104,7 @@ export default function PlayerVideosScreen() {
             {videos.map(v => (
               <View key={v.id} style={s.videoRow}>
                 <TouchableOpacity style={s.videoThumb} onPress={() => setPlayingVideo(v.video_url)}>
-                  <Text style={{ fontSize: 28 }}>▶️</Text>
+                  <Ionicons name="play-circle-outline" size={28} color="#fff" />
                 </TouchableOpacity>
                 <View style={s.videoInfo}>
                   <Text style={s.videoTitle}>{v.title || 'Swing video'}</Text>

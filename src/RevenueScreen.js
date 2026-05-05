@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity, Share, Alert, Modal, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { Ionicons } from '@expo/vector-icons'
 
 const G = '#1B5E35'
 
@@ -112,7 +113,7 @@ export default function RevenueScreen({ navigation }) {
                   <Text style={s.rowDate}>{session.session_date}</Text>
                 </View>
                 <Text style={s.rowPrice}>{session.price}€</Text>
-                <View style={s.paidBadge}><Text style={s.paidTxt}>✓ Paid</Text></View>
+                <View style={s.paidBadge}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Ionicons name="checkmark" size={12} color={G} /><Text style={s.paidTxt}>Paid</Text></View></View>
               </TouchableOpacity>
             )
           })}

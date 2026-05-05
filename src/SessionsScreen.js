@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { Ionicons } from '@expo/vector-icons'
 const G = '#1B5E35'
 
 export default function SessionsScreen({ navigation }) {
@@ -185,10 +186,10 @@ export default function SessionsScreen({ navigation }) {
 
       <View style={s.tabs}>
         <TouchableOpacity style={[s.tab, tab === 'sessions' && s.tabActive]} onPress={() => setTab('sessions')}>
-          <Text style={[s.tabTxt, tab === 'sessions' && s.tabTxtActive]}>🏌️ Sessions</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={14} color={tab === 'sessions' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'sessions' && s.tabTxtActive]}>Sessions</Text></View>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tab, tab === 'packages' && s.tabActive]} onPress={() => setTab('packages')}>
-          <Text style={[s.tabTxt, tab === 'packages' && s.tabTxtActive]}>📦 Packages</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="cube-outline" size={14} color={tab === 'packages' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'packages' && s.tabTxtActive]}>Packages</Text></View>
         </TouchableOpacity>
       </View>
 
@@ -253,7 +254,7 @@ export default function SessionsScreen({ navigation }) {
                   <View style={{ marginTop: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                       <Text style={{ fontSize: 12, fontWeight: '600', color: isAlmostDone ? '#DC2626' : '#374151' }}>{pkg.used_sessions}/{pkg.total_sessions} séances</Text>
-                      <Text style={{ fontSize: 11, color: isAlmostDone ? '#DC2626' : '#9CA3AF' }}>{remaining} restante{remaining > 1 ? 's' : ''}{isAlmostDone ? ' ⚠️' : ''}</Text>
+                      <Text style={{ fontSize: 11, color: isAlmostDone ? '#DC2626' : '#9CA3AF' }}>{remaining} restante{remaining > 1 ? 's' : ''}</Text>
                     </View>
                     <View style={{ height: 6, backgroundColor: '#F0F4F0', borderRadius: 3 }}>
                       <View style={{ height: 6, width: pct + '%', backgroundColor: isAlmostDone ? '#EF4444' : G, borderRadius: 3 }} />
