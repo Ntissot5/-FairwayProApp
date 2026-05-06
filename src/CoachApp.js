@@ -3,7 +3,11 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as Notifications from 'expo-notifications'
 import { supabase } from './supabase'
+import { registerForPushNotifications, savePushToken } from './notifications'
+import PermissionPushModal from './components/PermissionPushModal'
 
 const G = '#1B5E35'
 
@@ -38,8 +42,48 @@ export default function CoachApp({ navigation }) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [relancing, setRelancing] = useState({})
+  const [showPushModal, setShowPushModal] = useState(false)
 
   useEffect(() => { fetchAll() }, [])
+
+  // Push notification permission flow
+  useEffect(() => {
+    const checkPushPermission = async () => {
+      // If already granted at system level, skip modal
+      const { status } = await Notifications.getPermissionsAsync()
+      if (status === 'granted') return
+
+      const asked = await AsyncStorage.getItem('@push_asked')
+      if (asked === 'granted') return
+
+      if (asked) {
+        // Check if 7 days have passed since "Later"
+        const askedDate = new Date(asked)
+        const now = new Date()
+        const diffDays = (now - askedDate) / (1000 * 60 * 60 * 24)
+        if (diffDays < 7) return
+      }
+
+      // Show modal after a short delay
+      setTimeout(() => setShowPushModal(true), 1000)
+    }
+    checkPushPermission()
+  }, [])
+
+  const handleEnablePush = async () => {
+    setShowPushModal(false)
+    const token = await registerForPushNotifications()
+    if (token) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) await savePushToken(user.id, token)
+    }
+    await AsyncStorage.setItem('@push_asked', 'granted')
+  }
+
+  const handleLaterPush = async () => {
+    setShowPushModal(false)
+    await AsyncStorage.setItem('@push_asked', new Date().toISOString())
+  }
 
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -207,6 +251,7 @@ export default function CoachApp({ navigation }) {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      <PermissionPushModal visible={showPushModal} onEnable={handleEnablePush} onLater={handleLaterPush} />
     </SafeAreaView>
   )
 }

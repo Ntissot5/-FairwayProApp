@@ -19,7 +19,6 @@ import ChatScreen from "./src/ChatScreen"
 import BookingScreen from "./src/BookingScreen"
 import SettingsScreen from "./src/SettingsScreen"
 import { supabase } from "./src/supabase"
-import { registerForPushNotifications, savePushToken } from "./src/notifications"
 import { OnboardingProvider } from "./src/OnboardingContext"
 import * as Notifications from "expo-notifications"
 import { useEffect, useRef, useState } from "react"
@@ -93,14 +92,6 @@ export default function App() {
       setIsLoading(false)
     }
     checkSession()
-
-    // Push notifications
-    registerForPushNotifications().then(async token => {
-      if (token) {
-        const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
-        if (user) savePushToken(user.id, token)
-      }
-    })
 
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       console.log('Notification received:', notification)

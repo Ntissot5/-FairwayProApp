@@ -237,6 +237,12 @@
     "accept": "Accepter",
     "invitation_sent": "Invitation envoyée à {{name}} !"
   },
+  "notifications": {
+    "permission_title": "Briefing matinal",
+    "permission_body": "Reçois ton agenda du jour, tes alertes élèves et tes suggestions IA chaque matin à 6h30.",
+    "permission_later": "Plus tard",
+    "permission_enable": "Activer"
+  },
   "player_chat": {
     "your_coach": "Ton coach",
     "online": "En ligne",
