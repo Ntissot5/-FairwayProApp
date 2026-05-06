@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert, PanResponder, Dimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useVideoPlayer, VideoView } from 'expo-video'
@@ -81,13 +81,27 @@ export default function VideoAnnotationScreen({ route, navigation }) {
     Math.abs(a.timestamp_ms - currentTimeMs) <= TOLERANCE_MS
   )
 
+  // Refs for values needed inside PanResponder (avoids stale closures)
+  const toolRef = useRef(selectedTool)
+  const colorRef = useRef(selectedColor)
+  const timeRef = useRef(currentTimeMs)
+  const layoutRef = useRef(videoLayout)
+  const playingRef = useRef(isPlaying)
+  const drawStartRef = useRef(null)
+  useEffect(() => { toolRef.current = selectedTool }, [selectedTool])
+  useEffect(() => { colorRef.current = selectedColor }, [selectedColor])
+  useEffect(() => { timeRef.current = currentTimeMs }, [currentTimeMs])
+  useEffect(() => { layoutRef.current = videoLayout }, [videoLayout])
+  useEffect(() => { playingRef.current = isPlaying }, [isPlaying])
+
   // Drawing via PanResponder
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => !isPlaying,
-      onMoveShouldSetPanResponder: () => !isPlaying,
+      onStartShouldSetPanResponder: () => !playingRef.current,
+      onMoveShouldSetPanResponder: () => !playingRef.current,
       onPanResponderGrant: (e) => {
         const { locationX, locationY } = e.nativeEvent
+        drawStartRef.current = { x: locationX, y: locationY }
         setDrawStart({ x: locationX, y: locationY })
         setDrawCurrent({ x: locationX, y: locationY })
       },
@@ -97,18 +111,21 @@ export default function VideoAnnotationScreen({ route, navigation }) {
       },
       onPanResponderRelease: (e) => {
         const { locationX, locationY } = e.nativeEvent
-        if (!drawStart) return
+        const start = drawStartRef.current
+        if (!start) return
 
+        const layout = layoutRef.current
         const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
         const newAnnotation = {
           id,
-          type: selectedTool,
-          color: selectedColor,
-          timestamp_ms: currentTimeMs,
-          start: { x: drawStart.x / videoLayout.width, y: drawStart.y / videoLayout.height },
-          end: { x: locationX / videoLayout.width, y: locationY / videoLayout.height },
+          type: toolRef.current,
+          color: colorRef.current,
+          timestamp_ms: timeRef.current,
+          start: { x: start.x / layout.width, y: start.y / layout.height },
+          end: { x: locationX / layout.width, y: locationY / layout.height },
         }
         setAnnotations(prev => [...prev, newAnnotation])
+        drawStartRef.current = null
         setDrawStart(null)
         setDrawCurrent(null)
       },
