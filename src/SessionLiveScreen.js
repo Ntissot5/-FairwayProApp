@@ -29,6 +29,7 @@ export default function SessionLiveScreen({ route, navigation }) {
   const [drillDesc, setDrillDesc] = useState('')
 
   const timerRef = useRef(null)
+  const recordIdRef = useRef(null)
 
   // Handle annotated video returned from VideoAnnotationScreen
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function SessionLiveScreen({ route, navigation }) {
 
   // Init: fetch player, create session_record, start chrono
   useEffect(() => {
-    if (recordId) {
+    if (recordIdRef.current) {
       console.log('[SessionLive] recordId already set, skip INSERT')
       return
     }
@@ -67,6 +68,7 @@ export default function SessionLiveScreen({ route, navigation }) {
       if (recErr) console.error('[SessionLive] Failed to create session_record:', recErr)
       if (rec) {
         console.log('[SessionLive] Created session_record:', rec.id)
+        recordIdRef.current = rec.id
         setRecordId(rec.id)
       }
     }
