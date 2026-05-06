@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, TextInput } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
+import * as FileSystem from 'expo-file-system'
+import { decode } from 'base64-arraybuffer'
 import { supabase } from './supabase'
 import { consumePendingVideo } from './videoResult'
 
@@ -28,6 +30,7 @@ export default function SessionLiveScreen({ route, navigation }) {
   const [noteText, setNoteText] = useState('')
   const [drillName, setDrillName] = useState('')
   const [drillDesc, setDrillDesc] = useState('')
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false)
 
   const timerRef = useRef(null)
   const recordIdRef = useRef(null)
@@ -36,17 +39,64 @@ export default function SessionLiveScreen({ route, navigation }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       const video = consumePendingVideo()
-      if (video) {
-        console.log('[SessionLive] Vidéo annotée reçue:', {
-          uri: video.videoUri,
-          annotationsCount: video.annotations?.length || 0,
-          duration: video.duration_ms,
-        })
-        // Étape 3: ajout à la Timeline + upload Supabase à venir
-      }
+      if (video) handleVideoSave(video)
     })
     return unsubscribe
   }, [navigation])
+
+  const handleVideoSave = async (pendingVideo) => {
+    try {
+      setIsUploadingVideo(true)
+      const { videoUri, annotations, duration_ms } = pendingVideo
+
+      console.log('[Video] Reading file:', videoUri)
+      const base64 = await FileSystem.readAsStringAsync(videoUri, { encoding: 'base64' })
+      const arrayBuffer = decode(base64)
+      console.log('[Video] File size:', arrayBuffer.byteLength, 'bytes')
+
+      const fileName = `${userId}/${recordIdRef.current}/${Date.now()}.mp4`
+      console.log('[Video] Uploading to:', fileName)
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('session-videos')
+        .upload(fileName, arrayBuffer, { contentType: 'video/mp4', upsert: false })
+
+      if (uploadError) {
+        console.error('[Video] Upload failed:', uploadError)
+        Alert.alert('Erreur', "Échec de l'envoi de la vidéo. Réessaye.")
+        return
+      }
+      console.log('[Video] Upload OK:', uploadData)
+
+      const { data: urlData } = await supabase.storage
+        .from('session-videos')
+        .createSignedUrl(fileName, 60 * 60 * 24 * 7)
+
+      const videoEvent = {
+        id: generateId(),
+        type: 'video',
+        timestamp: elapsedSeconds,
+        videoPath: fileName,
+        videoUrl: urlData?.signedUrl || null,
+        annotations,
+        duration_ms,
+      }
+
+      const updatedEvents = [...events, videoEvent]
+      setEvents(updatedEvents)
+
+      if (recordIdRef.current) {
+        const { error } = await supabase.from('session_records').update({ events: updatedEvents }).eq('id', recordIdRef.current)
+        if (error) console.error('[Video] DB update failed:', error)
+        else console.log('[Video] DB update OK')
+      }
+    } catch (e) {
+      console.error('[Video] Save failed:', e)
+      Alert.alert('Erreur', "Échec de l'enregistrement. Réessaye.")
+    } finally {
+      setIsUploadingVideo(false)
+    }
+  }
 
   // Init: fetch player, create session_record, start chrono
   useEffect(() => {
@@ -139,11 +189,13 @@ export default function SessionLiveScreen({ route, navigation }) {
   }
 
   const eventIcon = (type) => {
+    if (type === 'video') return 'videocam-outline'
     if (type === 'note') return 'document-text-outline'
     return 'flag-outline'
   }
 
   const eventPreview = (e) => {
+    if (e.type === 'video') return `${t('session_live.video_annotated')} · ${Math.round((e.duration_ms || 0) / 1000)}s · ${e.annotations?.length || 0} anno.`
     if (e.type === 'note') return e.text?.slice(0, 40) || ''
     return e.name || ''
   }
@@ -166,17 +218,17 @@ export default function SessionLiveScreen({ route, navigation }) {
 
       {/* Action buttons */}
       <View style={s.actions}>
-        <TouchableOpacity style={s.actionBtn} onPress={() => navigation.navigate('VideoRecord')}>
-          <Ionicons name="videocam-outline" size={22} color="#374151" />
-          <Text style={s.actionBtnTxt}>{t('session_live.video')}</Text>
+        <TouchableOpacity style={s.actionBtn} onPress={() => navigation.navigate('VideoRecord')} disabled={isUploadingVideo}>
+          <Ionicons name="videocam-outline" size={22} color={isUploadingVideo ? '#C4C4C4' : '#374151'} />
+          <Text style={[s.actionBtnTxt, isUploadingVideo && { color: '#C4C4C4' }]}>{t('session_live.video')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.actionBtn} onPress={() => setShowNoteModal(true)}>
-          <Ionicons name="document-text-outline" size={22} color="#374151" />
-          <Text style={s.actionBtnTxt}>{t('session_live.note')}</Text>
+        <TouchableOpacity style={s.actionBtn} onPress={() => setShowNoteModal(true)} disabled={isUploadingVideo}>
+          <Ionicons name="document-text-outline" size={22} color={isUploadingVideo ? '#C4C4C4' : '#374151'} />
+          <Text style={[s.actionBtnTxt, isUploadingVideo && { color: '#C4C4C4' }]}>{t('session_live.note')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.actionBtn} onPress={() => setShowDrillModal(true)}>
-          <Ionicons name="flag-outline" size={22} color="#374151" />
-          <Text style={s.actionBtnTxt}>{t('session_live.drill')}</Text>
+        <TouchableOpacity style={s.actionBtn} onPress={() => setShowDrillModal(true)} disabled={isUploadingVideo}>
+          <Ionicons name="flag-outline" size={22} color={isUploadingVideo ? '#C4C4C4' : '#374151'} />
+          <Text style={[s.actionBtnTxt, isUploadingVideo && { color: '#C4C4C4' }]}>{t('session_live.drill')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -195,9 +247,17 @@ export default function SessionLiveScreen({ route, navigation }) {
       </View>
 
       {/* End button */}
-      <TouchableOpacity style={s.endBtn} onPress={() => setShowEndModal(true)}>
+      <TouchableOpacity style={[s.endBtn, isUploadingVideo && { opacity: 0.5 }]} onPress={() => setShowEndModal(true)} disabled={isUploadingVideo}>
         <Text style={s.endBtnTxt}>{t('session_live.end_session')}</Text>
       </TouchableOpacity>
+
+      {/* Upload overlay */}
+      {isUploadingVideo && (
+        <View style={s.uploadOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={s.uploadOverlayTxt}>{t('session_live.uploading_video')}</Text>
+        </View>
+      )}
 
       {/* Note Modal */}
       <Modal visible={showNoteModal} transparent animationType="fade">
@@ -273,4 +333,6 @@ const s = StyleSheet.create({
   modalBtnCancelTxt: { fontSize: 15, fontWeight: '600', color: '#6B7280' },
   modalBtnSave: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: G, alignItems: 'center' },
   modalBtnSaveTxt: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  uploadOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', zIndex: 100, gap: 12 },
+  uploadOverlayTxt: { fontSize: 16, fontWeight: '600', color: '#fff' },
 })

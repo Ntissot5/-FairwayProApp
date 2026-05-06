@@ -291,7 +291,9 @@
     "drill_name_placeholder": "Nom du drill (ex: PW 50m x10)",
     "drill_desc_placeholder": "Description (optionnel)",
     "start_session": "Commencer",
-    "video": "Vidéo"
+    "video": "Vidéo",
+    "video_annotated": "Vidéo annotée",
+    "uploading_video": "Envoi de la vidéo..."
   },
   "briefing": {
     "title": "Briefing matinal",

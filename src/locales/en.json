@@ -291,7 +291,9 @@
     "drill_name_placeholder": "Drill name (e.g. PW 50m x10)",
     "drill_desc_placeholder": "Description (optional)",
     "start_session": "Start",
-    "video": "Video"
+    "video": "Video",
+    "video_annotated": "Annotated video",
+    "uploading_video": "Uploading video..."
   },
   "briefing": {
     "title": "Morning briefing",
