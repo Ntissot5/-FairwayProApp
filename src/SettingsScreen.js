@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
+import { getBriefingSettings, saveBriefingSettings } from './utils/briefingSettings'
 
 const G = '#1B5E35'
 
@@ -13,13 +14,33 @@ const LANGUAGES = [
   { code: 'de', label: 'Deutsch', enabled: false },
 ]
 
+const TIME_OPTIONS = ['06:00', '06:30', '07:00', '07:30', '08:00', '08:30', '09:00']
+const PAUSE_OPTIONS = [
+  { days: 1, key: 'settings.briefing.pause_1day' },
+  { days: 3, key: 'settings.briefing.pause_3days' },
+  { days: 7, key: 'settings.briefing.pause_7days' },
+  { days: 14, key: 'settings.briefing.pause_14days' },
+]
+
 export default function SettingsScreen({ navigation }) {
   const { t, i18n } = useTranslation()
   const [user, setUser] = useState(null)
+  const [briefSettings, setBriefSettings] = useState({ enabled: true, time: '06:30', paused_until: null })
+  const [showTimePicker, setShowTimePicker] = useState(false)
+  const [showPausePicker, setShowPausePicker] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+    getBriefingSettings().then(setBriefSettings)
   }, [])
+
+  const updateBriefSettings = useCallback(async (patch) => {
+    const updated = { ...briefSettings, ...patch }
+    setBriefSettings(updated)
+    await saveBriefingSettings(updated)
+  }, [briefSettings])
+
+  const isPaused = briefSettings.paused_until && new Date(briefSettings.paused_until) > new Date()
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -82,9 +103,83 @@ export default function SettingsScreen({ navigation }) {
           </View>
         </View>
 
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>{t('settings.briefing.section_title').toUpperCase()}</Text>
+          <Text style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 14, marginTop: -8 }}>{t('settings.briefing.section_subtitle')}</Text>
+
+          <View style={[s.infoRow, { paddingVertical: 12 }]}>
+            <Text style={s.infoLabel}>{t('settings.briefing.enabled')}</Text>
+            <Switch value={briefSettings.enabled} onValueChange={(v) => updateBriefSettings({ enabled: v })} trackColor={{ true: G }} />
+          </View>
+
+          {briefSettings.enabled && (
+            <>
+              <TouchableOpacity style={s.infoRow} onPress={() => setShowTimePicker(true)}>
+                <Text style={s.infoLabel}>{t('settings.briefing.time')}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={s.infoValue}>{briefSettings.time}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+                </View>
+              </TouchableOpacity>
+
+              <View style={[s.infoRow, { borderBottomWidth: 0 }]}>
+                <Text style={s.infoLabel}>{t('settings.briefing.pause')}</Text>
+                {isPaused ? (
+                  <TouchableOpacity onPress={() => updateBriefSettings({ paused_until: null })} style={{ backgroundColor: '#FEF3C7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#D97706' }}>{t('settings.briefing.reactivate')}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity onPress={() => setShowPausePicker(true)} style={{ backgroundColor: '#F8FAF8', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 0.5, borderColor: '#E5E7EB' }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#6B7280' }}>{t('settings.briefing.pause')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              {isPaused && (
+                <Text style={{ fontSize: 12, color: '#D97706', marginTop: 4 }}>
+                  {t('settings.briefing.paused_until', { date: new Date(briefSettings.paused_until).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long' }) })}
+                </Text>
+              )}
+            </>
+          )}
+        </View>
+
         <TouchableOpacity style={s.signOutBtn} onPress={signOut}>
           <Text style={s.signOutTxt}>{t('settings.logout')}</Text>
         </TouchableOpacity>
+
+        {/* Time Picker Modal */}
+        <Modal visible={showTimePicker} transparent animationType="fade">
+          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowTimePicker(false)}>
+            <View style={s.modalCard}>
+              <Text style={s.modalTitle}>{t('settings.briefing.time')}</Text>
+              {TIME_OPTIONS.map((time) => (
+                <TouchableOpacity key={time} style={[s.modalRow, briefSettings.time === time && { backgroundColor: '#E8F5E9' }]} onPress={() => { updateBriefSettings({ time }); setShowTimePicker(false) }}>
+                  <Text style={[s.modalRowTxt, briefSettings.time === time && { color: G, fontWeight: '700' }]}>{time}</Text>
+                  {briefSettings.time === time && <Ionicons name="checkmark" size={18} color={G} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Pause Picker Modal */}
+        <Modal visible={showPausePicker} transparent animationType="fade">
+          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowPausePicker(false)}>
+            <View style={s.modalCard}>
+              <Text style={s.modalTitle}>{t('settings.briefing.pause')}</Text>
+              {PAUSE_OPTIONS.map(({ days, key }) => (
+                <TouchableOpacity key={days} style={s.modalRow} onPress={() => {
+                  const until = new Date()
+                  until.setDate(until.getDate() + days)
+                  updateBriefSettings({ paused_until: until.toISOString() })
+                  setShowPausePicker(false)
+                }}>
+                  <Text style={s.modalRowTxt}>{t(key)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   )
@@ -113,4 +208,9 @@ const s = StyleSheet.create({
   infoValue: { fontSize: 14, color: '#9CA3AF' },
   signOutBtn: { margin: 16, backgroundColor: '#FEF2F2', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#FECACA' },
   signOutTxt: { color: '#DC2626', fontSize: 16, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: 32 },
+  modalCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, width: '100%' },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 12 },
+  modalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0', borderRadius: 8, paddingHorizontal: 8 },
+  modalRowTxt: { fontSize: 15, color: '#374151' },
 })
