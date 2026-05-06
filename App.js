@@ -19,6 +19,7 @@ import ChatScreen from "./src/ChatScreen"
 import BookingScreen from "./src/BookingScreen"
 import SettingsScreen from "./src/SettingsScreen"
 import SessionLiveScreen from "./src/SessionLiveScreen"
+import SessionSummaryScreen from "./src/SessionSummaryScreen"
 import { supabase } from "./src/supabase"
 import { OnboardingProvider } from "./src/OnboardingContext"
 import * as Notifications from "expo-notifications"
@@ -129,6 +130,7 @@ export default function App() {
           <RootStack.Screen name="PlayerDetail" component={PlayerDetailScreen} />
           <RootStack.Screen name="Settings" component={SettingsScreen} />
           <RootStack.Screen name="SessionLive" component={SessionLiveScreen} />
+          <RootStack.Screen name="SessionSummary" component={SessionSummaryScreen} />
           <RootStack.Screen name="Plans" component={SubscribeScreen} options={{ headerShown: true, headerTitle: '', headerBackTitle: '', headerTintColor: '#1a1a1a', headerStyle: { backgroundColor: '#fff' }, headerShadowVisible: false }} />
         </RootStack.Navigator>
       </NavigationContainer>

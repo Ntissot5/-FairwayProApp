@@ -156,7 +156,7 @@ export default function SessionLiveScreen({ route, navigation }) {
       await supabase.functions.invoke('transcribe-summarize', { body: { session_record_id: recordId } })
     }
 
-    navigation.replace('SessionSummary', { session_record_id: recordId })
+    navigation.navigate('SessionSummary', { session_record_id: recordId })
   }
 
   const eventIcon = (type) => {
