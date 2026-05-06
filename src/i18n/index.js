@@ -18,35 +18,15 @@ const getDeviceLocale = () => {
   }
 }
 
-const languageDetector = {
-  type: 'languageDetector',
-  async: true,
-  detect: async (callback) => {
-    try {
-      const saved = await AsyncStorage.getItem(LOCALE_KEY)
-      if (saved) {
-        callback(saved)
-        return
-      }
-    } catch {}
-    callback(getDeviceLocale())
-  },
-  init: () => {},
-  cacheUserLanguage: async (lng) => {
-    try {
-      await AsyncStorage.setItem(LOCALE_KEY, lng)
-    } catch {}
-  },
-}
-
+// Init synchronously with device locale (no flash)
 i18n
-  .use(languageDetector)
   .use(initReactI18next)
   .init({
     resources: {
       fr: { translation: fr },
       en: { translation: en },
     },
+    lng: getDeviceLocale(),
     fallbackLng: 'fr',
     interpolation: {
       escapeValue: false,
@@ -55,5 +35,19 @@ i18n
       useSuspense: false,
     },
   })
+
+// Then check AsyncStorage for user preference (override if saved)
+AsyncStorage.getItem(LOCALE_KEY)
+  .then((saved) => {
+    if (saved && saved !== i18n.language) {
+      i18n.changeLanguage(saved)
+    }
+  })
+  .catch(() => {})
+
+// Persist language changes
+i18n.on('languageChanged', (lng) => {
+  AsyncStorage.setItem(LOCALE_KEY, lng).catch(() => {})
+})
 
 export default i18n
