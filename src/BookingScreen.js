@@ -110,7 +110,7 @@ export default function BookingScreen({ navigation }) {
         player_id: selectedPlayer,
         price: lessonType === 'private' ? (prefs.private_price || 120) : (prefs.group_price || 25),
         session_date: selectedSlot.date,
-        notes: lessonType === 'group' ? 'Cours collectif' : 'Cours privé',
+        notes: lessonType === 'group' ? t('booking.group') : t('booking.private'),
         paid: false
       })
     }
@@ -246,7 +246,7 @@ export default function BookingScreen({ navigation }) {
                           {slotLessons.map((lesson, li) => (
                             <View key={li} style={[s.lessonBlock, lesson.is_private_event ? { backgroundColor: '#FEF3C7' } : lesson.is_group ? s.lessonBlockGroup : s.lessonBlockPrivate]}>
                               <Text style={[s.lessonTime, lesson.is_private_event && { color: '#D97706' }]}>{time}</Text>
-                              <Text style={s.lessonName} numberOfLines={1}>{lesson.is_private_event ? (lesson.title || 'Événement') : (lesson.players?.full_name || 'Cours privé')}</Text>
+                              <Text style={s.lessonName} numberOfLines={1}>{lesson.is_private_event ? (lesson.title || t('booking.private')) : (lesson.players?.full_name || t('booking.private'))}</Text>
                               {!lesson.is_private_event && <Text style={s.lessonPrice}>{lesson.price}€</Text>}
                             </View>
                           ))}
@@ -471,7 +471,7 @@ export default function BookingScreen({ navigation }) {
               <View key={lesson.id} style={{ backgroundColor: '#E8F5EE', borderRadius: 14, padding: 16, marginBottom: 10 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <View>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: G }}>{lesson.players?.full_name || 'Cours privé'}</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: G }}>{lesson.players?.full_name || t('booking.private')}</Text>
                     <Text style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>HCP {lesson.players?.current_handicap} · {lesson.duration || 60} min</Text>
                   </View>
                   <Text style={{ fontSize: 18, fontWeight: '800', color: G }}>{lesson.price}€</Text>

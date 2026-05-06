@@ -268,7 +268,7 @@ export default function SessionsScreen({ navigation }) {
                     </TouchableOpacity>
                     {pkg.payment_status !== 'paid' ? (
                       <TouchableOpacity onPress={() => markPaid(pkg)} style={{ backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
-                        <Text style={{ color: G, fontSize: 12, fontWeight: '600' }}>✓ Payé</Text>
+                        <Text style={{ color: G, fontSize: 12, fontWeight: '600' }}>{t('sessions.paid')}</Text>
                       </TouchableOpacity>
                     ) : (
                       <View style={{ backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
@@ -295,7 +295,7 @@ export default function SessionsScreen({ navigation }) {
             </TouchableOpacity>
           </View>
           <View style={s.modalBody}>
-            <Text style={s.label}>Prix (€)</Text>
+            <Text style={s.label}>{t('sessions.price')} (€)</Text>
             <TextInput style={s.input} value={editPrice} onChangeText={setEditPrice} keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
             <Text style={s.label}>Date</Text>
             <TextInput style={s.input} value={editDate} onChangeText={setEditDate} placeholderTextColor="#9CA3AF" />
@@ -395,7 +395,7 @@ export default function SessionsScreen({ navigation }) {
             ) : null}
             <Text style={s.label}>Paiement</Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              {[['pending','💳 En attente'],['paid','✅ Payé']].map(([val, label]) => (
+              {[['pending', t('revenue.unpaid')],['paid', t('sessions.paid')]].map(([val, label]) => (
                 <TouchableOpacity key={val} onPress={() => setNewPkg({...newPkg, payment_status: val})} style={[s.chip, newPkg.payment_status === val && s.chipActive]}>
                   <Text style={[s.chipTxt, newPkg.payment_status === val && { color: '#fff' }]}>{label}</Text>
                 </TouchableOpacity>
