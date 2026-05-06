@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications'
 import { supabase } from './supabase'
 import { registerForPushNotifications, savePushToken } from './notifications'
 import PermissionPushModal from './components/PermissionPushModal'
+import DailyBriefingCard from './components/DailyBriefingCard'
 
 const G = '#1B5E35'
 
@@ -43,6 +44,8 @@ export default function CoachApp({ navigation }) {
   const [refreshing, setRefreshing] = useState(false)
   const [relancing, setRelancing] = useState({})
   const [showPushModal, setShowPushModal] = useState(false)
+  const [userId, setUserId] = useState(null)
+  const briefingRef = useRef(null)
 
   useEffect(() => { fetchAll() }, [])
 
@@ -87,6 +90,7 @@ export default function CoachApp({ navigation }) {
 
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
+    setUserId(user.id)
     const today = new Date().toISOString().split('T')[0]
     const [pRes, sRes, lRes] = await Promise.all([
       supabase.from('players').select('*').eq('coach_id', user.id),
@@ -165,7 +169,9 @@ export default function CoachApp({ navigation }) {
         </View>
       </View>
 
-      <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
+      <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll(); if (briefingRef.current) briefingRef.current() }} tintColor={G} />}>
+
+        {userId && <DailyBriefingCard userId={userId} ref={briefingRef} />}
 
         {/* Hero Cards */}
         <View style={styles.heroSection}>

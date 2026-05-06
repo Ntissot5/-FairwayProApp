@@ -43,7 +43,8 @@
     "rounds": "Parties",
     "plan": "Plan",
     "videos": "Vidéos",
-    "community": "Communauté"
+    "community": "Communauté",
+    "briefing": "Briefing"
   },
   "home": {
     "title": "Tableau de bord",
@@ -236,6 +237,15 @@
     "game": "Partie",
     "accept": "Accepter",
     "invitation_sent": "Invitation envoyée à {{name}} !"
+  },
+  "briefing": {
+    "title": "Briefing matinal",
+    "empty_title": "Pas de briefing ce matin",
+    "empty_subtitle": "Reviens demain pour ton briefing personnalisé !",
+    "greeting_morning": "Bonjour",
+    "greeting_afternoon": "Bon après-midi",
+    "date_today": "Aujourd'hui",
+    "dismiss": "Fermer"
   },
   "notifications": {
     "permission_title": "Briefing matinal",

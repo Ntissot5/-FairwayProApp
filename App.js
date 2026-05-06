@@ -40,7 +40,7 @@ function CoachTabs() {
   return (
     <CoachTab.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: G, tabBarInactiveTintColor: "#9CA3AF", tabBarStyle: { borderTopWidth: 0.5, borderTopColor: "#E5E7EB" }, tabBarLabelStyle: { fontSize: 10, fontWeight: "600" } }}>
       <CoachTab.Screen name="Dashboard" component={CoachApp} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={22} color={color} />, tabBarLabel: t('tabs.home') }} />
-      <CoachTab.Screen name="Players" component={PlayersScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />, tabBarLabel: t('tabs.players') }} />
+<CoachTab.Screen name="Players" component={PlayersScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />, tabBarLabel: t('tabs.players') }} />
       <CoachTab.Screen name="Sessions" component={SessionsScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="list-outline" size={22} color={color} />, tabBarLabel: t('tabs.sessions') }} />
       <CoachTab.Screen name="Revenue" component={RevenueScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="wallet-outline" size={22} color={color} />, tabBarLabel: t('tabs.revenue') }} />
       <CoachTab.Screen name="Chat" component={ChatScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles-outline" size={22} color={color} />, tabBarLabel: t('tabs.chat') }} />

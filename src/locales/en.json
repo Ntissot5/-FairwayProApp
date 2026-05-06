@@ -43,7 +43,8 @@
     "rounds": "Rounds",
     "plan": "Plan",
     "videos": "Videos",
-    "community": "Community"
+    "community": "Community",
+    "briefing": "Briefing"
   },
   "home": {
     "title": "Dashboard",
@@ -236,6 +237,15 @@
     "game": "Game",
     "accept": "Accept",
     "invitation_sent": "Invitation sent to {{name}}!"
+  },
+  "briefing": {
+    "title": "Morning briefing",
+    "empty_title": "No briefing this morning",
+    "empty_subtitle": "Come back tomorrow for your personalized briefing!",
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "date_today": "Today",
+    "dismiss": "Dismiss"
   },
   "notifications": {
     "permission_title": "Morning briefing",
