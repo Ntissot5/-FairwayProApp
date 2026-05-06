@@ -20,6 +20,7 @@ import BookingScreen from "./src/BookingScreen"
 import SettingsScreen from "./src/SettingsScreen"
 import SessionLiveScreen from "./src/SessionLiveScreen"
 import SessionSummaryScreen from "./src/SessionSummaryScreen"
+import PlayerSessionSummaryScreen from "./src/PlayerSessionSummaryScreen"
 import { supabase } from "./src/supabase"
 import { OnboardingProvider } from "./src/OnboardingContext"
 import * as Notifications from "expo-notifications"
@@ -66,6 +67,8 @@ function PlayerTabs() {
   )
 }
 
+const navigationRef = { current: null }
+
 export default function App() {
   const notificationListener = useRef()
   const responseListener = useRef()
@@ -100,7 +103,10 @@ export default function App() {
     })
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification tapped:', response)
+      const data = response.notification.request.content.data
+      if (data?.type === 'session_summary' && data?.session_record_id && navigationRef.current) {
+        navigationRef.current.navigate('PlayerSessionSummary', { session_record_id: data.session_record_id })
+      }
     })
 
     return () => {
@@ -121,7 +127,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <OnboardingProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={ref => { navigationRef.current = ref }}>
         <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
           <RootStack.Screen name="Welcome" component={WelcomeScreen} />
           <RootStack.Screen name="Login" component={LoginScreen} />
@@ -131,6 +137,7 @@ export default function App() {
           <RootStack.Screen name="Settings" component={SettingsScreen} />
           <RootStack.Screen name="SessionLive" component={SessionLiveScreen} />
           <RootStack.Screen name="SessionSummary" component={SessionSummaryScreen} />
+          <RootStack.Screen name="PlayerSessionSummary" component={PlayerSessionSummaryScreen} />
           <RootStack.Screen name="Plans" component={SubscribeScreen} options={{ headerShown: true, headerTitle: '', headerBackTitle: '', headerTintColor: '#1a1a1a', headerStyle: { backgroundColor: '#fff' }, headerShadowVisible: false }} />
         </RootStack.Navigator>
       </NavigationContainer>

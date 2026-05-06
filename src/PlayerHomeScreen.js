@@ -20,6 +20,7 @@ export default function PlayerHomeScreen({ navigation }) {
   const [exercises, setExercises] = useState([])
   const [lastMessage, setLastMessage] = useState(null)
   const [nextBooking, setNextBooking] = useState(null)
+  const [summaries, setSummaries] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -53,6 +54,14 @@ export default function PlayerHomeScreen({ navigation }) {
       const { data: e } = await supabase.from('exercises').select('*').eq('player_id', p.id).eq('completed', false).order('created_at', { ascending: false })
       const { data: msgs } = await supabase.from('messages').select('*').eq('player_id', p.id).eq('sender', 'coach').order('created_at', { ascending: false }).limit(1)
       const { data: bookings } = await supabase.from('lesson_bookings').select('*').eq('player_id', p.id).gte('lesson_date', new Date().toISOString().split('T')[0]).order('lesson_date', { ascending: true }).limit(1)
+      const { data: sums } = await supabase
+        .from('session_records')
+        .select('id, sent_at, ai_summary, duration_seconds, opened_at')
+        .eq('player_id', p.id)
+        .not('sent_at', 'is', null)
+        .order('sent_at', { ascending: false })
+        .limit(5)
+      setSummaries(sums || [])
       setSessions(s || [])
       setRounds(r || [])
       setHcpEntries(h || [])
@@ -194,6 +203,31 @@ export default function PlayerHomeScreen({ navigation }) {
               <Text style={{ fontSize: 20, color: '#9CA3AF' }}>›</Text>
             </View>
           </TouchableOpacity>
+        )}
+
+        {/* Session summaries from coach */}
+        {summaries.length > 0 && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>{t('player_summaries.section_title')}</Text>
+            {summaries.map(sum => {
+              const isNew = !sum.opened_at
+              const dMin = sum.duration_seconds ? Math.round(sum.duration_seconds / 60) : 0
+              const dateStr = sum.sent_at ? new Date(sum.sent_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : ''
+              return (
+                <TouchableOpacity key={sum.id} style={s.roundRow} onPress={() => navigation.navigate('PlayerSessionSummary', { session_record_id: sum.id })}>
+                  <View style={[s.cardIcon, { width: 40, height: 40, borderRadius: 12 }]}>
+                    <Ionicons name="document-text-outline" size={20} color={G} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={s.roundCourse} numberOfLines={1}>{sum.ai_summary?.worked_on?.slice(0, 60) || 'Session summary'}</Text>
+                    <Text style={s.roundDate}>{dateStr} · {dMin} min</Text>
+                  </View>
+                  {isNew && <View style={{ backgroundColor: '#E8F5E9', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}><Text style={{ fontSize: 10, fontWeight: '700', color: G }}>{t('player_summaries.new_badge')}</Text></View>}
+                  <Text style={{ fontSize: 20, color: '#9CA3AF', marginLeft: 6 }}>›</Text>
+                </TouchableOpacity>
+              )
+            })}
+          </View>
         )}
 
         {/* Add round button */}

@@ -308,6 +308,17 @@
     "permission_later": "Plus tard",
     "permission_enable": "Activer"
   },
+  "player_summaries": {
+    "section_title": "Mes derniers résumés",
+    "empty_title": "Pas encore de résumé",
+    "empty_subtitle": "Ton coach t'enverra un résumé après votre prochaine session.",
+    "new_badge": "Nouveau"
+  },
+  "player_session_summary": {
+    "title": "Résumé du {{date}}",
+    "thanks_coach": "Merci coach",
+    "thanks_sent": "Envoyé"
+  },
   "player_chat": {
     "your_coach": "Ton coach",
     "online": "En ligne",

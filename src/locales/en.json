@@ -308,6 +308,17 @@
     "permission_later": "Later",
     "permission_enable": "Enable"
   },
+  "player_summaries": {
+    "section_title": "My recent summaries",
+    "empty_title": "No summaries yet",
+    "empty_subtitle": "Your coach will send you a summary after your next session.",
+    "new_badge": "New"
+  },
+  "player_session_summary": {
+    "title": "Summary — {{date}}",
+    "thanks_coach": "Thanks coach",
+    "thanks_sent": "Sent"
+  },
   "player_chat": {
     "your_coach": "Your coach",
     "online": "Online",
