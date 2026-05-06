@@ -40,4 +40,10 @@ yarn-error.*
 /ios
 /android
 .env
-supabase
+
+# Supabase - keep edge functions and migrations versioned
+# but exclude secrets and local state
+supabase/.env
+supabase/.env.local
+supabase/.temp/
+supabase/.branches/
