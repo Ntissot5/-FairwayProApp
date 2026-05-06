@@ -123,7 +123,7 @@ export default function VideoAnnotationScreen({ route, navigation }) {
 
   const handleSave = () => {
     console.log('[Video] Saved:', { videoUri, annotations, duration_ms: durationMs })
-    navigation.navigate('SessionLive', { videoUri, annotations, duration_ms: durationMs })
+    navigation.navigate({ name: 'SessionLive', params: { videoUri, annotations, duration_ms: durationMs }, merge: true })
   }
 
   const handleCancel = () => {

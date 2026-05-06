@@ -30,16 +30,25 @@ export default function SessionLiveScreen({ route, navigation }) {
 
   const timerRef = useRef(null)
 
-  // Handle video URI returned from VideoRecordScreen
+  // Handle annotated video returned from VideoAnnotationScreen
   useEffect(() => {
-    if (route.params?.videoUri) {
-      console.log('[SessionLive] Vidéo enregistrée, URI:', route.params.videoUri)
-      // Étape 2 implémentera l'annotation
+    if (route.params?.videoUri && route.params?.annotations) {
+      console.log('[SessionLive] Vidéo annotée reçue:', {
+        uri: route.params.videoUri,
+        annotationsCount: route.params.annotations.length,
+        duration: route.params.duration_ms,
+      })
+      // Étape 3: ajout à la Timeline + upload Supabase à venir
+      navigation.setParams({ videoUri: undefined, annotations: undefined, duration_ms: undefined })
     }
   }, [route.params?.videoUri])
 
   // Init: fetch player, create session_record, start chrono
   useEffect(() => {
+    if (recordId) {
+      console.log('[SessionLive] recordId already set, skip INSERT')
+      return
+    }
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUserId(user.id)
