@@ -188,7 +188,10 @@
     "feature_multi_coach": "Coachs multiples",
     "feature_director_mode": "Mode directeur",
     "feature_centralized_analytics": "Analytics centralisés",
-    "feature_academy_management": "Gestion académie"
+    "feature_academy_management": "Gestion académie",
+    "beta_banner_title": "Beta gratuite jusqu'à fin août 2026",
+    "beta_banner_subtitle": "Tous les coachs bénéficient de l'accès complet pendant la phase beta. Les tarifs ci-dessous s'appliqueront à partir de septembre 2026.",
+    "starting_september": "À partir de septembre 2026"
   },
   "player_home": {
     "title": "Mon espace",

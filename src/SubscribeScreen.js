@@ -35,8 +35,16 @@ export default function SubscribeScreen({ navigation }) {
         <Text style={s.subtitle}>{t('plans.subtitle')}</Text>
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+        <View style={s.betaBanner}>
+          <Ionicons name="gift-outline" size={22} color={G} style={{ marginRight: 12 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={s.betaTitle}>{t('plans.beta_banner_title')}</Text>
+            <Text style={s.betaSubtitle}>{t('plans.beta_banner_subtitle')}</Text>
+          </View>
+        </View>
         {PLAN_KEYS.map((plan) => (
           <View key={plan.nameKey} style={[s.card, plan.badge && s.cardHighlight]}>
+            <Text style={s.startingSept}>{t('plans.starting_september')}</Text>
             <View style={s.cardHeader}>
               <Text style={s.planName}>{t(plan.nameKey)}</Text>
               {plan.badge && (
@@ -86,4 +94,8 @@ const s = StyleSheet.create({
   check: { marginRight: 10, width: 18 },
   featText: { fontSize: 14, color: '#374151' },
   footer: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', lineHeight: 18, marginTop: 20, paddingHorizontal: 16 },
+  betaBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', borderRadius: 12, padding: 16, marginBottom: 16 },
+  betaTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
+  betaSubtitle: { fontSize: 14, color: '#6B7280', lineHeight: 20 },
+  startingSept: { fontSize: 11, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
 })

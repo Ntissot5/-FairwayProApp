@@ -188,7 +188,10 @@
     "feature_multi_coach": "Multiple coaches",
     "feature_director_mode": "Director mode",
     "feature_centralized_analytics": "Centralized analytics",
-    "feature_academy_management": "Academy management"
+    "feature_academy_management": "Academy management",
+    "beta_banner_title": "Free beta until end of August 2026",
+    "beta_banner_subtitle": "All coaches enjoy full access during the beta phase. The pricing below will apply from September 2026.",
+    "starting_september": "From September 2026"
   },
   "player_home": {
     "title": "My space",
