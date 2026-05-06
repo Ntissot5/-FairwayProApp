@@ -66,7 +66,16 @@
     "monthly_revenue": "Monthly revenue",
     "six_months": "6 months",
     "no_students": "No students",
-    "days_ago": "D-{{days}}"
+    "days_ago": "D-{{days}}",
+    "next_session": "Next session",
+    "no_session_today": "No session today",
+    "today": "Today",
+    "sessions_today": "{{count}} session(s) scheduled",
+    "expected_revenue": "{{amount}}€ expected",
+    "to_note": "To note",
+    "students_to_contact": "{{count}} student(s) to re-engage",
+    "revenue_this_month": "Revenue this month",
+    "at_time": "at {{time}}"
   },
   "players": {
     "title": "My players",

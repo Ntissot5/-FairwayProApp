@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
+import { useState, useEffect, useRef } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Animated } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -7,10 +7,34 @@ import { supabase } from './supabase'
 
 const G = '#1B5E35'
 
+function HeroCard({ icon, iconColor, bgColor, borderColor, title, children, delay, onPress }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(12)).current
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, delay, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 400, delay, useNativeDriver: true }),
+    ]).start()
+  }, [])
+  const Wrapper = onPress ? TouchableOpacity : View
+  return (
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+      <Wrapper onPress={onPress} style={[styles.heroCard, { backgroundColor: bgColor, borderColor }]}>
+        <View style={styles.heroCardHeader}>
+          <Ionicons name={icon} size={18} color={iconColor} />
+          <Text style={[styles.heroCardTitle, { color: iconColor }]}>{title}</Text>
+        </View>
+        {children}
+      </Wrapper>
+    </Animated.View>
+  )
+}
+
 export default function CoachApp({ navigation }) {
   const { t } = useTranslation()
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
+  const [lessons, setLessons] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [relancing, setRelancing] = useState({})
@@ -19,10 +43,15 @@ export default function CoachApp({ navigation }) {
 
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: p } = await supabase.from('players').select('*').eq('coach_id', user.id)
-    const { data: s } = await supabase.from('sessions').select('*').eq('coach_id', user.id).order('session_date', { ascending: false })
-    setPlayers(p || [])
-    setSessions(s || [])
+    const today = new Date().toISOString().split('T')[0]
+    const [pRes, sRes, lRes] = await Promise.all([
+      supabase.from('players').select('*').eq('coach_id', user.id),
+      supabase.from('sessions').select('*').eq('coach_id', user.id).order('session_date', { ascending: false }),
+      supabase.from('lessons').select('*, players(full_name)').eq('coach_id', user.id).eq('lesson_date', today).order('start_time', { ascending: true }),
+    ])
+    setPlayers(pRes.data || [])
+    setSessions(sRes.data || [])
+    setLessons(lRes.data || [])
     setLoading(false)
     setRefreshing(false)
   }
@@ -32,7 +61,6 @@ export default function CoachApp({ navigation }) {
     const d = new Date(s.session_date)
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).reduce((sum, s) => sum + (s.price || 0), 0)
-  const totalRevenue = sessions.reduce((sum, s) => sum + (s.price || 0), 0)
 
   const inactivePlayers = players.filter(p => {
     const ps = sessions.filter(s => s.player_id === p.id)
@@ -41,6 +69,9 @@ export default function CoachApp({ navigation }) {
     const days = Math.floor((now - new Date(last.session_date)) / (1000 * 60 * 60 * 24))
     return days > 14
   })
+
+  const todayRevenue = lessons.reduce((sum, l) => sum + (l.price || 0), 0)
+  const nextLesson = lessons[0]
 
   const relancePlayer = async (player) => {
     setRelancing(prev => ({ ...prev, [player.id]: true }))
@@ -84,9 +115,6 @@ export default function CoachApp({ navigation }) {
           <TouchableOpacity onPress={() => navigation.navigate('Booking')} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: G, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
             <Text style={{ fontSize: 12, fontWeight: '700', color: G }}>+ {t('home.add_session')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Players')} style={{ backgroundColor: G, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>+ {t('home.add_player')}</Text>
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.signOutBtn}>
             <Ionicons name="settings-outline" size={22} color="#6B7280" />
           </TouchableOpacity>
@@ -95,40 +123,45 @@ export default function CoachApp({ navigation }) {
 
       <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
 
-        {inactivePlayers.length > 0 && (
-          <View style={styles.alert}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="alert-circle-outline" size={18} color="#DC2626" /><Text style={styles.alertTitle}>{t('home.inactive_alert', { count: inactivePlayers.length })}</Text></View>
-            {inactivePlayers.map(p => (
-              <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 10, marginTop: 8, borderTopWidth: 0.5, borderTopColor: '#FECACA' }}>
-                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#FCA5A5', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
-                  <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '700' }}>{p.full_name?.charAt(0)}</Text>
-                </View>
-                <Text style={{ flex: 1, fontSize: 13, fontWeight: '600', color: '#DC2626' }}>{p.full_name}</Text>
-                <TouchableOpacity onPress={() => relancePlayer(p)} disabled={relancing[p.id]} style={{ backgroundColor: relancing[p.id] ? '#E8F5EE' : '#1B5E35', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, marginRight: 6 }}>
-                  <Text style={{ color: relancing[p.id] ? '#1B5E35' : '#fff', fontSize: 11, fontWeight: '700' }}>{relancing[p.id] ? '...' : t('home.relaunch')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('PlayerDetail', { player: p })} style={{ backgroundColor: 'transparent', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#FECACA' }}>
-                  <Text style={{ color: '#DC2626', fontSize: 11, fontWeight: '600' }}>{t('home.view')} →</Text>
-                </TouchableOpacity>
+        {/* Hero Cards */}
+        <View style={styles.heroSection}>
+          <HeroCard icon="flag-outline" iconColor={G} bgColor="#f0faf4" borderColor="#d1fae5" title={t('home.next_session')} delay={0}
+            onPress={nextLesson ? () => { const p = players.find(pl => pl.id === nextLesson.player_id); if (p) navigation.navigate('PlayerDetail', { player: p }) } : undefined}>
+            {nextLesson ? (
+              <View>
+                <Text style={styles.heroMainText}>{nextLesson.players?.full_name || '—'}</Text>
+                <Text style={styles.heroSubText}>{t('home.at_time', { time: nextLesson.start_time?.slice(0, 5) })}</Text>
               </View>
-            ))}
-          </View>
-        )}
+            ) : (
+              <Text style={styles.heroSubText}>{t('home.no_session_today')}</Text>
+            )}
+          </HeroCard>
 
-        <View style={styles.statsRow}>
-          {[
-            { label: t('home.this_month').toUpperCase(), value: revenueThisMonth + '€', green: true },
-            { label: t('home.total').toUpperCase(), value: totalRevenue + '€' },
-            { label: t('home.students').toUpperCase(), value: players.length },
-            { label: t('home.sessions_count').toUpperCase(), value: sessions.length },
-          ].map((s, i) => (
-            <View key={i} style={[styles.stat, s.green && styles.statGreen]}>
-              <Text style={styles.statLabel}>{s.label}</Text>
-              <Text style={[styles.statValue, s.green && { color: G }]}>{s.value}</Text>
-            </View>
-          ))}
+          <HeroCard icon="calendar-outline" iconColor="#374151" bgColor="#fff" borderColor="#E5E7EB" title={t('home.today')} delay={100}>
+            <Text style={styles.heroMainText}>{t('home.sessions_today', { count: lessons.length })}</Text>
+            {todayRevenue > 0 && <Text style={styles.heroSubText}>{t('home.expected_revenue', { amount: todayRevenue })}</Text>}
+          </HeroCard>
+
+          {inactivePlayers.length > 0 && (
+            <HeroCard icon="alert-circle-outline" iconColor="#D97706" bgColor="#FFFBEB" borderColor="#FDE68A" title={t('home.to_note')} delay={200}>
+              <Text style={styles.heroMainText}>{t('home.students_to_contact', { count: inactivePlayers.length })}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                {inactivePlayers.slice(0, 4).map(p => (
+                  <TouchableOpacity key={p.id} onPress={() => navigation.navigate('PlayerDetail', { player: p })} style={styles.inactiveChip}>
+                    <Text style={styles.inactiveChipTxt}>{p.full_name?.split(' ')[0]}</Text>
+                  </TouchableOpacity>
+                ))}
+                {inactivePlayers.length > 4 && <Text style={{ fontSize: 11, color: '#D97706', alignSelf: 'center' }}>+{inactivePlayers.length - 4}</Text>}
+              </View>
+            </HeroCard>
+          )}
+
+          <HeroCard icon="wallet-outline" iconColor="#2563EB" bgColor="#EFF6FF" borderColor="#BFDBFE" title={t('home.revenue_this_month')} delay={300}>
+            <Text style={[styles.heroMainText, { fontSize: 28, color: '#2563EB', letterSpacing: -1 }]}>{revenueThisMonth}€</Text>
+          </HeroCard>
         </View>
 
+        {/* Students list */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('home.my_students', { count: players.length })}</Text>
           {players.length === 0 ? (
@@ -139,22 +172,23 @@ export default function CoachApp({ navigation }) {
             const days = last ? Math.floor((now - new Date(last.session_date)) / (1000 * 60 * 60 * 24)) : null
             const inactive = !days || days > 14
             return (
-              <TouchableOpacity key={p.id} style={[styles.row, inactive && styles.rowRed]} onPress={() => navigation.navigate("PlayerDetail", { player: p })}>
-                <View style={[styles.av, inactive && styles.avRed]}>
+              <TouchableOpacity key={p.id} style={styles.row} onPress={() => navigation.navigate("PlayerDetail", { player: p })}>
+                <View style={[styles.av, inactive && styles.avAmber]}>
                   <Text style={styles.avTxt}>{p.full_name?.charAt(0)}</Text>
                 </View>
                 <View style={styles.rowInfo}>
                   <Text style={styles.rowName}>{p.full_name}</Text>
                   <Text style={styles.rowSub}>HCP {p.current_handicap} · {days ? t('home.days_ago', { days }) : t('players.never')}</Text>
                 </View>
-                <View style={[styles.badge, inactive ? styles.badgeRed : styles.badgeGreen]}>
-                  <Text style={[styles.badgeTxt, inactive ? { color: '#DC2626' } : { color: G }]}>{inactive ? t('home.inactive') : t('home.active')}</Text>
+                <View style={[styles.badge, inactive ? styles.badgeAmber : styles.badgeGreen]}>
+                  <Text style={[styles.badgeTxt, inactive ? { color: '#D97706' } : { color: G }]}>{inactive ? t('home.inactive') : t('home.active')}</Text>
                 </View>
               </TouchableOpacity>
             )
           })}
         </View>
 
+        {/* Recent sessions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('home.last_sessions')}</Text>
           {sessions.slice(0, 5).map(s => {
@@ -171,26 +205,6 @@ export default function CoachApp({ navigation }) {
           })}
         </View>
 
-        <View style={styles.section}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 8 }}>
-            <Text style={styles.sectionTitle}>{t('home.monthly_revenue')}</Text>
-            <Text style={{ fontSize: 11, color: '#9CA3AF' }}>{t('home.six_months')}</Text>
-          </View>
-          <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
-            <Text style={{ fontSize: 36, fontWeight: '800', color: G, letterSpacing: -1 }}>{revenueThisMonth}€</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 60, paddingHorizontal: 16, paddingBottom: 16, gap: 6 }}>
-            {[0, 0, 0, 0, Math.round(totalRevenue * 0.17), revenueThisMonth].map((val, i) => {
-              const maxVal = Math.max(revenueThisMonth, 1)
-              const h = val > 0 ? Math.max((val / maxVal) * 44, 4) : 3
-              return (
-                <View key={i} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-                  <View style={{ width: '100%', height: h, backgroundColor: i === 5 ? G : '#E5E7EB', borderRadius: 3 }} />
-                </View>
-              )
-            })}
-          </View>
-        </View>
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
@@ -205,27 +219,31 @@ const styles = StyleSheet.create({
   headerDate: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
   signOutBtn: { padding: 8 },
   scroll: { flex: 1 },
-  alert: { margin: 16, backgroundColor: '#FEF2F2', borderRadius: 14, padding: 14, borderLeftWidth: 3, borderLeftColor: '#EF4444' },
-  alertTitle: { fontSize: 13, fontWeight: '600', color: '#991B1B', marginBottom: 8 },
-  statsRow: { flexDirection: 'row', gap: 8, margin: 16, marginTop: 16 },
-  stat: { flex: 1, backgroundColor: '#fff', borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 0.5, borderColor: '#E5E7EB' },
-  statGreen: { borderTopWidth: 2, borderTopColor: G },
-  statLabel: { fontSize: 8, color: '#9CA3AF', fontWeight: '600', letterSpacing: 0.1, marginBottom: 6 },
-  statValue: { fontSize: 18, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
+
+  // Hero cards
+  heroSection: { padding: 16, gap: 10 },
+  heroCard: { borderRadius: 16, padding: 16, borderWidth: 1 },
+  heroCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  heroCardTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
+  heroMainText: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  heroSubText: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  inactiveChip: { backgroundColor: '#FEF3C7', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  inactiveChipTxt: { fontSize: 11, fontWeight: '600', color: '#92400E' },
+
+  // Sections
   section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, marginTop: 0, overflow: 'hidden', borderWidth: 0.5, borderColor: '#E5E7EB' },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', padding: 16, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
   empty: { padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderBottomWidth: 0.5, borderBottomColor: '#F8FAF8' },
-  rowRed: { backgroundColor: '#FEF2F2' },
   av: { width: 36, height: 36, borderRadius: 18, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
-  avRed: { backgroundColor: '#FCA5A5' },
+  avAmber: { backgroundColor: '#FBBF24' },
   avTxt: { color: '#fff', fontSize: 14, fontWeight: '700' },
   rowInfo: { flex: 1 },
   rowName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
   rowSub: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
   badgeGreen: { backgroundColor: '#E8F5EE' },
-  badgeRed: { backgroundColor: '#FEF2F2' },
+  badgeAmber: { backgroundColor: '#FEF3C7' },
   badgeTxt: { fontSize: 10, fontWeight: '600' },
   price: { fontSize: 15, fontWeight: '700', color: G },
 })
