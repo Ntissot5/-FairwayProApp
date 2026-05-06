@@ -56,7 +56,7 @@ export default function PlayerHomeScreen({ navigation }) {
       const { data: bookings } = await supabase.from('lesson_bookings').select('*').eq('player_id', p.id).gte('lesson_date', new Date().toISOString().split('T')[0]).order('lesson_date', { ascending: true }).limit(1)
       const { data: sums } = await supabase
         .from('session_records')
-        .select('id, sent_at, ai_summary, duration_seconds, opened_at')
+        .select('id, sent_at, ai_summary, duration_seconds, opened_at, events')
         .eq('player_id', p.id)
         .not('sent_at', 'is', null)
         .order('sent_at', { ascending: false })

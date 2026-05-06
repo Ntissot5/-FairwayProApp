@@ -137,6 +137,27 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
           </View>
         )}
 
+        {/* Videos section */}
+        {(() => {
+          const videoEvents = (record.events || []).filter(e => e.type === 'video')
+          if (videoEvents.length === 0) return null
+          return (
+            <View style={s.videosSection}>
+              <Text style={s.videosSectionTitle}>{t('player_session_summary.videos_title')}</Text>
+              {videoEvents.map(video => (
+                <TouchableOpacity key={video.id} style={s.videoCard} onPress={() => navigation.navigate('PlayerVideoReplay', { video })}>
+                  <View style={s.videoCardIcon}><Ionicons name="videocam-outline" size={22} color={G} /></View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.videoCardTitle}>{t('player_session_summary.video_annotated')}</Text>
+                    <Text style={s.videoCardMeta}>{Math.round((video.duration_ms || 0) / 1000)}s · {video.annotations?.length || 0} annotation(s)</Text>
+                  </View>
+                  <Text style={{ fontSize: 20, color: '#9CA3AF' }}>›</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )
+        })()}
+
         {/* Thanks button */}
         <TouchableOpacity
           style={[s.thanksBtn, thanked && s.thanksBtnDone]}
@@ -177,4 +198,10 @@ const s = StyleSheet.create({
   thanksBtn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
   thanksBtnDone: { backgroundColor: '#E8F5E9' },
   thanksBtnTxt: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  videosSection: { gap: 8 },
+  videosSectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
+  videoCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: '#E5E7EB' },
+  videoCardIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F0FAF4', alignItems: 'center', justifyContent: 'center' },
+  videoCardTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+  videoCardMeta: { fontSize: 12, color: '#6B7280', marginTop: 2 },
 })

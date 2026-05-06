@@ -320,7 +320,10 @@
   "player_session_summary": {
     "title": "Summary — {{date}}",
     "thanks_coach": "Thanks coach",
-    "thanks_sent": "Sent"
+    "thanks_sent": "Sent",
+    "videos_title": "Session videos",
+    "video_annotated": "Annotated video",
+    "video_expired": "Video expired, ask your coach to resend"
   },
   "player_chat": {
     "your_coach": "Your coach",

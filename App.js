@@ -23,6 +23,7 @@ import VideoRecordScreen from "./src/VideoRecordScreen"
 import VideoAnnotationScreen from "./src/VideoAnnotationScreen"
 import SessionSummaryScreen from "./src/SessionSummaryScreen"
 import PlayerSessionSummaryScreen from "./src/PlayerSessionSummaryScreen"
+import PlayerVideoReplayScreen from "./src/PlayerVideoReplayScreen"
 import { supabase } from "./src/supabase"
 import { OnboardingProvider } from "./src/OnboardingContext"
 import * as Notifications from "expo-notifications"
@@ -142,6 +143,7 @@ export default function App() {
           <RootStack.Screen name="VideoAnnotation" component={VideoAnnotationScreen} options={{ headerShown: false }} />
           <RootStack.Screen name="SessionSummary" component={SessionSummaryScreen} />
           <RootStack.Screen name="PlayerSessionSummary" component={PlayerSessionSummaryScreen} />
+          <RootStack.Screen name="PlayerVideoReplay" component={PlayerVideoReplayScreen} options={{ headerShown: false }} />
           <RootStack.Screen name="Plans" component={SubscribeScreen} options={{ headerShown: true, headerTitle: '', headerBackTitle: '', headerTintColor: '#1a1a1a', headerStyle: { backgroundColor: '#fff' }, headerShadowVisible: false }} />
         </RootStack.Navigator>
       </NavigationContainer>
