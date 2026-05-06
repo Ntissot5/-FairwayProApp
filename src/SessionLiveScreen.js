@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
+import { consumePendingVideo } from './videoResult'
 
 const G = '#1B5E35'
 
@@ -31,18 +32,21 @@ export default function SessionLiveScreen({ route, navigation }) {
   const timerRef = useRef(null)
   const recordIdRef = useRef(null)
 
-  // Handle annotated video returned from VideoAnnotationScreen
+  // Handle annotated video returned from VideoAnnotationScreen (via shared module)
   useEffect(() => {
-    if (route.params?.videoUri && route.params?.annotations) {
-      console.log('[SessionLive] Vidéo annotée reçue:', {
-        uri: route.params.videoUri,
-        annotationsCount: route.params.annotations.length,
-        duration: route.params.duration_ms,
-      })
-      // Étape 3: ajout à la Timeline + upload Supabase à venir
-      navigation.setParams({ videoUri: undefined, annotations: undefined, duration_ms: undefined })
-    }
-  }, [route.params?.videoUri])
+    const unsubscribe = navigation.addListener('focus', () => {
+      const video = consumePendingVideo()
+      if (video) {
+        console.log('[SessionLive] Vidéo annotée reçue:', {
+          uri: video.videoUri,
+          annotationsCount: video.annotations?.length || 0,
+          duration: video.duration_ms,
+        })
+        // Étape 3: ajout à la Timeline + upload Supabase à venir
+      }
+    })
+    return unsubscribe
+  }, [navigation])
 
   // Init: fetch player, create session_record, start chrono
   useEffect(() => {

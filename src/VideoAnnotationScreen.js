@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { Ionicons } from '@expo/vector-icons'
 import Svg, { Line, Circle } from 'react-native-svg'
+import { setPendingVideo } from './videoResult'
 
 const G = '#1B5E35'
 const COLORS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6']
@@ -123,7 +124,8 @@ export default function VideoAnnotationScreen({ route, navigation }) {
 
   const handleSave = () => {
     console.log('[Video] Saved:', { videoUri, annotations, duration_ms: durationMs })
-    navigation.navigate({ name: 'SessionLive', params: { videoUri, annotations, duration_ms: durationMs }, merge: true })
+    setPendingVideo({ videoUri, annotations, duration_ms: durationMs })
+    navigation.pop(2)
   }
 
   const handleCancel = () => {
