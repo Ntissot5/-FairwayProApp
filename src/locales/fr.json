@@ -290,7 +290,8 @@
     "open_settings": "Ouvrir Réglages",
     "drill_name_placeholder": "Nom du drill (ex: PW 50m x10)",
     "drill_desc_placeholder": "Description (optionnel)",
-    "start_session": "Commencer"
+    "start_session": "Commencer",
+    "video": "Vidéo"
   },
   "briefing": {
     "title": "Briefing matinal",

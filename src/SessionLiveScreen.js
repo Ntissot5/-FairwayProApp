@@ -30,6 +30,14 @@ export default function SessionLiveScreen({ route, navigation }) {
 
   const timerRef = useRef(null)
 
+  // Handle video URI returned from VideoRecordScreen
+  useEffect(() => {
+    if (route.params?.videoUri) {
+      console.log('[SessionLive] Vidéo enregistrée, URI:', route.params.videoUri)
+      // Étape 2 implémentera l'annotation
+    }
+  }, [route.params?.videoUri])
+
   // Init: fetch player, create session_record, start chrono
   useEffect(() => {
     const init = async () => {
@@ -143,6 +151,10 @@ export default function SessionLiveScreen({ route, navigation }) {
 
       {/* Action buttons */}
       <View style={s.actions}>
+        <TouchableOpacity style={s.actionBtn} onPress={() => navigation.navigate('VideoRecord')}>
+          <Ionicons name="videocam-outline" size={22} color="#374151" />
+          <Text style={s.actionBtnTxt}>{t('session_live.video')}</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={() => setShowNoteModal(true)}>
           <Ionicons name="document-text-outline" size={22} color="#374151" />
           <Text style={s.actionBtnTxt}>{t('session_live.note')}</Text>
