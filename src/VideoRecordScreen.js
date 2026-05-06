@@ -33,7 +33,7 @@ export default function VideoRecordScreen({ navigation }) {
       const video = await cameraRef.current.recordAsync({ maxDuration: MAX_DURATION })
       // recordAsync resolves when recording stops
       if (video?.uri) {
-        navigation.navigate('SessionLive', { videoUri: video.uri })
+        navigation.navigate('VideoAnnotation', { videoUri: video.uri })
       }
     } catch (e) {
       console.error('[VideoRecord] recordAsync failed:', e)

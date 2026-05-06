@@ -20,6 +20,7 @@ import BookingScreen from "./src/BookingScreen"
 import SettingsScreen from "./src/SettingsScreen"
 import SessionLiveScreen from "./src/SessionLiveScreen"
 import VideoRecordScreen from "./src/VideoRecordScreen"
+import VideoAnnotationScreen from "./src/VideoAnnotationScreen"
 import SessionSummaryScreen from "./src/SessionSummaryScreen"
 import PlayerSessionSummaryScreen from "./src/PlayerSessionSummaryScreen"
 import { supabase } from "./src/supabase"
@@ -138,6 +139,7 @@ export default function App() {
           <RootStack.Screen name="Settings" component={SettingsScreen} />
           <RootStack.Screen name="SessionLive" component={SessionLiveScreen} />
           <RootStack.Screen name="VideoRecord" component={VideoRecordScreen} options={{ headerShown: false, animation: 'slide_from_bottom' }} />
+          <RootStack.Screen name="VideoAnnotation" component={VideoAnnotationScreen} options={{ headerShown: false }} />
           <RootStack.Screen name="SessionSummary" component={SessionSummaryScreen} />
           <RootStack.Screen name="PlayerSessionSummary" component={PlayerSessionSummaryScreen} />
           <RootStack.Screen name="Plans" component={SubscribeScreen} options={{ headerShown: true, headerTitle: '', headerBackTitle: '', headerTintColor: '#1a1a1a', headerStyle: { backgroundColor: '#fff' }, headerShadowVisible: false }} />
