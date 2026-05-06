@@ -19,7 +19,9 @@
         "NSCameraUsageDescription": "FairwayPro needs access to your camera to record swing videos.",
         "NSMicrophoneUsageDescription": "FairwayPro needs access to your microphone to record voice notes during coaching sessions.",
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       },
       "buildNumber": "65"
     },
@@ -51,7 +53,13 @@
           "sounds": []
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "FairwayPro needs access to your microphone to record voice notes during coaching sessions."
+        }
+      ]
     ],
     "runtimeVersion": "1.0.0",
     "updates": {

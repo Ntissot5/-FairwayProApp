@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, Tex
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-import { Audio } from 'expo-av'
+import { useAudioRecorder, RecordingPresets, AudioModule } from 'expo-audio'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
@@ -19,6 +19,7 @@ export default function SessionLiveScreen({ route, navigation }) {
   const [events, setEvents] = useState([])
   const [isRecording, setIsRecording] = useState(false)
   const [hasMicPermission, setHasMicPermission] = useState(false)
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
   const [showNoteModal, setShowNoteModal] = useState(false)
   const [showDrillModal, setShowDrillModal] = useState(false)
   const [showEndModal, setShowEndModal] = useState(false)
@@ -27,7 +28,6 @@ export default function SessionLiveScreen({ route, navigation }) {
   const [drillDesc, setDrillDesc] = useState('')
 
   const timerRef = useRef(null)
-  const recordingRef = useRef(null)
   const recordStartTime = useRef(0)
 
   // Init: fetch player, create session_record, start chrono, request mic
@@ -50,11 +50,8 @@ export default function SessionLiveScreen({ route, navigation }) {
       if (rec) setRecordId(rec.id)
 
       // Request mic permission
-      const { granted } = await Audio.requestPermissionsAsync()
-      setHasMicPermission(granted)
-      if (granted) {
-        await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true })
-      }
+      const permResult = await AudioModule.requestRecordingPermissionsAsync()
+      setHasMicPermission(permResult.granted)
     }
     init()
 
@@ -80,10 +77,7 @@ export default function SessionLiveScreen({ route, navigation }) {
       return
     }
     try {
-      const recording = new Audio.Recording()
-      await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY)
-      await recording.startAsync()
-      recordingRef.current = recording
+      audioRecorder.record()
       recordStartTime.current = elapsedSeconds
       setIsRecording(true)
     } catch (e) {
@@ -93,12 +87,11 @@ export default function SessionLiveScreen({ route, navigation }) {
 
   // Push-to-talk: stop
   const handlePressOut = async () => {
-    if (!recordingRef.current) return
+    if (!isRecording) return
     setIsRecording(false)
     try {
-      await recordingRef.current.stopAndUnloadAsync()
-      const uri = recordingRef.current.getURI()
-      recordingRef.current = null
+      await audioRecorder.stop()
+      const uri = audioRecorder.uri
       if (!uri || !recordId || !userId) return
 
       const duration = elapsedSeconds - recordStartTime.current
