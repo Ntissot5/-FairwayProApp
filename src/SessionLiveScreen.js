@@ -8,6 +8,11 @@ import { supabase } from './supabase'
 
 const G = '#1B5E35'
 
+const generateId = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+  const r = Math.random() * 16 | 0
+  return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+})
+
 export default function SessionLiveScreen({ route, navigation }) {
   const { t } = useTranslation()
   const { lesson_id, player_id } = route.params
@@ -95,7 +100,7 @@ export default function SessionLiveScreen({ route, navigation }) {
       if (!uri || !recordId || !userId) return
 
       const duration = elapsedSeconds - recordStartTime.current
-      const eventId = crypto.randomUUID()
+      const eventId = generateId()
       const audioPath = `${userId}/${recordId}/${eventId}.m4a`
 
       // Upload to Supabase Storage
@@ -120,7 +125,7 @@ export default function SessionLiveScreen({ route, navigation }) {
   // Add note
   const handleSaveNote = async () => {
     if (!noteText.trim()) return
-    const newEvent = { id: crypto.randomUUID(), type: 'note', timestamp: elapsedSeconds, text: noteText.trim() }
+    const newEvent = { id: generateId(), type: 'note', timestamp: elapsedSeconds, text: noteText.trim() }
     const updatedEvents = [...events, newEvent]
     setEvents(updatedEvents)
     setNoteText('')
@@ -131,7 +136,7 @@ export default function SessionLiveScreen({ route, navigation }) {
   // Add drill
   const handleSaveDrill = async () => {
     if (!drillName.trim()) return
-    const newEvent = { id: crypto.randomUUID(), type: 'drill', timestamp: elapsedSeconds, name: drillName.trim(), description: drillDesc.trim() || null }
+    const newEvent = { id: generateId(), type: 'drill', timestamp: elapsedSeconds, name: drillName.trim(), description: drillDesc.trim() || null }
     const updatedEvents = [...events, newEvent]
     setEvents(updatedEvents)
     setDrillName('')
