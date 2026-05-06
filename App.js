@@ -1,4 +1,5 @@
 import "react-native-url-polyfill/auto"
+import "./src/i18n"
 import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
