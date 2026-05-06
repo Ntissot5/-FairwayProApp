@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
 
+const LANGUAGES = [
+  { code: 'fr', label: 'Français', enabled: true },
+  { code: 'en', label: 'English', enabled: true },
+  { code: 'de', label: 'Deutsch', enabled: false },
+]
+
 export default function SettingsScreen({ navigation }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [user, setUser] = useState(null)
 
   useEffect(() => {
@@ -37,6 +44,28 @@ export default function SettingsScreen({ navigation }) {
             </View>
           </View>
         </View>
+
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>{t('settings.language').toUpperCase()}</Text>
+          {LANGUAGES.map((lang, idx) => (
+            <TouchableOpacity
+              key={lang.code}
+              style={[s.langRow, idx < LANGUAGES.length - 1 && s.langRowBorder]}
+              onPress={() => lang.enabled && i18n.changeLanguage(lang.code)}
+              disabled={!lang.enabled}
+              activeOpacity={lang.enabled ? 0.7 : 1}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={[s.langLabel, !lang.enabled && s.langDisabled]}>{lang.label}</Text>
+                {!lang.enabled && <Text style={s.langSoon}>{t('settings.language_de_soon')}</Text>}
+              </View>
+              {lang.enabled && i18n.language === lang.code && (
+                <Ionicons name="checkmark-circle" size={22} color={G} />
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <View style={s.section}>
           <Text style={s.sectionTitle}>{t('settings.app')}</Text>
           <TouchableOpacity style={s.infoRow} onPress={() => navigation.navigate('Plans')}>
@@ -52,6 +81,7 @@ export default function SettingsScreen({ navigation }) {
             <Text style={s.infoValue}>iOS</Text>
           </View>
         </View>
+
         <TouchableOpacity style={s.signOutBtn} onPress={signOut}>
           <Text style={s.signOutTxt}>{t('settings.logout')}</Text>
         </TouchableOpacity>
@@ -73,6 +103,11 @@ const s = StyleSheet.create({
   info: { flex: 1 },
   email: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
   role: { fontSize: 11, color: '#9CA3AF', marginTop: 2, letterSpacing: 0.1 },
+  langRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+  langRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
+  langLabel: { fontSize: 15, color: '#1a1a1a', fontWeight: '500' },
+  langDisabled: { color: '#C4C4C4' },
+  langSoon: { fontSize: 11, color: '#C4C4C4', marginTop: 2 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
   infoLabel: { fontSize: 14, color: '#1a1a1a' },
   infoValue: { fontSize: 14, color: '#9CA3AF' },

@@ -3,11 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 
 const G = '#1B5E35'
 const colors = ['#1B5E35','#0891B2','#7C3AED','#DC2626','#D97706','#059669']
 
 export default function PlayerCommunityScreen() {
+  const { t } = useTranslation()
   const [tab, setTab] = useState('golfers')
   const [players, setPlayers] = useState([])
   const [messages, setMessages] = useState([])
@@ -50,7 +52,7 @@ export default function PlayerCommunityScreen() {
     const date = new Date()
     date.setDate(date.getDate() + 7)
     await supabase.from('game_requests').insert({ from_player_id: myPlayer.id, to_player_id: toPlayer.id, course_name: 'À définir', game_date: date.toISOString().split('T')[0], status: 'pending' })
-    Alert.alert('✓ Invitation envoyée à ' + toPlayer.full_name + '!')
+    Alert.alert(t('player_community.invitation_sent', { name: toPlayer.full_name }))
   }
 
   if (selectedPlayer) return (
@@ -82,7 +84,7 @@ export default function PlayerCommunityScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.title}>Community</Text>
+        <Text style={s.title}>{t('player_community.title')}</Text>
         <Text style={s.sub}>Tous les golfers FairwayPro</Text>
       </View>
       <View style={s.tabs}>
@@ -107,10 +109,10 @@ export default function PlayerCommunityScreen() {
                 <Text style={s.hcp}>{p.current_handicap || 0}</Text>
                 <Text style={s.hcpLabel}>HCP</Text>
                 <TouchableOpacity style={s.msgBtn} onPress={() => setSelectedPlayer(p)}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="chatbubble-outline" size={12} color="#fff" /><Text style={s.msgBtnTxt}>Message</Text></View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="chatbubble-outline" size={12} color="#fff" /><Text style={s.msgBtnTxt}>{t('player_community.message')}</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.gameBtn} onPress={() => requestGame(p)}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={12} color={G} /><Text style={s.gameBtnTxt}>Partie</Text></View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={12} color={G} /><Text style={s.gameBtnTxt}>{t('player_community.game')}</Text></View>
                 </TouchableOpacity>
               </View>
             ))}
@@ -141,7 +143,7 @@ export default function PlayerCommunityScreen() {
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                   <TouchableOpacity style={[s.gameBtn, { flex: 1, alignItems: 'center' }]}
                     onPress={async () => { await supabase.from('game_requests').update({ status: 'accepted' }).eq('id', gr.id); fetchAll() }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="checkmark" size={14} color={G} /><Text style={s.gameBtnTxt}>Accepter</Text></View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="checkmark" size={14} color={G} /><Text style={s.gameBtnTxt}>{t('player_community.accept')}</Text></View>
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.msgBtn, { flex: 1, alignItems: 'center' }]}
                     onPress={async () => { await supabase.from('game_requests').update({ status: 'declined' }).eq('id', gr.id); fetchAll() }}>

@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { useTranslation } from 'react-i18next'
 
 const G = '#1B5E35'
 
 export default function PlayerChatScreen() {
+  const { t } = useTranslation()
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
@@ -41,13 +43,13 @@ export default function PlayerChatScreen() {
           <Text style={s.coachAvTxt}>C</Text>
         </View>
         <View>
-          <Text style={s.coachName}>Your coach</Text>
-          <Text style={s.online}>Online</Text>
+          <Text style={s.coachName}>{t('player_chat.your_coach')}</Text>
+          <Text style={s.online}>{t('player_chat.online')}</Text>
         </View>
       </View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }} keyboardVerticalOffset={90}>
         <ScrollView ref={scrollRef} style={s.messages} contentContainerStyle={{ padding: 16 }}>
-          {messages.length === 0 && <Text style={s.empty}>No messages yet</Text>}
+          {messages.length === 0 && <Text style={s.empty}>{t('player_chat.no_messages')}</Text>}
           {messages.map(m => (
             <View key={m.id} style={{ alignItems: m.sender === 'player' ? 'flex-end' : 'flex-start', marginBottom: 12 }}>
               <View style={[s.bubble, m.sender === 'player' ? s.bubblePlayer : s.bubbleCoach]}>

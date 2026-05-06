@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Svg, Path, Circle, Line, Text as SvgText, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 
 const G = '#1B5E35'
 
@@ -195,7 +196,7 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
         </View>
 
         <TouchableOpacity style={s.saveBtn} onPress={isLast ? onFinish : onNext}>
-          <Text style={s.saveBtnTxt}>{isLast ? "Finish round ✓" : "Next hole →"}</Text>
+          <Text style={s.saveBtnTxt}>{isLast ? t('player_rounds.finish') : t('player_rounds.next_hole') + ' →'}</Text>
         </TouchableOpacity>
         <View style={{ height: 20 }} />
       </ScrollView>
@@ -396,6 +397,7 @@ function StatsView({ rounds }) {
 }
 
 export default function PlayerRoundsScreen({ navigation }) {
+  const { t } = useTranslation()
   const [rounds, setRounds] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -449,7 +451,7 @@ export default function PlayerRoundsScreen({ navigation }) {
       holes_data: JSON.stringify(holesData)
     })
     if (error) { Alert.alert('Erreur', error.message); return }
-    Alert.alert("Round saved! 🏌️", "Score: " + totalScore + " | Putts: " + totalPutts)
+    Alert.alert(t('player_rounds.round_saved'), "Score: " + totalScore + " | Putts: " + totalPutts)
     setScreen("list")
     fetchRounds()
   }
@@ -458,7 +460,7 @@ export default function PlayerRoundsScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.modalHead}>
         <TouchableOpacity onPress={() => setScreen("list")}><Text style={s.backTxt}>‹ Back</Text></TouchableOpacity>
-        <Text style={s.modalTitle}>New round</Text>
+        <Text style={s.modalTitle}>{t('player_rounds.new_round')}</Text>
         <View style={{ width: 50 }} />
       </View>
       <View style={{ padding: 20 }}>
@@ -506,7 +508,7 @@ export default function PlayerRoundsScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>My rounds</Text>
+          <Text style={s.title}>{t('player_rounds.title')}</Text>
           <Text style={s.sub}>{rounds.length} rounds played</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={() => setScreen("choose")}>

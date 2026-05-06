@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
 import { VideoView, useVideoPlayer } from 'expo-video'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
@@ -23,6 +24,7 @@ function VideoPlayer({ url, onClose }) {
 }
 
 export default function PlayerVideosScreen() {
+  const { t } = useTranslation()
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -57,7 +59,7 @@ export default function PlayerVideosScreen() {
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from('swing-videos').getPublicUrl(fileName)
       await supabase.from('swing_videos').insert({ player_id: playerId, video_url: publicUrl, title: 'Swing ' + new Date().toLocaleDateString('fr-FR') })
-      Alert.alert('✓ Video uploaded!')
+      Alert.alert(t('player_videos.uploaded'))
       fetchAll()
     } catch(e) { Alert.alert('Error', e.message) }
     setUploading(false)
@@ -83,7 +85,7 @@ export default function PlayerVideosScreen() {
           <Text style={s.sub}>Your recordings</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={recordVideo} disabled={uploading}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="videocam-outline" size={14} color="#fff" /><Text style={s.addBtnTxt}>{uploading ? '...' : 'Film'}</Text></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="videocam-outline" size={14} color="#fff" /><Text style={s.addBtnTxt}>{uploading ? '...' : t('player_videos.film')}</Text></View>
         </TouchableOpacity>
       </View>
 
@@ -94,9 +96,9 @@ export default function PlayerVideosScreen() {
           <View style={{ padding: 40, alignItems: 'center' }}>
             <Ionicons name="videocam-outline" size={40} color={G} style={{ marginBottom: 16 }} />
             <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 }}>No videos yet</Text>
-            <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginBottom: 24 }}>Filme ton swing et partage-le avec ton coach</Text>
+            <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginBottom: 24 }}>{t('player_videos.empty_sub')}</Text>
             <TouchableOpacity style={s.addBtn} onPress={recordVideo}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="videocam-outline" size={16} color="#fff" /><Text style={s.addBtnTxt}>Filmer mon swing</Text></View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="videocam-outline" size={16} color="#fff" /><Text style={s.addBtnTxt}>{t('player_videos.film_swing')}</Text></View>
             </TouchableOpacity>
           </View>
         ) : (
@@ -110,7 +112,7 @@ export default function PlayerVideosScreen() {
                   <Text style={s.videoTitle}>{v.title || 'Swing video'}</Text>
                   <Text style={s.videoDate}>{new Date(v.created_at).toLocaleDateString('fr-FR')}</Text>
                   <TouchableOpacity onPress={() => setPlayingVideo(v.video_url)} style={s.watchBtn}>
-                    <Text style={s.watchBtnTxt}>▶ Regarder</Text>
+                    <Text style={s.watchBtnTxt}>▶ {t('player_videos.watch')}</Text>
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity onPress={() => deleteVideo(v.id)} style={s.deleteBtn}>

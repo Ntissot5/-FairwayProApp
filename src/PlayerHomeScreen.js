@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { useOnboarding, OnboardingTooltip } from './OnboardingContext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import PlayerOnboarding from './PlayerOnboarding'
@@ -11,6 +12,7 @@ import { Svg, Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg'
 const G = '#1B5E35'
 
 export default function PlayerHomeScreen({ navigation }) {
+  const { t } = useTranslation()
   const [player, setPlayer] = useState(null)
   const [sessions, setSessions] = useState([])
   const [rounds, setRounds] = useState([])
@@ -112,8 +114,8 @@ export default function PlayerHomeScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
         <Ionicons name="flag-outline" size={40} color={G} style={{ marginBottom: 16 }} />
-        <Text style={{ fontSize: 20, fontWeight: "800", color: "#1a1a1a", textAlign: "center", marginBottom: 8 }}>Compte joueur non trouvé</Text>
-        <Text style={{ fontSize: 14, color: "#6B7280", textAlign: "center" }}>Demande à ton coach de t'inviter sur FairwayPro.</Text>
+        <Text style={{ fontSize: 20, fontWeight: "800", color: "#1a1a1a", textAlign: "center", marginBottom: 8 }}>{t('player_home.empty_title')}</Text>
+        <Text style={{ fontSize: 14, color: "#6B7280", textAlign: "center" }}>{t('player_home.empty_subtitle')}</Text>
       </View>
     </SafeAreaView>
   )
@@ -128,7 +130,7 @@ export default function PlayerHomeScreen({ navigation }) {
         <View style={s.headerCard}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View>
-              <Text style={s.welcome}>Welcome back</Text>
+              <Text style={s.welcome}>{t('player_home.welcome', { name: '' }).trim()}</Text>
               <Text style={s.playerName}>{player.full_name}</Text>
             </View>
             <View style={s.avatar}>
@@ -138,8 +140,8 @@ export default function PlayerHomeScreen({ navigation }) {
           <View style={s.statsRow}>
             {[
               { label: "HCP", value: player.current_handicap || 0 },
-              { label: "Sessions", value: sessions.length },
-              { label: "Rounds", value: rounds.length },
+              { label: t('tabs.sessions'), value: sessions.length },
+              { label: t('tabs.rounds'), value: rounds.length },
             ].map((stat, i) => (
               <View key={i} style={s.stat}>
                 <Text style={s.statValue}>{stat.value}</Text>
@@ -156,7 +158,7 @@ export default function PlayerHomeScreen({ navigation }) {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={s.cardIcon}><Ionicons name="calendar-outline" size={22} color={G} /></View>
               <View style={{ flex: 1 }}>
-                <Text style={s.cardLabel}>PROCHAIN COURS</Text>
+                <Text style={s.cardLabel}>{t('player_home.next_lesson').toUpperCase()}</Text>
                 <Text style={s.cardTitle}>{nextBooking.lesson_date} à {nextBooking.start_time?.slice(0,5)}</Text>
                 <Text style={s.cardSub}>{nextBooking.type === 'group' ? 'Cours collectif' : 'Cours privé'}</Text>
               </View>
@@ -170,7 +172,7 @@ export default function PlayerHomeScreen({ navigation }) {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={[s.cardIcon, { backgroundColor: '#E8F5EE' }]}><Ionicons name="chatbubbles-outline" size={22} color={G} /></View>
               <View style={{ flex: 1 }}>
-                <Text style={s.cardLabel}>MESSAGE DE TON COACH</Text>
+                <Text style={s.cardLabel}>{t('player_home.coach_label').toUpperCase()}</Text>
                 <Text style={s.cardTitle} numberOfLines={2}>{lastMessage.content}</Text>
                 <Text style={s.cardSub}>{new Date(lastMessage.created_at).toLocaleDateString('fr-FR')}</Text>
               </View>
@@ -185,7 +187,7 @@ export default function PlayerHomeScreen({ navigation }) {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={[s.cardIcon, { backgroundColor: '#FEF3C7' }]}><Ionicons name="clipboard-outline" size={22} color="#D97706" /></View>
               <View style={{ flex: 1 }}>
-                <Text style={s.cardLabel}>PLAN D'ENTRAÎNEMENT</Text>
+                <Text style={s.cardLabel}>{t('player_home.my_plan').toUpperCase()}</Text>
                 <Text style={s.cardTitle}>{todoExercises.length} exercice{todoExercises.length > 1 ? 's' : ''} à faire</Text>
                 <Text style={s.cardSub} numberOfLines={1}>{todoExercises[0]?.title}</Text>
               </View>
@@ -196,13 +198,13 @@ export default function PlayerHomeScreen({ navigation }) {
 
         {/* Add round button */}
         <TouchableOpacity style={s.addRoundBtn} onPress={() => navigation.navigate("PlayerRounds")}>
-          <Text style={s.addRoundTxt}>+ Add a round</Text>
+          <Text style={s.addRoundTxt}>+ {t('player_rounds.new_round')}</Text>
         </TouchableOpacity>
 
         {/* Recent rounds */}
         {rounds.length > 0 && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Recent rounds</Text>
+            <Text style={s.sectionTitle}>{t('player_rounds.tab_rounds')}</Text>
             {rounds.slice(0, 3).map(r => (
               <View key={r.id} style={s.roundRow}>
                 <View style={s.roundInfo}>
@@ -219,8 +221,8 @@ export default function PlayerHomeScreen({ navigation }) {
         {rounds.length === 0 && todoExercises.length === 0 && !lastMessage && (
           <View style={s.emptyState}>
             <Ionicons name="flag-outline" size={48} color={G} style={{ marginBottom: 16 }} />
-            <Text style={s.emptyTitle}>Prêt à jouer ?</Text>
-            <Text style={s.emptySub}>Ajoute ton premier round ou attends que ton coach t'assigne des exercices.</Text>
+            <Text style={s.emptyTitle}>{t('player_rounds.empty')}</Text>
+            <Text style={s.emptySub}>{t('player_rounds.empty_sub')}</Text>
           </View>
         )}
 

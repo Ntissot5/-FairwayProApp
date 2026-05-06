@@ -136,7 +136,7 @@ export default function App() {
           <RootStack.Screen name="PlayerApp" component={PlayerTabs} />
           <RootStack.Screen name="PlayerDetail" component={PlayerDetailScreen} />
           <RootStack.Screen name="Settings" component={SettingsScreen} />
-          <RootStack.Screen name="Plans" component={SubscribeScreen} />
+          <RootStack.Screen name="Plans" component={SubscribeScreen} options={{ headerShown: true, headerTitle: '', headerBackTitle: '', headerTintColor: '#1a1a1a', headerStyle: { backgroundColor: '#fff' }, headerShadowVisible: false }} />
         </RootStack.Navigator>
       </NavigationContainer>
       </OnboardingProvider>
