@@ -17,7 +17,7 @@
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "FairwayPro needs access to your photo library to upload swing videos.",
         "NSCameraUsageDescription": "FairwayPro needs access to your camera to record swing videos.",
-        "NSMicrophoneUsageDescription": "FairwayPro needs access to your microphone to record videos.",
+        "NSMicrophoneUsageDescription": "FairwayPro needs access to your microphone to record voice notes during coaching sessions.",
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"]
       },

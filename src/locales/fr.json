@@ -251,6 +251,23 @@
     "accept": "Accepter",
     "invitation_sent": "Invitation envoyée à {{name}} !"
   },
+  "session_live": {
+    "in_progress": "Session en cours",
+    "hold_to_speak": "Maintenir pour parler",
+    "note": "Note",
+    "drill": "Drill",
+    "timeline": "Timeline",
+    "end_session": "Terminer",
+    "confirm_end_title": "Terminer la session ?",
+    "confirm_end_body": "Durée : {{minutes}} min. L'IA va générer le résumé.",
+    "confirm_end_cta": "Terminer",
+    "permission_mic_title": "Micro requis",
+    "permission_mic_body": "Active le micro dans Réglages pour enregistrer des notes vocales.",
+    "open_settings": "Ouvrir Réglages",
+    "drill_name_placeholder": "Nom du drill (ex: PW 50m x10)",
+    "drill_desc_placeholder": "Description (optionnel)",
+    "start_session": "Commencer"
+  },
   "briefing": {
     "title": "Briefing matinal",
     "empty_title": "Pas de briefing ce matin",

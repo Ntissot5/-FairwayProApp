@@ -251,6 +251,23 @@
     "accept": "Accept",
     "invitation_sent": "Invitation sent to {{name}}!"
   },
+  "session_live": {
+    "in_progress": "Session in progress",
+    "hold_to_speak": "Hold to speak",
+    "note": "Note",
+    "drill": "Drill",
+    "timeline": "Timeline",
+    "end_session": "End session",
+    "confirm_end_title": "End session?",
+    "confirm_end_body": "Duration: {{minutes}} min. AI will generate the summary.",
+    "confirm_end_cta": "End",
+    "permission_mic_title": "Microphone required",
+    "permission_mic_body": "Enable microphone in Settings to record voice notes.",
+    "open_settings": "Open Settings",
+    "drill_name_placeholder": "Drill name (e.g. PW 50m x10)",
+    "drill_desc_placeholder": "Description (optional)",
+    "start_session": "Start"
+  },
   "briefing": {
     "title": "Morning briefing",
     "empty_title": "No briefing this morning",

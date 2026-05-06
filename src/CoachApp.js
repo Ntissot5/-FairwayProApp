@@ -175,12 +175,15 @@ export default function CoachApp({ navigation }) {
 
         {/* Hero Cards */}
         <View style={styles.heroSection}>
-          <HeroCard icon="flag-outline" iconColor={G} bgColor="#f0faf4" borderColor="#d1fae5" title={t('home.next_session')} delay={0}
-            onPress={nextLesson ? () => { const p = players.find(pl => pl.id === nextLesson.player_id); if (p) navigation.navigate('PlayerDetail', { player: p }) } : undefined}>
+          <HeroCard icon="flag-outline" iconColor={G} bgColor="#f0faf4" borderColor="#d1fae5" title={t('home.next_session')} delay={0}>
             {nextLesson ? (
               <View>
                 <Text style={styles.heroMainText}>{nextLesson.players?.full_name || '—'}</Text>
                 <Text style={styles.heroSubText}>{t('home.at_time', { time: nextLesson.start_time?.slice(0, 5) })}</Text>
+                <TouchableOpacity style={styles.startSessionBtn} onPress={() => navigation.navigate('SessionLive', { lesson_id: nextLesson.id, player_id: nextLesson.player_id })}>
+                  <Ionicons name="play" size={14} color="#fff" />
+                  <Text style={styles.startSessionBtnTxt}>{t('session_live.start_session')}</Text>
+                </TouchableOpacity>
               </View>
             ) : (
               <Text style={styles.heroSubText}>{t('home.no_session_today')}</Text>
@@ -280,6 +283,8 @@ const styles = StyleSheet.create({
   heroSubText: { fontSize: 13, color: '#6B7280', marginTop: 2 },
   inactiveChip: { backgroundColor: '#FEF3C7', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   inactiveChipTxt: { fontSize: 11, fontWeight: '600', color: '#92400E' },
+  startSessionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: G, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginTop: 10, alignSelf: 'flex-start' },
+  startSessionBtnTxt: { fontSize: 13, fontWeight: '700', color: '#fff' },
 
   // Sections
   section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, marginTop: 0, overflow: 'hidden', borderWidth: 0.5, borderColor: '#E5E7EB' },
