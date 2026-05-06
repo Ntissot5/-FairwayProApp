@@ -3,7 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, Tex
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-import { File } from 'expo-file-system/next'
+import * as FileSystem from 'expo-file-system/legacy'
+import { decode } from 'base64-arraybuffer'
 import { supabase } from './supabase'
 import { consumePendingVideo } from './videoResult'
 
@@ -49,9 +50,8 @@ export default function SessionLiveScreen({ route, navigation }) {
       const { videoUri, annotations, duration_ms } = pendingVideo
 
       console.log('[Video] Reading file:', videoUri)
-      const file = new File(videoUri)
-      const bytes = file.bytes()
-      const arrayBuffer = bytes.buffer
+      const base64 = await FileSystem.readAsStringAsync(videoUri, { encoding: 'base64' })
+      const arrayBuffer = decode(base64)
       console.log('[Video] File size:', arrayBuffer.byteLength, 'bytes')
 
       const fileName = `${userId}/${recordIdRef.current}/${Date.now()}.mp4`
