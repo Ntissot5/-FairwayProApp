@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, Pressable, Linking } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-import { useAudioRecorder, RecordingPresets, AudioModule } from 'expo-audio'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
@@ -22,9 +21,6 @@ export default function SessionLiveScreen({ route, navigation }) {
   const [recordId, setRecordId] = useState(null)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [events, setEvents] = useState([])
-  const [isRecording, setIsRecording] = useState(false)
-  const [hasMicPermission, setHasMicPermission] = useState(false)
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
   const [showNoteModal, setShowNoteModal] = useState(false)
   const [showDrillModal, setShowDrillModal] = useState(false)
   const [showEndModal, setShowEndModal] = useState(false)
@@ -33,9 +29,8 @@ export default function SessionLiveScreen({ route, navigation }) {
   const [drillDesc, setDrillDesc] = useState('')
 
   const timerRef = useRef(null)
-  const recordStartTime = useRef(0)
 
-  // Init: fetch player, create session_record, start chrono, request mic
+  // Init: fetch player, create session_record, start chrono
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -45,18 +40,18 @@ export default function SessionLiveScreen({ route, navigation }) {
       setPlayer(p)
 
       // Create session_record
-      const { data: rec } = await supabase.from('session_records').insert({
+      const { data: rec, error: recErr } = await supabase.from('session_records').insert({
         lesson_id,
         player_id,
         coach_id: user.id,
         status: 'in_progress',
         events: [],
       }).select().single()
-      if (rec) setRecordId(rec.id)
-
-      // Request mic permission
-      const permResult = await AudioModule.requestRecordingPermissionsAsync()
-      setHasMicPermission(permResult.granted)
+      if (recErr) console.error('[SessionLive] Failed to create session_record:', recErr)
+      if (rec) {
+        console.log('[SessionLive] Created session_record:', rec.id)
+        setRecordId(rec.id)
+      }
     }
     init()
 
@@ -72,56 +67,6 @@ export default function SessionLiveScreen({ route, navigation }) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   }
 
-  // Push-to-talk: start
-  const handlePressIn = async () => {
-    if (!hasMicPermission) {
-      Alert.alert(t('session_live.permission_mic_title'), t('session_live.permission_mic_body'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('session_live.open_settings'), onPress: () => Linking.openURL('app-settings:') },
-      ])
-      return
-    }
-    try {
-      audioRecorder.record()
-      recordStartTime.current = elapsedSeconds
-      setIsRecording(true)
-    } catch (e) {
-      console.error('[Audio] Start recording failed:', e)
-    }
-  }
-
-  // Push-to-talk: stop
-  const handlePressOut = async () => {
-    if (!isRecording) return
-    setIsRecording(false)
-    try {
-      await audioRecorder.stop()
-      const uri = audioRecorder.uri
-      if (!uri || !recordId || !userId) return
-
-      const duration = elapsedSeconds - recordStartTime.current
-      const eventId = generateId()
-      const audioPath = `${userId}/${recordId}/${eventId}.m4a`
-
-      // Upload to Supabase Storage
-      const response = await fetch(uri)
-      const blob = await response.blob()
-      const { error: uploadErr } = await supabase.storage.from('session-audio').upload(audioPath, blob, { contentType: 'audio/m4a' })
-
-      if (uploadErr) {
-        console.error('[Storage] Upload failed:', uploadErr)
-        return
-      }
-
-      const newEvent = { id: eventId, type: 'vocal', timestamp: recordStartTime.current, duration, audio_path: audioPath }
-      const updatedEvents = [...events, newEvent]
-      setEvents(updatedEvents)
-      await supabase.from('session_records').update({ events: updatedEvents }).eq('id', recordId)
-    } catch (e) {
-      console.error('[Audio] Stop recording failed:', e)
-    }
-  }
-
   // Add note
   const handleSaveNote = async () => {
     if (!noteText.trim()) return
@@ -130,7 +75,10 @@ export default function SessionLiveScreen({ route, navigation }) {
     setEvents(updatedEvents)
     setNoteText('')
     setShowNoteModal(false)
-    if (recordId) await supabase.from('session_records').update({ events: updatedEvents }).eq('id', recordId)
+    if (recordId) {
+      const { error } = await supabase.from('session_records').update({ events: updatedEvents }).eq('id', recordId)
+      if (error) console.error('[SessionLive] Update events failed:', error)
+    }
   }
 
   // Add drill
@@ -142,7 +90,10 @@ export default function SessionLiveScreen({ route, navigation }) {
     setDrillName('')
     setDrillDesc('')
     setShowDrillModal(false)
-    if (recordId) await supabase.from('session_records').update({ events: updatedEvents }).eq('id', recordId)
+    if (recordId) {
+      const { error } = await supabase.from('session_records').update({ events: updatedEvents }).eq('id', recordId)
+      if (error) console.error('[SessionLive] Update events (drill) failed:', error)
+    }
   }
 
   // End session
@@ -165,13 +116,11 @@ export default function SessionLiveScreen({ route, navigation }) {
   }
 
   const eventIcon = (type) => {
-    if (type === 'vocal') return 'mic-outline'
     if (type === 'note') return 'document-text-outline'
     return 'flag-outline'
   }
 
   const eventPreview = (e) => {
-    if (e.type === 'vocal') return `Vocal (${e.duration || 0}s)`
     if (e.type === 'note') return e.text?.slice(0, 40) || ''
     return e.name || ''
   }
@@ -180,7 +129,7 @@ export default function SessionLiveScreen({ route, navigation }) {
     <SafeAreaView style={s.safe}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity onPress={() => Alert.alert(t('session_live.confirm_end_title'), t('session_live.confirm_end_body'), [{ text: t('common.cancel') }, { text: t('session_live.end_session'), style: 'destructive', onPress: handleEndSession }])}>
+        <TouchableOpacity onPress={() => Alert.alert(t('session_live.confirm_end_title'), t('session_live.confirm_end_body', { minutes: Math.round(elapsedSeconds / 60) }), [{ text: t('common.cancel') }, { text: t('session_live.end_session'), style: 'destructive', onPress: handleEndSession }])}>
           <Ionicons name="chevron-back" size={24} color={G} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>{player?.full_name || '...'} · HCP {player?.current_handicap ?? '—'}</Text>
@@ -194,25 +143,14 @@ export default function SessionLiveScreen({ route, navigation }) {
 
       {/* Action buttons */}
       <View style={s.actions}>
-        <Pressable
-          style={[s.micBtn, isRecording && s.micBtnActive]}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
-          <Ionicons name={isRecording ? 'mic' : 'mic-outline'} size={28} color={isRecording ? '#fff' : G} />
-          <Text style={[s.micBtnTxt, isRecording && { color: '#fff' }]}>{t('session_live.hold_to_speak')}</Text>
-        </Pressable>
-
-        <View style={s.secondaryActions}>
-          <TouchableOpacity style={s.actionBtn} onPress={() => setShowNoteModal(true)}>
-            <Ionicons name="document-text-outline" size={22} color="#374151" />
-            <Text style={s.actionBtnTxt}>{t('session_live.note')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.actionBtn} onPress={() => setShowDrillModal(true)}>
-            <Ionicons name="flag-outline" size={22} color="#374151" />
-            <Text style={s.actionBtnTxt}>{t('session_live.drill')}</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={s.actionBtn} onPress={() => setShowNoteModal(true)}>
+          <Ionicons name="document-text-outline" size={22} color="#374151" />
+          <Text style={s.actionBtnTxt}>{t('session_live.note')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.actionBtn} onPress={() => setShowDrillModal(true)}>
+          <Ionicons name="flag-outline" size={22} color="#374151" />
+          <Text style={s.actionBtnTxt}>{t('session_live.drill')}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Timeline */}
@@ -284,17 +222,13 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f8f8f8' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: '#fff', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
   headerTitle: { fontSize: 16, fontWeight: '600', color: '#1a1a1a' },
-  chronoSection: { alignItems: 'center', paddingVertical: 24 },
+  chronoSection: { alignItems: 'center', paddingVertical: 32 },
   chrono: { fontSize: 48, fontWeight: '800', color: '#1a1a1a', letterSpacing: -2, fontVariant: ['tabular-nums'] },
   chronoSub: { fontSize: 13, color: '#22C55E', fontWeight: '600', marginTop: 4 },
-  actions: { alignItems: 'center', gap: 16, paddingHorizontal: 16 },
-  micBtn: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#E8F5E9', borderRadius: 16, paddingVertical: 18, borderWidth: 2, borderColor: G },
-  micBtnActive: { backgroundColor: G },
-  micBtnTxt: { fontSize: 16, fontWeight: '700', color: G },
-  secondaryActions: { flexDirection: 'row', gap: 12, width: '100%' },
-  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#fff', borderRadius: 12, paddingVertical: 14, borderWidth: 1, borderColor: '#E5E7EB' },
+  actions: { flexDirection: 'row', gap: 12, paddingHorizontal: 16 },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#fff', borderRadius: 12, paddingVertical: 16, borderWidth: 1, borderColor: '#E5E7EB' },
   actionBtnTxt: { fontSize: 14, fontWeight: '600', color: '#374151' },
-  timelineSection: { flex: 1, marginTop: 16, marginHorizontal: 16 },
+  timelineSection: { flex: 1, marginTop: 20, marginHorizontal: 16 },
   timelineTitle: { fontSize: 12, fontWeight: '700', color: '#9CA3AF', marginBottom: 8 },
   timeline: { flex: 1 },
   timelineRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
