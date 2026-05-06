@@ -3,10 +3,12 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, 
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 
 const G = '#1B5E35'
 
 export default function RevenueScreen({ navigation }) {
+  const { t } = useTranslation()
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -82,17 +84,17 @@ export default function RevenueScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>Revenue</Text>
+          <Text style={s.title}>{t('revenue.title')}</Text>
           <Text style={s.sub}>{sessions.length} sessions</Text>
         </View>
         <TouchableOpacity onPress={exportRevenue} style={s.btn2}>
-          <Text style={s.btn2Txt}>↑ Export</Text>
+          <Text style={s.btn2Txt}>↑ {t('revenue.export')}</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
         <View style={s.statsRow}>
-          {[{label:'TOTAL REVENUE', value: total+'€', sub: sessions.length+' sessions'}, {label:'THIS MONTH', value: thisMonth+'€'}, {label:'AVG/SESSION', value: avg+'€'}].map((item, i) => (
+          {[{label:t('revenue.total_revenue').toUpperCase(), value: total+'€', sub: t('revenue.sessions_count', { count: sessions.length })}, {label:t('revenue.this_month').toUpperCase(), value: thisMonth+'€'}, {label:t('revenue.avg_session').toUpperCase(), value: avg+'€'}].map((item, i) => (
             <View key={i} style={[s.stat, i === 0 && s.statGreen]}>
               <Text style={s.statLabel}>{item.label}</Text>
               <Text style={[s.statValue, i === 0 && { color: G }]}>{item.value}</Text>
@@ -101,8 +103,8 @@ export default function RevenueScreen({ navigation }) {
         </View>
         <View style={s.section}>
           <View style={s.sectionHead}>
-            <Text style={s.sectionTitle}>Session details</Text>
-            <Text style={s.sectionSub}>{sessions.length} recorded</Text>
+            <Text style={s.sectionTitle}>{t('revenue.session_details')}</Text>
+            <Text style={s.sectionSub}>{t('revenue.recorded', { count: sessions.length })}</Text>
           </View>
           {sessions.map(session => {
             const player = players.find(p => p.id === session.player_id)
@@ -113,7 +115,7 @@ export default function RevenueScreen({ navigation }) {
                   <Text style={s.rowDate}>{session.session_date}</Text>
                 </View>
                 <Text style={s.rowPrice}>{session.price}€</Text>
-                <View style={s.paidBadge}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Ionicons name="checkmark" size={12} color={G} /><Text style={s.paidTxt}>Paid</Text></View></View>
+                <View style={s.paidBadge}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Ionicons name="checkmark" size={12} color={G} /><Text style={s.paidTxt}>{t('revenue.paid')}</Text></View></View>
               </TouchableOpacity>
             )
           })}

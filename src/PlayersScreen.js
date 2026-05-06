@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, TextInput, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
 
 export default function PlayersScreen({ navigation }) {
+  const { t } = useTranslation()
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,9 +15,6 @@ export default function PlayersScreen({ navigation }) {
   const [showAdd, setShowAdd] = useState(false)
   const [newPlayer, setNewPlayer] = useState({ full_name: '', current_handicap: '' })
   const [saving, setSaving] = useState(false)
-  const [showAddSession, setShowAddSession] = useState(false)
-  const [newSession, setNewSession] = useState({ player_id: '', price: '', session_date: new Date().toISOString().split('T')[0], notes: '' })
-  const [savingSession, setSavingSession] = useState(false)
 
   useEffect(() => { fetchAll() }, [])
 
@@ -27,17 +26,6 @@ export default function PlayersScreen({ navigation }) {
     setSessions(s || [])
     setLoading(false)
     setRefreshing(false)
-  }
-
-  const addSession = async () => {
-    if (!newSession.player_id || !newSession.price) return
-    setSavingSession(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('sessions').insert({ coach_id: user.id, player_id: newSession.player_id, price: parseFloat(newSession.price), session_date: newSession.session_date, notes: newSession.notes, paid: true })
-    setNewSession({ player_id: '', price: '', session_date: new Date().toISOString().split('T')[0], notes: '' })
-    setShowAddSession(false)
-    setSavingSession(false)
-    fetchAll()
   }
 
   const addPlayer = async () => {
@@ -60,11 +48,11 @@ export default function PlayersScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>My players</Text>
-          <Text style={s.sub}>{players.length} players</Text>
+          <Text style={s.title}>{t('players.title')}</Text>
+          <Text style={s.sub}>{t('players.count', { count: players.length })}</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)}>
-          <Text style={s.addBtnTxt}>+ Player</Text>
+          <Text style={s.addBtnTxt}>+ {t('players.add_player')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -82,7 +70,7 @@ export default function PlayersScreen({ navigation }) {
               </View>
               <View style={s.info}>
                 <Text style={s.name}>{p.full_name}</Text>
-                <Text style={s.rowSub}>{ps.length} sessions</Text>
+                <Text style={s.rowSub}>{t('players.sessions_other', { count: ps.length })}</Text>
               </View>
               <View style={s.right}>
                 <Text style={s.hcp}>{p.current_handicap}</Text>
@@ -90,10 +78,10 @@ export default function PlayersScreen({ navigation }) {
               </View>
               <View style={s.right}>
                 <Text style={s.rev}>{revenue}€</Text>
-                <Text style={s.hcpLabel}>Revenue</Text>
+                <Text style={s.hcpLabel}>{t('players.revenue')}</Text>
               </View>
               <View style={[s.badge, inactive ? s.badgeRed : s.badgeGreen]}>
-                <Text style={[s.badgeTxt, { color: inactive ? '#DC2626' : G }]}>{inactive ? 'Inactive' : 'Active'}</Text>
+                <Text style={[s.badgeTxt, { color: inactive ? '#DC2626' : G }]}>{inactive ? t('players.inactive') : t('players.active')}</Text>
               </View>
             </TouchableOpacity>
           )
@@ -104,18 +92,18 @@ export default function PlayersScreen({ navigation }) {
       <Modal visible={showAdd} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={s.modal}>
           <View style={s.modalHeader}>
-            <Text style={s.modalTitle}>Add a player</Text>
+            <Text style={s.modalTitle}>{t('players.add_player')}</Text>
             <TouchableOpacity onPress={() => setShowAdd(false)}>
-              <Text style={s.modalClose}>Cancel</Text>
+              <Text style={s.modalClose}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
           <View style={s.modalBody}>
-            <Text style={s.label}>Full name</Text>
+            <Text style={s.label}>{t('players.full_name')}</Text>
             <TextInput style={s.input} value={newPlayer.full_name} onChangeText={v => setNewPlayer({...newPlayer, full_name: v})} placeholder="Emma Wilson" placeholderTextColor="#9CA3AF" />
-            <Text style={s.label}>Handicap</Text>
+            <Text style={s.label}>{t('players.handicap')}</Text>
             <TextInput style={s.input} value={newPlayer.current_handicap} onChangeText={v => setNewPlayer({...newPlayer, current_handicap: v})} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
             <TouchableOpacity style={[s.btn, saving && { opacity: 0.7 }]} onPress={addPlayer} disabled={saving}>
-              <Text style={s.btnTxt}>{saving ? 'Adding...' : '+ Add player'}</Text>
+              <Text style={s.btnTxt}>{saving ? t('players.adding') : '+ ' + t('players.add_player')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -157,7 +145,4 @@ const s = StyleSheet.create({
   input: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 12, padding: 14, fontSize: 15, color: '#1a1a1a' },
   btn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24 },
   btnTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  playerChip: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
-  playerChipActive: { backgroundColor: '#1B5E35', borderColor: '#1B5E35' },
-  playerChipTxt: { fontSize: 13, color: '#1a1a1a', fontWeight: '500' },
 })

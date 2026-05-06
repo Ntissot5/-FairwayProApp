@@ -3,12 +3,14 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 
 const G = '#1B5E35'
 const DAYS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
 const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']
 
 export default function BookingScreen({ navigation }) {
+  const { t } = useTranslation()
   const [tab, setTab] = useState('agenda')
   const [workHours, setWorkHours] = useState([])
   const [collectifs, setCollectifs] = useState([])
@@ -79,7 +81,7 @@ export default function BookingScreen({ navigation }) {
     } else {
       await supabase.from('coach_preferences').insert({ ...prefs, coach_id: userId })
     }
-    Alert.alert('✓ Préférences sauvegardées')
+    Alert.alert(t('booking.preferences_saved'))
     fetchAll()
   }
 
@@ -166,7 +168,7 @@ export default function BookingScreen({ navigation }) {
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.title}>Booking</Text>
+        <Text style={s.title}>{t('booking.title')}</Text>
 
       </View>
 
@@ -182,11 +184,11 @@ export default function BookingScreen({ navigation }) {
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 }}>
             <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={s.weekBtn}>
-              <Text style={s.weekBtnTxt}>‹ Préc.</Text>
+              <Text style={s.weekBtnTxt}>‹ {t('booking.previous')}</Text>
             </TouchableOpacity>
             <Text style={{ fontSize: 13, fontWeight: '600', color: '#374151' }}>{weekLabel}</Text>
             <TouchableOpacity onPress={() => setWeekOffset(weekOffset + 1)} style={s.weekBtn}>
-              <Text style={s.weekBtnTxt}>Suiv. ›</Text>
+              <Text style={s.weekBtnTxt}>{t('booking.next')} ›</Text>
             </TouchableOpacity>
           </View>
 

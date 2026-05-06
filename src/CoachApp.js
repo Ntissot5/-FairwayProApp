@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
 
 export default function CoachApp({ navigation }) {
+  const { t } = useTranslation()
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -23,11 +25,6 @@ export default function CoachApp({ navigation }) {
     setSessions(s || [])
     setLoading(false)
     setRefreshing(false)
-  }
-
-  const signOut = async () => {
-    await supabase.auth.signOut()
-    navigation.replace('Welcome')
   }
 
   const now = new Date()
@@ -64,13 +61,13 @@ export default function CoachApp({ navigation }) {
       if (msg) {
         const { data: { user } } = await supabase.auth.getUser()
         await supabase.from('messages').insert({ coach_id: user.id, player_id: player.id, sender: 'coach', content: msg })
-        alert('✓ Message envoyé à ' + player.full_name)
+        alert(t('home.message_sent', { name: player.full_name }))
       }
-    } catch(e) { alert('Erreur: ' + e.message) }
+    } catch(e) { alert(t('common.error') + ': ' + e.message) }
     setRelancing(prev => ({ ...prev, [player.id]: false }))
   }
 
-    if (loading) return (
+  if (loading) return (
     <View style={styles.loading}>
       <ActivityIndicator color={G} size="large" />
     </View>
@@ -80,15 +77,15 @@ export default function CoachApp({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Dashboard</Text>
+          <Text style={styles.headerTitle}>{t('home.title')}</Text>
           <Text style={styles.headerDate}>{now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.navigate('Booking')} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: G, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: G }}>+ Session</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: G }}>+ {t('home.add_session')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Players')} style={{ backgroundColor: G, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>+ Player</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>+ {t('home.add_player')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.signOutBtn}>
             <Ionicons name="settings-outline" size={22} color="#6B7280" />
@@ -100,7 +97,7 @@ export default function CoachApp({ navigation }) {
 
         {inactivePlayers.length > 0 && (
           <View style={styles.alert}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="alert-circle-outline" size={18} color="#DC2626" /><Text style={styles.alertTitle}>{inactivePlayers.length} élève{inactivePlayers.length > 1 ? 's' : ''} inactif{inactivePlayers.length > 1 ? 's' : ''} depuis +14 jours</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="alert-circle-outline" size={18} color="#DC2626" /><Text style={styles.alertTitle}>{t('home.inactive_alert', { count: inactivePlayers.length })}</Text></View>
             {inactivePlayers.map(p => (
               <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 10, marginTop: 8, borderTopWidth: 0.5, borderTopColor: '#FECACA' }}>
                 <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#FCA5A5', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
@@ -108,10 +105,10 @@ export default function CoachApp({ navigation }) {
                 </View>
                 <Text style={{ flex: 1, fontSize: 13, fontWeight: '600', color: '#DC2626' }}>{p.full_name}</Text>
                 <TouchableOpacity onPress={() => relancePlayer(p)} disabled={relancing[p.id]} style={{ backgroundColor: relancing[p.id] ? '#E8F5EE' : '#1B5E35', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, marginRight: 6 }}>
-                  <Text style={{ color: relancing[p.id] ? '#1B5E35' : '#fff', fontSize: 11, fontWeight: '700' }}>{relancing[p.id] ? '...' : '✦ Relancer'}</Text>
+                  <Text style={{ color: relancing[p.id] ? '#1B5E35' : '#fff', fontSize: 11, fontWeight: '700' }}>{relancing[p.id] ? '...' : t('home.relaunch')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('PlayerDetail', { player: p })} style={{ backgroundColor: 'transparent', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#FECACA' }}>
-                  <Text style={{ color: '#DC2626', fontSize: 11, fontWeight: '600' }}>View →</Text>
+                  <Text style={{ color: '#DC2626', fontSize: 11, fontWeight: '600' }}>{t('home.view')} →</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -120,10 +117,10 @@ export default function CoachApp({ navigation }) {
 
         <View style={styles.statsRow}>
           {[
-            { label: 'CE MOIS', value: revenueThisMonth + '€', green: true },
-            { label: 'TOTAL', value: totalRevenue + '€' },
-            { label: 'ÉLÈVES', value: players.length },
-            { label: 'SÉANCES', value: sessions.length },
+            { label: t('home.this_month').toUpperCase(), value: revenueThisMonth + '€', green: true },
+            { label: t('home.total').toUpperCase(), value: totalRevenue + '€' },
+            { label: t('home.students').toUpperCase(), value: players.length },
+            { label: t('home.sessions_count').toUpperCase(), value: sessions.length },
           ].map((s, i) => (
             <View key={i} style={[styles.stat, s.green && styles.statGreen]}>
               <Text style={styles.statLabel}>{s.label}</Text>
@@ -133,9 +130,9 @@ export default function CoachApp({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mes élèves ({players.length})</Text>
+          <Text style={styles.sectionTitle}>{t('home.my_students', { count: players.length })}</Text>
           {players.length === 0 ? (
-            <Text style={styles.empty}>Aucun élève</Text>
+            <Text style={styles.empty}>{t('home.no_students')}</Text>
           ) : players.map(p => {
             const ps = sessions.filter(s => s.player_id === p.id)
             const last = ps.sort((a, b) => new Date(b.session_date) - new Date(a.session_date))[0]
@@ -148,10 +145,10 @@ export default function CoachApp({ navigation }) {
                 </View>
                 <View style={styles.rowInfo}>
                   <Text style={styles.rowName}>{p.full_name}</Text>
-                  <Text style={styles.rowSub}>HCP {p.current_handicap} · {days ? `J-${days}` : 'Jamais'}</Text>
+                  <Text style={styles.rowSub}>HCP {p.current_handicap} · {days ? t('home.days_ago', { days }) : t('players.never')}</Text>
                 </View>
                 <View style={[styles.badge, inactive ? styles.badgeRed : styles.badgeGreen]}>
-                  <Text style={[styles.badgeTxt, inactive ? { color: '#DC2626' } : { color: G }]}>{inactive ? 'Inactif' : 'Actif'}</Text>
+                  <Text style={[styles.badgeTxt, inactive ? { color: '#DC2626' } : { color: G }]}>{inactive ? t('home.inactive') : t('home.active')}</Text>
                 </View>
               </TouchableOpacity>
             )
@@ -159,7 +156,7 @@ export default function CoachApp({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dernières séances</Text>
+          <Text style={styles.sectionTitle}>{t('home.last_sessions')}</Text>
           {sessions.slice(0, 5).map(s => {
             const player = players.find(p => p.id === s.player_id)
             return (
@@ -174,25 +171,21 @@ export default function CoachApp({ navigation }) {
           })}
         </View>
 
-        {/* Monthly Revenue */}
         <View style={styles.section}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 8 }}>
-            <Text style={styles.sectionTitle}>Monthly revenue</Text>
-            <Text style={{ fontSize: 11, color: '#9CA3AF' }}>6 mois</Text>
+            <Text style={styles.sectionTitle}>{t('home.monthly_revenue')}</Text>
+            <Text style={{ fontSize: 11, color: '#9CA3AF' }}>{t('home.six_months')}</Text>
           </View>
           <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
             <Text style={{ fontSize: 36, fontWeight: '800', color: G, letterSpacing: -1 }}>{revenueThisMonth}€</Text>
-            <Text style={{ fontSize: 12, color: '#22c55e', marginTop: 2 }}>+402% vs last month</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 60, paddingHorizontal: 16, paddingBottom: 16, gap: 6 }}>
             {[0, 0, 0, 0, Math.round(totalRevenue * 0.17), revenueThisMonth].map((val, i) => {
               const maxVal = Math.max(revenueThisMonth, 1)
               const h = val > 0 ? Math.max((val / maxVal) * 44, 4) : 3
-              const months = ['oct.', 'nov.', 'déc.', 'janv.', 'févr.', 'mars']
               return (
                 <View key={i} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
                   <View style={{ width: '100%', height: h, backgroundColor: i === 5 ? G : '#E5E7EB', borderRadius: 3 }} />
-                  <Text style={{ fontSize: 8, color: '#9CA3AF' }}>{months[i]}</Text>
                 </View>
               )
             })}
@@ -211,13 +204,9 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
   headerDate: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
   signOutBtn: { padding: 8 },
-  signOutTxt: { fontSize: 20, color: '#9CA3AF' },
   scroll: { flex: 1 },
   alert: { margin: 16, backgroundColor: '#FEF2F2', borderRadius: 14, padding: 14, borderLeftWidth: 3, borderLeftColor: '#EF4444' },
   alertTitle: { fontSize: 13, fontWeight: '600', color: '#991B1B', marginBottom: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: '#FECACA' },
-  chipTxt: { fontSize: 11, color: '#991B1B', fontWeight: '500' },
   statsRow: { flexDirection: 'row', gap: 8, margin: 16, marginTop: 16 },
   stat: { flex: 1, backgroundColor: '#fff', borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 0.5, borderColor: '#E5E7EB' },
   statGreen: { borderTopWidth: 2, borderTopColor: G },

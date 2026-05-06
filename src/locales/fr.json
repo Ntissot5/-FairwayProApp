@@ -61,7 +61,12 @@
     "active": "Actif",
     "revenue_label": "Revenu",
     "sign_out": "Déconnexion",
-    "message_sent": "Message envoyé à {{name}}"
+    "message_sent": "Message envoyé à {{name}}",
+    "last_sessions": "Dernières séances",
+    "monthly_revenue": "Revenu mensuel",
+    "six_months": "6 mois",
+    "no_students": "Aucun élève",
+    "days_ago": "J-{{days}}"
   },
   "players": {
     "title": "Mes élèves",

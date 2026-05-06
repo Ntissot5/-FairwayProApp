@@ -1,80 +1,65 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 
 const G = '#1B5E35'
 
-const PLANS = [
+const PLAN_KEYS = [
   {
-    name: 'Solo',
+    nameKey: 'plans.solo',
     price: '39.99',
     badge: null,
-    features: [
-      '1 coach',
-      "Jusqu'à 30 élèves",
-      'Briefing IA quotidien',
-      'Notes vocales + résumé IA',
-    ],
+    featureKeys: ['plans.feature_1_coach', 'plans.feature_30_students', 'plans.feature_daily_briefing', 'plans.feature_voice_notes'],
   },
   {
-    name: 'Pro',
+    nameKey: 'plans.pro',
     price: '59.99',
-    badge: 'Populaire',
-    features: [
-      '1 coach',
-      'Élèves illimités',
-      'IA avancée',
-      'Analytics complets',
-    ],
+    badge: 'plans.popular',
+    featureKeys: ['plans.feature_1_coach', 'plans.feature_unlimited_students', 'plans.feature_advanced_ai', 'plans.feature_full_analytics'],
   },
   {
-    name: 'Académie',
+    nameKey: 'plans.academy',
     price: '199.99',
     badge: null,
-    features: [
-      'Coachs multiples',
-      'Mode directeur',
-      'Analytics centralisés',
-      'Gestion académie',
-    ],
+    featureKeys: ['plans.feature_multi_coach', 'plans.feature_director_mode', 'plans.feature_centralized_analytics', 'plans.feature_academy_management'],
   },
 ]
 
 export default function SubscribeScreen({ navigation }) {
+  const { t } = useTranslation()
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.title}>Plans FairwayPro</Text>
-        <Text style={s.subtitle}>Outil professionnel pour coachs de golf</Text>
+        <Text style={s.title}>{t('plans.title')}</Text>
+        <Text style={s.subtitle}>{t('plans.subtitle')}</Text>
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-        {PLANS.map((plan) => (
-          <View key={plan.name} style={[s.card, plan.badge && s.cardHighlight]}>
+        {PLAN_KEYS.map((plan) => (
+          <View key={plan.nameKey} style={[s.card, plan.badge && s.cardHighlight]}>
             <View style={s.cardHeader}>
-              <Text style={s.planName}>{plan.name}</Text>
+              <Text style={s.planName}>{t(plan.nameKey)}</Text>
               {plan.badge && (
                 <View style={s.badge}>
-                  <Text style={s.badgeText}>{plan.badge}</Text>
+                  <Text style={s.badgeText}>{t(plan.badge)}</Text>
                 </View>
               )}
             </View>
             <View style={s.priceRow}>
               <Text style={s.price}>{plan.price}</Text>
-              <Text style={s.priceCurrency}> CHF / mois</Text>
+              <Text style={s.priceCurrency}> {t('plans.per_month')}</Text>
             </View>
             <View style={s.features}>
-              {plan.features.map((feat) => (
-                <View key={feat} style={s.featRow}>
+              {plan.featureKeys.map((key) => (
+                <View key={key} style={s.featRow}>
                   <Ionicons name="checkmark" size={16} color={G} style={s.check} />
-                  <Text style={s.featText}>{feat}</Text>
+                  <Text style={s.featText}>{t(key)}</Text>
                 </View>
               ))}
             </View>
           </View>
         ))}
-        <Text style={s.footer}>
-          FairwayPro est un outil B2B destiné aux coachs professionnels. Les comptes sont activés par notre équipe après inscription.
-        </Text>
+        <Text style={s.footer}>{t('plans.footer')}</Text>
       </ScrollView>
     </SafeAreaView>
   )
@@ -98,7 +83,7 @@ const s = StyleSheet.create({
   priceCurrency: { fontSize: 14, color: '#6B7280', fontWeight: '500' },
   features: { gap: 8 },
   featRow: { flexDirection: 'row', alignItems: 'center' },
-  check: { fontSize: 14, color: G, fontWeight: '700', marginRight: 10, width: 18 },
+  check: { marginRight: 10, width: 18 },
   featText: { fontSize: 14, color: '#374151' },
   footer: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', lineHeight: 18, marginTop: 20, paddingHorizontal: 16 },
 })

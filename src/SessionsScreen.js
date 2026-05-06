@@ -3,9 +3,11 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 const G = '#1B5E35'
 
 export default function SessionsScreen({ navigation }) {
+  const { t } = useTranslation()
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
   const [packages, setPackages] = useState([])
@@ -96,7 +98,7 @@ export default function SessionsScreen({ navigation }) {
       for (const ex of exercises) {
         await supabase.from('exercises').insert({ player_id: player.id, coach_id: user.id, title: ex.title, description: ex.description, completed: false })
       }
-      Alert.alert('✓ Plan généré!', '3 exercices ajoutés pour ' + player.full_name)
+      Alert.alert(t('sessions.plan_generated'), t('sessions.plan_generated_desc', { name: player.full_name }))
     } catch(e) { Alert.alert('Erreur', e.message) }
     setGenerating(null)
   }
@@ -176,8 +178,8 @@ export default function SessionsScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>Sessions</Text>
-          <Text style={s.sub}>{sessions.length} sessions · {packages.length} packages</Text>
+          <Text style={s.title}>{t('sessions.title')}</Text>
+          <Text style={s.sub}>{t('sessions.summary', { sessions: sessions.length, packages: packages.length })}</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={() => tab === 'sessions' ? setShowAddSession(true) : setShowAddPackage(true)}>
           <Text style={s.addBtnTxt}>+</Text>
@@ -186,10 +188,10 @@ export default function SessionsScreen({ navigation }) {
 
       <View style={s.tabs}>
         <TouchableOpacity style={[s.tab, tab === 'sessions' && s.tabActive]} onPress={() => setTab('sessions')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={14} color={tab === 'sessions' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'sessions' && s.tabTxtActive]}>Sessions</Text></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={14} color={tab === 'sessions' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'sessions' && s.tabTxtActive]}>{t('sessions.tab_sessions')}</Text></View>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tab, tab === 'packages' && s.tabActive]} onPress={() => setTab('packages')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="cube-outline" size={14} color={tab === 'packages' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'packages' && s.tabTxtActive]}>Packages</Text></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="cube-outline" size={14} color={tab === 'packages' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'packages' && s.tabTxtActive]}>{t('sessions.tab_packages')}</Text></View>
         </TouchableOpacity>
       </View>
 
@@ -254,7 +256,7 @@ export default function SessionsScreen({ navigation }) {
                   <View style={{ marginTop: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                       <Text style={{ fontSize: 12, fontWeight: '600', color: isAlmostDone ? '#DC2626' : '#374151' }}>{pkg.used_sessions}/{pkg.total_sessions} séances</Text>
-                      <Text style={{ fontSize: 11, color: isAlmostDone ? '#DC2626' : '#9CA3AF' }}>{remaining} restante{remaining > 1 ? 's' : ''}</Text>
+                      <Text style={{ fontSize: 11, color: isAlmostDone ? '#DC2626' : '#9CA3AF' }}>{t('sessions.remaining', { count: remaining })}</Text>
                     </View>
                     <View style={{ height: 6, backgroundColor: '#F0F4F0', borderRadius: 3 }}>
                       <View style={{ height: 6, width: pct + '%', backgroundColor: isAlmostDone ? '#EF4444' : G, borderRadius: 3 }} />
@@ -352,7 +354,7 @@ export default function SessionsScreen({ navigation }) {
             <Text style={s.label}>Notes</Text>
             <TextInput style={[s.input, { height: 80 }]} value={newSession.notes} onChangeText={v => setNewSession({...newSession, notes: v})} placeholder="Putting, drive..." placeholderTextColor="#9CA3AF" multiline />
             <TouchableOpacity style={[s.btn, saving && { opacity: 0.7 }]} onPress={addSession} disabled={saving}>
-              <Text style={s.btnTxt}>{saving ? 'Adding...' : '+ Add session'}</Text>
+              <Text style={s.btnTxt}>{saving ? t('sessions.adding') : '+ ' + t('sessions.add_session')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>

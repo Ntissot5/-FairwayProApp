@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 
 const G = '#1B5E35'
 
 export default function SettingsScreen({ navigation }) {
+  const { t } = useTranslation()
   const [user, setUser] = useState(null)
 
   useEffect(() => {
@@ -20,38 +22,38 @@ export default function SettingsScreen({ navigation }) {
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.title}>Settings</Text>
+        <Text style={s.title}>{t('settings.title')}</Text>
       </View>
       <ScrollView style={s.scroll}>
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Account</Text>
+          <Text style={s.sectionTitle}>{t('settings.account')}</Text>
           <View style={s.row}>
             <View style={s.av}>
               <Text style={s.avTxt}>{user?.email?.charAt(0).toUpperCase()}</Text>
             </View>
             <View style={s.info}>
               <Text style={s.email}>{user?.email}</Text>
-              <Text style={s.role}>HEAD COACH</Text>
+              <Text style={s.role}>{t('settings.head_coach')}</Text>
             </View>
           </View>
         </View>
         <View style={s.section}>
-          <Text style={s.sectionTitle}>App</Text>
+          <Text style={s.sectionTitle}>{t('settings.app')}</Text>
           <TouchableOpacity style={s.infoRow} onPress={() => navigation.navigate('Plans')}>
-            <Text style={s.infoLabel}>Tarifs</Text>
+            <Text style={s.infoLabel}>{t('settings.plans')}</Text>
             <Text style={s.infoValue}>›</Text>
           </TouchableOpacity>
           <View style={s.infoRow}>
-            <Text style={s.infoLabel}>Version</Text>
+            <Text style={s.infoLabel}>{t('settings.version')}</Text>
             <Text style={s.infoValue}>1.0.0</Text>
           </View>
           <View style={s.infoRow}>
-            <Text style={s.infoLabel}>Platform</Text>
+            <Text style={s.infoLabel}>{t('settings.platform')}</Text>
             <Text style={s.infoValue}>iOS</Text>
           </View>
         </View>
         <TouchableOpacity style={s.signOutBtn} onPress={signOut}>
-          <Text style={s.signOutTxt}>Sign out</Text>
+          <Text style={s.signOutTxt}>{t('settings.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

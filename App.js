@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { Text, View, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import { useTranslation } from "react-i18next"
 import WelcomeScreen from "./src/WelcomeScreen"
 import SubscribeScreen from "./src/SubscribeScreen"
 import LoginScreen from "./src/LoginScreen"
@@ -36,28 +37,30 @@ const PlayerTab = createBottomTabNavigator()
 const G = "#1B5E35"
 
 function CoachTabs() {
+  const { t } = useTranslation()
   return (
     <CoachTab.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: G, tabBarInactiveTintColor: "#9CA3AF", tabBarStyle: { borderTopWidth: 0.5, borderTopColor: "#E5E7EB" }, tabBarLabelStyle: { fontSize: 10, fontWeight: "600" } }}>
-      <CoachTab.Screen name="Dashboard" component={CoachApp} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={22} color={color} />, tabBarLabel: "Home" }} />
-      <CoachTab.Screen name="Players" component={PlayersScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />, tabBarLabel: "Players" }} />
-      <CoachTab.Screen name="Sessions" component={SessionsScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="list-outline" size={22} color={color} />, tabBarLabel: "Sessions" }} />
-      <CoachTab.Screen name="Revenue" component={RevenueScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="wallet-outline" size={22} color={color} />, tabBarLabel: "Revenue" }} />
-      <CoachTab.Screen name="Chat" component={ChatScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles-outline" size={22} color={color} />, tabBarLabel: "Chat" }} />
-      <CoachTab.Screen name="Booking" component={BookingScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="calendar-outline" size={22} color={color} />, tabBarLabel: "Booking" }} />
+      <CoachTab.Screen name="Dashboard" component={CoachApp} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={22} color={color} />, tabBarLabel: t('tabs.home') }} />
+      <CoachTab.Screen name="Players" component={PlayersScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />, tabBarLabel: t('tabs.players') }} />
+      <CoachTab.Screen name="Sessions" component={SessionsScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="list-outline" size={22} color={color} />, tabBarLabel: t('tabs.sessions') }} />
+      <CoachTab.Screen name="Revenue" component={RevenueScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="wallet-outline" size={22} color={color} />, tabBarLabel: t('tabs.revenue') }} />
+      <CoachTab.Screen name="Chat" component={ChatScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles-outline" size={22} color={color} />, tabBarLabel: t('tabs.chat') }} />
+      <CoachTab.Screen name="Booking" component={BookingScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="calendar-outline" size={22} color={color} />, tabBarLabel: t('tabs.booking') }} />
     </CoachTab.Navigator>
   )
 }
 
 function PlayerTabs() {
+  const { t } = useTranslation()
   return (
     <PlayerTab.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: G, tabBarInactiveTintColor: "#9CA3AF", tabBarStyle: { borderTopWidth: 0.5, borderTopColor: "#E5E7EB" }, tabBarLabelStyle: { fontSize: 10, fontWeight: "600" } }}>
-      <PlayerTab.Screen name="Home" component={PlayerHomeScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={22} color={color} />, tabBarLabel: "Home" }} />
-      <PlayerTab.Screen name="PlayerRounds" component={PlayerRoundsScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="flag-outline" size={22} color={color} />, tabBarLabel: "Rounds" }} />
-      <PlayerTab.Screen name="PlayerPlan" component={PlayerPlanScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="clipboard-outline" size={22} color={color} />, tabBarLabel: "Plan" }} />
-      <PlayerTab.Screen name="PlayerVideos" component={PlayerVideosScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="videocam-outline" size={22} color={color} />, tabBarLabel: "Videos" }} />
-      <PlayerTab.Screen name="PlayerBook" component={PlayerBookScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="calendar-outline" size={22} color={color} />, tabBarLabel: "Book" }} />
-      <PlayerTab.Screen name="PlayerCommunity" component={PlayerCommunityScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />, tabBarLabel: "Community" }} />
-      <PlayerTab.Screen name="PlayerChat" component={PlayerChatScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles-outline" size={22} color={color} />, tabBarLabel: "Chat" }} />
+      <PlayerTab.Screen name="Home" component={PlayerHomeScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={22} color={color} />, tabBarLabel: t('tabs.home') }} />
+      <PlayerTab.Screen name="PlayerRounds" component={PlayerRoundsScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="flag-outline" size={22} color={color} />, tabBarLabel: t('tabs.rounds') }} />
+      <PlayerTab.Screen name="PlayerPlan" component={PlayerPlanScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="clipboard-outline" size={22} color={color} />, tabBarLabel: t('tabs.plan') }} />
+      <PlayerTab.Screen name="PlayerVideos" component={PlayerVideosScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="videocam-outline" size={22} color={color} />, tabBarLabel: t('tabs.videos') }} />
+      <PlayerTab.Screen name="PlayerBook" component={PlayerBookScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="calendar-outline" size={22} color={color} />, tabBarLabel: t('tabs.booking') }} />
+      <PlayerTab.Screen name="PlayerCommunity" component={PlayerCommunityScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={22} color={color} />, tabBarLabel: t('tabs.community') }} />
+      <PlayerTab.Screen name="PlayerChat" component={PlayerChatScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles-outline" size={22} color={color} />, tabBarLabel: t('tabs.chat') }} />
     </PlayerTab.Navigator>
   )
 }

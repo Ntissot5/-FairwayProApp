@@ -3,11 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Keyboa
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { sendPushNotification } from './notifications'
+import { useTranslation } from 'react-i18next'
 
 const G = '#1B5E35'
 const colors = ['#1B5E35','#0891B2','#7C3AED','#DC2626','#D97706','#059669']
 
 export default function ChatScreen({ navigation }) {
+  const { t } = useTranslation()
   const [players, setPlayers] = useState([])
   const [selected, setSelected] = useState(null)
   const [messages, setMessages] = useState([])
@@ -74,13 +76,13 @@ export default function ChatScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.chatHeader}>
         <TouchableOpacity onPress={() => setSelected(null)} style={s.backBtn}>
-          <Text style={s.backTxt}>‹ Back</Text>
+          <Text style={s.backTxt}>‹ {t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={s.chatTitle}>{selected.full_name}</Text>
       </View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }} keyboardVerticalOffset={90}>
         <ScrollView ref={scrollRef} style={s.messages} contentContainerStyle={{ padding: 16, paddingBottom: 20 }}>
-          {messages.length === 0 && <Text style={s.empty}>No messages yet</Text>}
+          {messages.length === 0 && <Text style={s.empty}>{t('chat.no_messages')}</Text>}
           {messages.map(m => (
             <View key={m.id} style={{ alignItems: m.sender === 'coach' ? 'flex-end' : 'flex-start', marginBottom: 10 }}>
               <View style={[s.bubble, m.sender === 'coach' ? s.bubbleCoach : s.bubblePlayer]}>
@@ -91,7 +93,7 @@ export default function ChatScreen({ navigation }) {
           ))}
         </ScrollView>
         <View style={s.inputRow}>
-          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder={"Message " + selected.full_name + "..."} placeholderTextColor="#9CA3AF" multiline />
+          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder={t('chat.type_message', { name: selected.full_name })} placeholderTextColor="#9CA3AF" multiline />
           <TouchableOpacity style={[s.sendBtn, !input.trim() && { backgroundColor: '#c7c7cc' }]} onPress={sendMessage}>
             <Text style={s.sendTxt}>↑</Text>
           </TouchableOpacity>
@@ -104,8 +106,8 @@ export default function ChatScreen({ navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>Chat</Text>
-          <Text style={s.sub}>Conversations</Text>
+          <Text style={s.title}>{t('chat.title')}</Text>
+          <Text style={s.sub}>{t('chat.conversations')}</Text>
         </View>
 
       </View>
@@ -127,9 +129,9 @@ export default function ChatScreen({ navigation }) {
       <Modal visible={showAddSession} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
           <View style={s.modalHead}>
-            <Text style={s.modalTitle}>Add a session</Text>
+            <Text style={s.modalTitle}>{t('chat.add_session')}</Text>
             <TouchableOpacity onPress={() => setShowAddSession(false)}>
-              <Text style={s.modalClose}>Cancel</Text>
+              <Text style={s.modalClose}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView style={{ padding: 20 }}>
@@ -155,9 +157,9 @@ export default function ChatScreen({ navigation }) {
       <Modal visible={showAddPlayer} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
           <View style={s.modalHead}>
-            <Text style={s.modalTitle}>Add a player</Text>
+            <Text style={s.modalTitle}>{t('chat.add_player')}</Text>
             <TouchableOpacity onPress={() => setShowAddPlayer(false)}>
-              <Text style={s.modalClose}>Cancel</Text>
+              <Text style={s.modalClose}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
           <View style={{ padding: 20 }}>

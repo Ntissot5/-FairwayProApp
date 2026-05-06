@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 import { registerForPushNotifications, savePushToken } from './notifications'
 
 const G = '#1B5E35'
 
 export default function LoginScreen({ navigation, route }) {
+  const { t } = useTranslation()
   const { mode, demo } = route.params
   const [isSignup, setIsSignup] = useState(false)
   const [email, setEmail] = useState(demo ? 'demo@fairwaypro.io' : '')
@@ -16,8 +18,8 @@ export default function LoginScreen({ navigation, route }) {
   const [error, setError] = useState(null)
 
   const handleAuth = async () => {
-    if (!email || !password) { setError('Remplis tous les champs'); return }
-    if (password.length < 6) { setError('Mot de passe trop court (min 6)'); return }
+    if (!email || !password) { setError(t('auth.fields_required')); return }
+    if (password.length < 6) { setError(t('auth.password_too_short')); return }
     setLoading(true)
     setError(null)
     if (isSignup) {
@@ -25,9 +27,8 @@ export default function LoginScreen({ navigation, route }) {
       if (error) { setError(error.message); setLoading(false); return }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setError('Email ou mot de passe incorrect'); setLoading(false); return }
+      if (error) { setError(t('auth.login_error')); setLoading(false); return }
     }
-    // Save push token after login
     try {
       const token = await registerForPushNotifications()
       const { data: { user } } = await supabase.auth.getUser()
@@ -46,19 +47,19 @@ export default function LoginScreen({ navigation, route }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-            <Text style={styles.backTxt}>‹ Retour</Text>
+            <Text style={styles.backTxt}>‹ {t('common.back')}</Text>
           </TouchableOpacity>
           <View style={styles.card}>
-            <Text style={styles.title}>{isSignup ? 'Créer un compte' : 'Connexion'}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Ionicons name={mode === 'coach' ? 'flag-outline' : 'person-outline'} size={16} color="#9CA3AF" /><Text style={styles.sub}>{mode === 'coach' ? 'Coach' : 'Joueur'}</Text></View>
+            <Text style={styles.title}>{isSignup ? t('auth.signup_button') : t('auth.login_button')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Ionicons name={mode === 'coach' ? 'flag-outline' : 'person-outline'} size={16} color="#9CA3AF" /><Text style={styles.sub}>{mode === 'coach' ? t('auth.coach') : t('auth.player')}</Text></View>
             {error && <View style={styles.errorBox}><Text style={styles.errorTxt}>{error}</Text></View>}
-            <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#9CA3AF" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} />
-            <TextInput style={styles.input} placeholder={isSignup ? 'Mot de passe (min. 6 caractères)' : 'Mot de passe'} placeholderTextColor="#9CA3AF" value={password} onChangeText={setPassword} secureTextEntry />
+            <TextInput style={styles.input} placeholder={t('auth.email')} placeholderTextColor="#9CA3AF" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} />
+            <TextInput style={styles.input} placeholder={t('auth.password')} placeholderTextColor="#9CA3AF" value={password} onChangeText={setPassword} secureTextEntry />
             <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleAuth} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnTxt}>{isSignup ? 'Créer mon compte →' : 'Se connecter →'}</Text>}
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnTxt}>{isSignup ? t('auth.signup_button') : t('auth.login_button')} →</Text>}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => { setIsSignup(!isSignup); setError(null) }}>
-              <Text style={styles.switch}>{isSignup ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? Créer un compte'}</Text>
+              <Text style={styles.switch}>{isSignup ? t('auth.login_button') : t('auth.signup_button')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

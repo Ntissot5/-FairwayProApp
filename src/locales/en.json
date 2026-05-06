@@ -61,7 +61,12 @@
     "active": "Active",
     "revenue_label": "Revenue",
     "sign_out": "Sign out",
-    "message_sent": "Message sent to {{name}}"
+    "message_sent": "Message sent to {{name}}",
+    "last_sessions": "Recent sessions",
+    "monthly_revenue": "Monthly revenue",
+    "six_months": "6 months",
+    "no_students": "No students",
+    "days_ago": "D-{{days}}"
   },
   "players": {
     "title": "My players",
