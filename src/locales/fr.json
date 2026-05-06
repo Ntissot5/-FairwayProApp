@@ -168,7 +168,20 @@
     "plans": "Tarifs",
     "version": "Version",
     "platform": "Plateforme",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "briefing": {
+      "section_title": "Briefing matinal",
+      "section_subtitle": "Reçois un résumé IA chaque matin",
+      "enabled": "Activé",
+      "time": "Heure de réception",
+      "pause": "Mettre en pause",
+      "paused_until": "En pause jusqu'au {{date}}",
+      "reactivate": "Réactiver",
+      "pause_1day": "1 jour",
+      "pause_3days": "3 jours",
+      "pause_7days": "7 jours",
+      "pause_14days": "14 jours"
+    }
   },
   "plans": {
     "title": "Plans FairwayPro",
@@ -245,7 +258,8 @@
     "greeting_morning": "Bonjour",
     "greeting_afternoon": "Bon après-midi",
     "date_today": "Aujourd'hui",
-    "dismiss": "Fermer"
+    "dismiss": "Fermer",
+    "show_again": "Briefing du jour"
   },
   "notifications": {
     "permission_title": "Briefing matinal",

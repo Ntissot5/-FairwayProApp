@@ -4,13 +4,16 @@ import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { supabase } from '../supabase'
+import { isBriefingActive } from '../utils/briefingSettings'
 
 const G = '#1B5E35'
+
+// TODO: dismissed flag clears tomorrow automatically (date-based key)
 
 export default forwardRef(function DailyBriefingCard({ userId }, ref) {
   const { t, i18n } = useTranslation()
   const [briefing, setBriefing] = useState(null)
-  const [hidden, setHidden] = useState(true)
+  const [isDismissed, setIsDismissed] = useState(false)
 
   useImperativeHandle(ref, () => fetchBriefing)
 
@@ -21,15 +24,15 @@ export default forwardRef(function DailyBriefingCard({ userId }, ref) {
   const fetchBriefing = async () => {
     if (!userId) return
 
-    const today = new Date().toISOString().split('T')[0]
-
-    // Check dismissed flag
-    const dismissed = await AsyncStorage.getItem(`@briefing_dismissed_${today}`)
-    if (dismissed) { setHidden(true); return }
+    // Check settings (enabled + not paused)
+    const active = await isBriefingActive()
+    if (!active) { setBriefing(null); return }
 
     // Check time window (5h - 14h local)
     const hour = new Date().getHours()
-    if (hour < 5 || hour >= 14) { setHidden(true); return }
+    if (hour < 5 || hour >= 14) { setBriefing(null); return }
+
+    const today = new Date().toISOString().split('T')[0]
 
     const { data } = await supabase
       .from('daily_briefings')
@@ -40,7 +43,9 @@ export default forwardRef(function DailyBriefingCard({ userId }, ref) {
 
     if (data) {
       setBriefing(data)
-      setHidden(false)
+      // Check dismissed flag
+      const dismissed = await AsyncStorage.getItem(`@briefing_dismissed_${today}`)
+      setIsDismissed(!!dismissed)
       // Mark opened_at if not already
       if (!data.opened_at) {
         await supabase
@@ -49,19 +54,36 @@ export default forwardRef(function DailyBriefingCard({ userId }, ref) {
           .eq('id', data.id)
       }
     } else {
-      setHidden(true)
+      setBriefing(null)
     }
   }
 
   const handleDismiss = async () => {
     const today = new Date().toISOString().split('T')[0]
     await AsyncStorage.setItem(`@briefing_dismissed_${today}`, 'true')
-    setHidden(true)
-    setBriefing(null)
+    setIsDismissed(true)
   }
 
-  if (hidden || !briefing) return null
+  const handleReshow = async () => {
+    const today = new Date().toISOString().split('T')[0]
+    await AsyncStorage.removeItem(`@briefing_dismissed_${today}`)
+    setIsDismissed(false)
+  }
 
+  // Nothing to show
+  if (!briefing) return null
+
+  // Dismissed state — show pill
+  if (isDismissed) {
+    return (
+      <TouchableOpacity style={s.pill} onPress={handleReshow}>
+        <Ionicons name="sunny-outline" size={16} color="#22C55E" />
+        <Text style={s.pillText}>{t('briefing.show_again')}</Text>
+      </TouchableOpacity>
+    )
+  }
+
+  // Full briefing
   const cards = briefing.cards || {}
   const now = new Date()
   const dateStr = now.toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US', {
@@ -124,4 +146,6 @@ const s = StyleSheet.create({
   cardTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a', marginBottom: 6 },
   cardItem: { fontSize: 14, color: '#374151', lineHeight: 22, paddingLeft: 4 },
   cardText: { fontSize: 15, color: '#374151', lineHeight: 22 },
+  pill: { alignSelf: 'flex-end', marginRight: 16, marginTop: 8, backgroundColor: '#F0FDF4', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  pillText: { fontSize: 12, fontWeight: '500', color: '#22C55E' },
 })

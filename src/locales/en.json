@@ -168,7 +168,20 @@
     "plans": "Pricing",
     "version": "Version",
     "platform": "Platform",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "briefing": {
+      "section_title": "Morning briefing",
+      "section_subtitle": "Get an AI summary every morning",
+      "enabled": "Enabled",
+      "time": "Receive time",
+      "pause": "Pause briefing",
+      "paused_until": "Paused until {{date}}",
+      "reactivate": "Resume",
+      "pause_1day": "1 day",
+      "pause_3days": "3 days",
+      "pause_7days": "7 days",
+      "pause_14days": "14 days"
+    }
   },
   "plans": {
     "title": "FairwayPro Plans",
@@ -245,7 +258,8 @@
     "greeting_morning": "Good morning",
     "greeting_afternoon": "Good afternoon",
     "date_today": "Today",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "show_again": "Today's briefing"
   },
   "notifications": {
     "permission_title": "Morning briefing",
