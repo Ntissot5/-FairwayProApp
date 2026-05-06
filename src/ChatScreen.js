@@ -135,7 +135,7 @@ export default function ChatScreen({ navigation }) {
             </TouchableOpacity>
           </View>
           <ScrollView style={{ padding: 20 }}>
-            <Text style={s.label}>Player</Text>
+            <Text style={s.label}>{t('sessions.player')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {players.map(p => (
                 <TouchableOpacity key={p.id} onPress={() => setNewSession({...newSession, player_id: p.id})} style={[s.chip, newSession.player_id === p.id && s.chipActive]}>
@@ -143,12 +143,12 @@ export default function ChatScreen({ navigation }) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <Text style={s.label}>Price (€)</Text>
+            <Text style={s.label}>{t('sessions.price')} (€)</Text>
             <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
-            <Text style={s.label}>Date</Text>
+            <Text style={s.label}>{t('sessions.date')}</Text>
             <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholderTextColor="#9CA3AF" />
             <TouchableOpacity style={[s.submitBtn, savingS && { opacity: 0.7 }]} onPress={addSession} disabled={savingS}>
-              <Text style={s.submitTxt}>{savingS ? 'Adding...' : '+ Add session'}</Text>
+              <Text style={s.submitTxt}>{savingS ? t('sessions.adding') : '+ ' + t('sessions.add_session')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
@@ -163,12 +163,12 @@ export default function ChatScreen({ navigation }) {
             </TouchableOpacity>
           </View>
           <View style={{ padding: 20 }}>
-            <Text style={s.label}>Full name</Text>
+            <Text style={s.label}>{t('players.full_name')}</Text>
             <TextInput style={s.input} value={newPlayerName} onChangeText={setNewPlayerName} placeholder="Emma Wilson" placeholderTextColor="#9CA3AF" />
-            <Text style={s.label}>Handicap</Text>
+            <Text style={s.label}>{t('players.handicap')}</Text>
             <TextInput style={s.input} value={newPlayerHcp} onChangeText={setNewPlayerHcp} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
             <TouchableOpacity style={[s.submitBtn, savingP && { opacity: 0.7 }]} onPress={addPlayer} disabled={savingP}>
-              <Text style={s.submitTxt}>{savingP ? 'Adding...' : '+ Add player'}</Text>
+              <Text style={s.submitTxt}>{savingP ? t('players.adding') : '+ ' + t('players.add_player')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

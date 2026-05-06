@@ -215,7 +215,7 @@ export default function SessionsScreen({ navigation }) {
                     </View>
                     <Text style={s.price}>{session.price}€</Text>
                     <TouchableOpacity onPress={() => { setEditSession(session); setEditPrice(String(session.price)); setEditDate(session.session_date) }} style={{ backgroundColor: '#F8FAF8', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, borderWidth: 0.5, borderColor: '#E5E7EB' }}>
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#6B7280' }}>Edit</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#6B7280' }}>{t('common.edit')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => deleteSession(session.id)} style={s.delBtn}>
                       <Text style={s.delTxt}>✕</Text>
@@ -224,7 +224,7 @@ export default function SessionsScreen({ navigation }) {
                   {session.notes ? <Text style={s.notes}>{session.notes}</Text> : null}
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                     <TouchableOpacity onPress={() => generateAIPlan(session)} disabled={generating === session.id} style={[s.aiBtn, generating === session.id && { backgroundColor: '#E8F5EE' }]}>
-                      <Text style={[s.aiBtnTxt, generating === session.id && { color: G }]}>{generating === session.id ? '...' : '✦ Generate AI plan'}</Text>
+                      <Text style={[s.aiBtnTxt, generating === session.id && { color: G }]}>{generating === session.id ? '...' : '✦ ' + t('sessions.generate_ai_plan')}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -289,9 +289,9 @@ export default function SessionsScreen({ navigation }) {
       <Modal visible={!!editSession} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={s.modal}>
           <View style={s.modalHeader}>
-            <Text style={s.modalTitle}>Edit la session</Text>
+            <Text style={s.modalTitle}>{t('sessions.edit')}</Text>
             <TouchableOpacity onPress={() => setEditSession(null)}>
-              <Text style={s.modalClose}>Cancel</Text>
+              <Text style={s.modalClose}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
           <View style={s.modalBody}>
@@ -300,7 +300,7 @@ export default function SessionsScreen({ navigation }) {
             <Text style={s.label}>Date</Text>
             <TextInput style={s.input} value={editDate} onChangeText={setEditDate} placeholderTextColor="#9CA3AF" />
             <TouchableOpacity style={[s.btn, { marginTop: 24 }]} onPress={updateSession}>
-              <Text style={s.btnTxt}>Save</Text>
+              <Text style={s.btnTxt}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -310,13 +310,13 @@ export default function SessionsScreen({ navigation }) {
       <Modal visible={showAddSession} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={s.modal}>
           <View style={s.modalHeader}>
-            <Text style={s.modalTitle}>Add a session</Text>
+            <Text style={s.modalTitle}>{t('sessions.add_session')}</Text>
             <TouchableOpacity onPress={() => setShowAddSession(false)}>
-              <Text style={s.modalClose}>Cancel</Text>
+              <Text style={s.modalClose}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView style={s.modalBody}>
-            <Text style={s.label}>Player</Text>
+            <Text style={s.label}>{t('sessions.player')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {players.map(p => (
                 <TouchableOpacity key={p.id} onPress={() => { setNewSession({...newSession, player_id: p.id}); fetchPlayerPackages(p.id) }} style={[s.chip, newSession.player_id === p.id && s.chipActive]}>
@@ -339,7 +339,7 @@ export default function SessionsScreen({ navigation }) {
                 </ScrollView>
               </View>
             )}
-            <Text style={s.label}>Price (€)</Text>
+            <Text style={s.label}>{t('sessions.price')} (€)</Text>
             <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1.5 }}>
@@ -351,7 +351,7 @@ export default function SessionsScreen({ navigation }) {
                 <TextInput style={s.input} value={newSession.start_time} onChangeText={v => setNewSession({...newSession, start_time: v})} placeholder="09:00" placeholderTextColor="#9CA3AF" />
               </View>
             </View>
-            <Text style={s.label}>Notes</Text>
+            <Text style={s.label}>{t('sessions.notes')}</Text>
             <TextInput style={[s.input, { height: 80 }]} value={newSession.notes} onChangeText={v => setNewSession({...newSession, notes: v})} placeholder="Putting, drive..." placeholderTextColor="#9CA3AF" multiline />
             <TouchableOpacity style={[s.btn, saving && { opacity: 0.7 }]} onPress={addSession} disabled={saving}>
               <Text style={s.btnTxt}>{saving ? t('sessions.adding') : '+ ' + t('sessions.add_session')}</Text>
