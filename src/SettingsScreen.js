@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -44,6 +44,31 @@ export default function SettingsScreen({ navigation }) {
   const signOut = async () => {
     await supabase.auth.signOut()
     navigation.replace('Welcome')
+  }
+
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      'Supprimer définitivement votre compte ?',
+      'Cette action est irréversible. Toutes vos données (élèves, séances, vidéos, messages) seront supprimées définitivement.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Supprimer définitivement', style: 'destructive', onPress: deleteAccountFinal },
+      ]
+    )
+  }
+
+  const deleteAccountFinal = async () => {
+    try {
+      const { data: { user: u } } = await supabase.auth.getUser()
+      if (!u) return
+      const { error: delErr } = await supabase.functions.invoke('delete-user-account', { body: { user_id: u.id } })
+      if (delErr) throw delErr
+      await supabase.auth.signOut()
+      Alert.alert('Compte supprimé', 'Votre compte et toutes vos données ont été supprimés.', [{ text: 'OK' }])
+      navigation.replace('Welcome')
+    } catch (e) {
+      Alert.alert('Erreur', 'Impossible de supprimer le compte. Contactez hello@fairwaypro.io')
+    }
   }
 
   return (
@@ -142,6 +167,10 @@ export default function SettingsScreen({ navigation }) {
           <Text style={s.signOutTxt}>{t('settings.logout')}</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={s.deleteBtn} onPress={confirmDeleteAccount}>
+          <Text style={s.deleteBtnTxt}>Supprimer mon compte</Text>
+        </TouchableOpacity>
+
         {/* Time Picker Modal */}
         <Modal visible={showTimePicker} transparent animationType="fade">
           <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowTimePicker(false)}>
@@ -203,6 +232,8 @@ const s = StyleSheet.create({
   infoValue: { fontSize: 14, color: colors.textTertiary },
   signOutBtn: { margin: 16, backgroundColor: colors.errorLight, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: colors.error },
   signOutTxt: { color: colors.error, fontSize: 16, fontWeight: '700' },
+  deleteBtn: { marginHorizontal: 16, marginBottom: 32, padding: 16, alignItems: 'center' },
+  deleteBtnTxt: { color: colors.textTertiary, fontSize: 14, fontWeight: '500' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: 32 },
   modalCard: { backgroundColor: colors.surface, borderRadius: 16, padding: 20, width: '100%' },
   modalTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },

@@ -159,7 +159,7 @@ export default function App() {
           <RootStack.Screen name="CoachTabs" component={CoachTabs} />
           <RootStack.Screen name="PlayerApp" component={PlayerTabs} />
           <RootStack.Screen name="PlayerDetail" component={PlayerDetailScreen} />
-          <RootStack.Screen name="Settings" component={SettingsScreen} />
+          <RootStack.Screen name="Settings" component={SettingsScreen} options={({ navigation }) => ({ headerShown: true, headerTitle: '', headerShadowVisible: false, headerStyle: { backgroundColor: '#fff' }, headerLeft: () => <Ionicons name="close" size={24} color="#0A0E27" onPress={() => navigation.goBack()} style={{ paddingLeft: 12 }} /> })} />
           <RootStack.Screen name="SessionLive" component={SessionLiveScreen} />
           <RootStack.Screen name="VideoRecord" component={VideoRecordScreen} options={{ headerShown: false, animation: 'slide_from_bottom' }} />
           <RootStack.Screen name="VideoAnnotation" component={VideoAnnotationScreen} options={{ headerShown: false }} />
