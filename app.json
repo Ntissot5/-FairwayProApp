@@ -12,7 +12,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.ntissot.FairwayProApp",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "FairwayPro a besoin d'accéder à votre galerie pour importer des vidéos de swing existantes.",
@@ -24,7 +24,7 @@
           "remote-notification"
         ]
       },
-      "buildNumber": "67"
+      "buildNumber": "80"
     },
     "android": {
       "adaptiveIcon": {
