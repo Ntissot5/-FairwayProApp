@@ -15,9 +15,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ntissot.FairwayProApp",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "FairwayPro needs access to your photo library to upload swing videos.",
-        "NSCameraUsageDescription": "FairwayPro needs access to your camera to record swing videos.",
-        "NSMicrophoneUsageDescription": "FairwayPro needs access to your microphone to record voice notes during coaching sessions.",
+        "NSPhotoLibraryUsageDescription": "FairwayPro a besoin d'accéder à votre galerie pour importer des vidéos de swing existantes.",
+        "NSPhotoLibraryAddUsageDescription": "FairwayPro a besoin de pouvoir sauvegarder les vidéos annotées dans votre galerie.",
+        "NSCameraUsageDescription": "FairwayPro a besoin d'accéder à votre caméra pour enregistrer les vidéos de swing de vos élèves.",
+        "NSMicrophoneUsageDescription": "FairwayPro a besoin du microphone pour enregistrer le son de vos vidéos de swing.",
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
           "remote-notification"
