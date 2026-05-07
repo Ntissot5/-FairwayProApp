@@ -16,3 +16,16 @@ Features qui posent problème en React Native pur (à discuter avec Noa avant d'
 
 ---
 
+## MVP Sprint Status (updated 2026-05-07)
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| F-005a Push Notifications | ✅ DONE | Permission modal + token persistence |
+| F-005b Daily Briefing Edge Function | ✅ DONE | Claude AI + cron scheduled |
+| F-005c Daily Briefing Home UI | ✅ DONE | 3 cards + dismiss/reshow pill |
+| F-005d Briefing Settings | ✅ DONE | Toggle/time/pause in Settings |
+| F-007 Session Mode (Note + Drill) | ✅ DONE | Timeline + DB persistence validated |
+| F-008 AI Summary | ✅ DONE | Whisper + Claude edge function + editable summary + send to player |
+| F-V01 Video Annotation | ✅ DONE | Record + annotate (line/circle) + upload Storage + player replay with synced annotations |
+| F-006 Onboarding Coach | 🟡 NEXT | |
+
