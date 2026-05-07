@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Svg, Path, Circle, Text as SvgText, Line, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { supabase } from './supabase'
 import { colors } from './theme'
+import RelanceModal from './components/RelanceModal'
 
 export default function PlayerDetailScreen({ route, navigation }) {
   const { player: initialPlayer } = route.params
@@ -24,8 +25,13 @@ export default function PlayerDetailScreen({ route, navigation }) {
   const [showHcpInput, setShowHcpInput] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [showRelance, setShowRelance] = useState(false)
+  const [coachId, setCoachId] = useState(null)
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => {
+    fetchAll()
+    supabase.auth.getUser().then(({ data: { user } }) => setCoachId(user?.id))
+  }, [])
 
   const fetchAll = async () => {
     const { data: s } = await supabase.from("sessions").select("*").eq("player_id", player.id).order("session_date", { ascending: false })
@@ -186,8 +192,12 @@ export default function PlayerDetailScreen({ route, navigation }) {
           <Text style={s.backTxt}>‹ Back</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>{player.full_name}</Text>
+        <TouchableOpacity onPress={() => setShowRelance(true)} style={s.relanceBtn}>
+          <Ionicons name="chatbubble-outline" size={14} color={colors.primary} />
+          <Text style={s.relanceBtnTxt}>Relancer</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={invitePlayer} style={s.inviteBtn}>
-          <Text style={s.inviteBtnTxt}>🔗 Inviter</Text>
+          <Text style={s.inviteBtnTxt}>Inviter</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
@@ -324,6 +334,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      <RelanceModal visible={showRelance} player={player} coachId={coachId} sessions={sessions} onClose={() => setShowRelance(false)} />
     </SafeAreaView>
   )
 }
@@ -334,7 +345,9 @@ const s = StyleSheet.create({
   header: { backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
   backBtn: { paddingRight: 8 },
   backTxt: { fontSize: 16, color: colors.primary, fontWeight: "600" },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: colors.textPrimary },
+  headerTitle: { fontSize: 17, fontWeight: "700", color: colors.textPrimary, flex: 1 },
+  relanceBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primaryLight, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  relanceBtnTxt: { fontSize: 12, fontWeight: '600', color: colors.primary },
   scroll: { flex: 1 },
   statsRow: { flexDirection: "row", gap: 8, padding: 16 },
   stat: { flex: 1, backgroundColor: colors.surface, borderRadius: 12, padding: 12, alignItems: "center", borderWidth: 0.5, borderColor: colors.borderStrong },

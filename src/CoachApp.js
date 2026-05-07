@@ -9,6 +9,7 @@ import { supabase } from './supabase'
 import { registerForPushNotifications, savePushToken } from './notifications'
 import PermissionPushModal from './components/PermissionPushModal'
 import DailyBriefingCard from './components/DailyBriefingCard'
+import RelanceModal from './components/RelanceModal'
 import { colors } from './theme'
 
 function HeroCard({ icon, iconColor, bgColor, borderColor, title, children, delay, onPress }) {
@@ -41,8 +42,9 @@ export default function CoachApp({ navigation }) {
   const [lessons, setLessons] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [relancing, setRelancing] = useState({})
   const [showPushModal, setShowPushModal] = useState(false)
+  const [showRelanceModal, setShowRelanceModal] = useState(false)
+  const [relanceTarget, setRelanceTarget] = useState(null)
   const [userId, setUserId] = useState(null)
   const briefingRef = useRef(null)
 
@@ -120,30 +122,6 @@ export default function CoachApp({ navigation }) {
   const todayRevenue = lessons.reduce((sum, l) => sum + (l.price || 0), 0)
   const nextLesson = lessons[0]
 
-  const relancePlayer = async (player) => {
-    setRelancing(prev => ({ ...prev, [player.id]: true }))
-    const ps = sessions.filter(s => s.player_id === player.id).sort((a, b) => new Date(b.session_date) - new Date(a.session_date))
-    const last = ps[0]
-    const days = last ? Math.floor((now - new Date(last.session_date)) / (1000*60*60*24)) : 99
-    try {
-      const { data: slots } = await supabase.from('availabilities').select('*').order('day_of_week')
-      const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
-      const slotText = slots && slots.length > 0 ? 'Créneaux disponibles: ' + slots.map(s => DAYS[s.day_of_week] + ' ' + s.start_time?.slice(0,5)).join(', ') : ''
-      const response = await fetch('https://aqdifzgqfemfdcigxsgw.supabase.co/functions/v1/claude-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: `Tu es un coach de golf professionnel. Écris un message court et chaleureux pour relancer un élève inactif sur le practice. Élève: ${player.full_name}, HCP: ${player.current_handicap}, inactif depuis ${days} jours. ${slotText ? slotText + '. Propose un créneau précis.' : ''} 2-3 phrases max, pas de signature.` }] })
-      })
-      const data = await response.json()
-      const msg = data.content?.[0]?.text?.trim()
-      if (msg) {
-        const { data: { user } } = await supabase.auth.getUser()
-        await supabase.from('messages').insert({ coach_id: user.id, player_id: player.id, sender: 'coach', content: msg })
-        alert(t('home.message_sent', { name: player.full_name }))
-      }
-    } catch(e) { alert(t('common.error') + ': ' + e.message) }
-    setRelancing(prev => ({ ...prev, [player.id]: false }))
-  }
 
   if (loading) return (
     <View style={styles.loading}>
@@ -199,7 +177,8 @@ export default function CoachApp({ navigation }) {
               <Text style={styles.heroMainText}>{t('home.students_to_contact', { count: inactivePlayers.length })}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                 {inactivePlayers.slice(0, 4).map(p => (
-                  <TouchableOpacity key={p.id} onPress={() => navigation.navigate('PlayerDetail', { player: p })} style={styles.inactiveChip}>
+                  <TouchableOpacity key={p.id} onPress={() => { setRelanceTarget(p); setShowRelanceModal(true) }} style={styles.inactiveChip}>
+                    <Ionicons name="chatbubble-outline" size={12} color={colors.textSecondary} />
                     <Text style={styles.inactiveChipTxt}>{p.full_name?.split(' ')[0]}</Text>
                   </TouchableOpacity>
                 ))}
@@ -260,6 +239,7 @@ export default function CoachApp({ navigation }) {
         <View style={{ height: 40 }} />
       </ScrollView>
       <PermissionPushModal visible={showPushModal} onEnable={handleEnablePush} onLater={handleLaterPush} />
+      <RelanceModal visible={showRelanceModal} player={relanceTarget} coachId={userId} sessions={sessions} onClose={() => { setShowRelanceModal(false); setRelanceTarget(null) }} />
     </SafeAreaView>
   )
 }
@@ -280,7 +260,7 @@ const styles = StyleSheet.create({
   heroCardTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2, color: colors.textSecondary },
   heroMainText: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   heroSubText: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-  inactiveChip: { backgroundColor: colors.surfaceElevated, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  inactiveChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surfaceElevated, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   inactiveChipTxt: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
   startSessionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginTop: 10, alignSelf: 'flex-start' },
   startSessionBtnTxt: { fontSize: 13, fontWeight: '700', color: colors.textInverse },
