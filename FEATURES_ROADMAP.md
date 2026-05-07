@@ -27,5 +27,5 @@ Features qui posent problème en React Native pur (à discuter avec Noa avant d'
 | F-007 Session Mode (Note + Drill) | ✅ DONE | Timeline + DB persistence validated |
 | F-008 AI Summary | ✅ DONE | Whisper + Claude edge function + editable summary + send to player |
 | F-V01 Video Annotation | ✅ DONE | Camera in-app, line/circle annotations multi-frame (accumulate from timestamp to end), 4 colors, upload Storage, player replay with synced annotations. Pattern C display. |
-| F-006 Onboarding Coach | 🟡 NEXT | |
+| F-006 Onboarding Coach | ✅ DONE | Welcome + Profile + First Player + Tutorial swipable + Hero CTA first session |
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -7,6 +7,7 @@ import { supabase } from './supabase'
 
 const G = '#1B5E35'
 const LEVELS = ['beginner', 'intermediate', 'advanced', 'competition']
+const LEVEL_TO_INT = { beginner: 1, intermediate: 2, advanced: 3, competition: 4 }
 
 export default function CoachOnboardingFirstPlayerScreen({ route, navigation }) {
   const { t } = useTranslation()
@@ -25,16 +26,26 @@ export default function CoachOnboardingFirstPlayerScreen({ route, navigation }) 
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { error } = await supabase.from('players').insert({
+    const parsedHcp = hcp ? parseFloat(hcp) : NaN
+    const payload = {
       coach_id: user.id,
       full_name: `${firstName.trim()} ${lastName.trim()}`,
-      current_level: level,
-      current_handicap: hcp ? parseFloat(hcp) : null,
+      current_level: LEVEL_TO_INT[level] || null,
+      current_handicap: isNaN(parsedHcp) ? null : parsedHcp,
       email: email.trim() || null,
-    })
+    }
+    const { data, error } = await supabase.from('players').insert(payload).select().single()
 
     if (error) {
       console.error('[Onboarding] Insert player failed:', error)
+      Alert.alert('Erreur', error.message)
+      setSaving(false)
+      return
+    }
+
+    if (!data) {
+      console.error('[Onboarding] INSERT returned no data')
+      Alert.alert('Erreur', 'Création échouée')
       setSaving(false)
       return
     }
