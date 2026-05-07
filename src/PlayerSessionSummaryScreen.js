@@ -4,8 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function PlayerSessionSummaryScreen({ route, navigation }) {
   const { t, i18n } = useTranslation()
@@ -42,7 +41,7 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.loadingContainer}>
-          <ActivityIndicator size="large" color={G} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
     )
@@ -52,7 +51,7 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.loadingContainer}>
-          <Text style={{ color: '#6B7280' }}>Not found</Text>
+          <Text style={{ color: colors.textSecondary }}>Not found</Text>
         </View>
       </SafeAreaView>
     )
@@ -69,7 +68,7 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={G} />
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={s.headerTitle}>{t('player_session_summary.title', { date: dateStr })}</Text>
@@ -103,7 +102,7 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
             <Text style={s.sectionLabel}>{t('session_summary.section_improvements')}</Text>
             {summary.improvements.map((item, i) => (
               <View key={i} style={s.bulletRow}>
-                <Ionicons name="trending-up-outline" size={16} color="#F59E0B" style={{ marginTop: 2 }} />
+                <Ionicons name="trending-up-outline" size={16} color={colors.warning} style={{ marginTop: 2 }} />
                 <Text style={s.bulletText}>{item}</Text>
               </View>
             ))}
@@ -146,12 +145,12 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
               <Text style={s.videosSectionTitle}>{t('player_session_summary.videos_title')}</Text>
               {videoEvents.map(video => (
                 <TouchableOpacity key={video.id} style={s.videoCard} onPress={() => navigation.navigate('PlayerVideoReplay', { video })}>
-                  <View style={s.videoCardIcon}><Ionicons name="videocam-outline" size={22} color={G} /></View>
+                  <View style={s.videoCardIcon}><Ionicons name="videocam-outline" size={22} color={colors.primary} /></View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.videoCardTitle}>{t('player_session_summary.video_annotated')}</Text>
                     <Text style={s.videoCardMeta}>{Math.round((video.duration_ms || 0) / 1000)}s · {video.annotations?.length || 0} annotation(s)</Text>
                   </View>
-                  <Text style={{ fontSize: 20, color: '#9CA3AF' }}>›</Text>
+                  <Text style={{ fontSize: 20, color: colors.textTertiary }}>›</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -164,7 +163,7 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
           onPress={() => setThanked(true)}
           disabled={thanked}
         >
-          <Text style={[s.thanksBtnTxt, thanked && { color: G }]}>
+          <Text style={[s.thanksBtnTxt, thanked && { color: colors.primary }]}>
             {thanked ? t('player_session_summary.thanks_sent') : t('player_session_summary.thanks_coach')}
           </Text>
         </TouchableOpacity>
@@ -174,34 +173,34 @@ export default function PlayerSessionSummaryScreen({ route, navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: '#fff', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  headerSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: colors.surface, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  headerSub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32, gap: 12 },
   card: { borderRadius: 12, padding: 14, borderLeftWidth: 4 },
   cardGreen: { backgroundColor: '#F0FDF4', borderLeftColor: '#22C55E' },
   cardBlue: { backgroundColor: '#EFF6FF', borderLeftColor: '#3B82F6' },
-  cardAmber: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
+  cardAmber: { backgroundColor: '#FFFBEB', borderLeftColor: colors.warning },
   cardTeal: { backgroundColor: '#ECFDF5', borderLeftColor: '#10B981' },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#6B7280', letterSpacing: 0.5, marginBottom: 8 },
-  paragraph: { fontSize: 15, color: '#1a1a1a', lineHeight: 22 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, letterSpacing: 0.5, marginBottom: 8 },
+  paragraph: { fontSize: 15, color: colors.textPrimary, lineHeight: 22 },
   bulletRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 },
-  bulletText: { flex: 1, fontSize: 14, color: '#374151', lineHeight: 20 },
+  bulletText: { flex: 1, fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
   drillRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8 },
-  drillName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  drillDesc: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  drillName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  drillDesc: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   messageSection: { paddingVertical: 8, paddingHorizontal: 4 },
-  messageText: { fontSize: 15, color: '#374151', fontStyle: 'italic', textAlign: 'center', lineHeight: 22 },
-  thanksBtn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
-  thanksBtnDone: { backgroundColor: '#E8F5E9' },
-  thanksBtnTxt: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  messageText: { fontSize: 15, color: colors.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 22 },
+  thanksBtn: { backgroundColor: colors.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
+  thanksBtnDone: { backgroundColor: colors.primaryLight },
+  thanksBtnTxt: { fontSize: 16, fontWeight: '700', color: colors.textInverse },
   videosSection: { gap: 8 },
-  videosSectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
-  videoCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: '#E5E7EB' },
-  videoCardIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F0FAF4', alignItems: 'center', justifyContent: 'center' },
-  videoCardTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  videoCardMeta: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  videosSectionTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  videoCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.surface, borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: colors.borderStrong },
+  videoCardIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  videoCardTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  videoCardMeta: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
 })

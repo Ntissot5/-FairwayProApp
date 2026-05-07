@@ -9,8 +9,7 @@ import { supabase } from './supabase'
 import { registerForPushNotifications, savePushToken } from './notifications'
 import PermissionPushModal from './components/PermissionPushModal'
 import DailyBriefingCard from './components/DailyBriefingCard'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 function HeroCard({ icon, iconColor, bgColor, borderColor, title, children, delay, onPress }) {
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -148,7 +147,7 @@ export default function CoachApp({ navigation }) {
 
   if (loading) return (
     <View style={styles.loading}>
-      <ActivityIndicator color={G} size="large" />
+      <ActivityIndicator color={colors.primary} size="large" />
     </View>
   )
 
@@ -160,28 +159,28 @@ export default function CoachApp({ navigation }) {
           <Text style={styles.headerDate}>{now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => navigation.navigate('Booking')} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: G, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: G }}>+ {t('home.add_session')}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Booking')} style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.primary, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>+ {t('home.add_session')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.signOutBtn}>
-            <Ionicons name="settings-outline" size={22} color="#6B7280" />
+            <Ionicons name="settings-outline" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll(); if (briefingRef.current) briefingRef.current() }} tintColor={G} />}>
+      <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll(); if (briefingRef.current) briefingRef.current() }} tintColor={colors.primary} />}>
 
         {userId && <DailyBriefingCard userId={userId} ref={briefingRef} />}
 
         {/* Hero Cards */}
         <View style={styles.heroSection}>
-          <HeroCard icon="flag-outline" iconColor={G} bgColor="#f0faf4" borderColor="#d1fae5" title={t('home.next_session')} delay={0}>
+          <HeroCard icon="flag-outline" iconColor={colors.primary} bgColor={colors.primaryLight} borderColor="#d1fae5" title={t('home.next_session')} delay={0}>
             {nextLesson ? (
               <View>
                 <Text style={styles.heroMainText}>{nextLesson.players?.full_name || '—'}</Text>
                 <Text style={styles.heroSubText}>{t('home.at_time', { time: nextLesson.start_time?.slice(0, 5) })}</Text>
                 <TouchableOpacity style={styles.startSessionBtn} onPress={() => navigation.navigate('SessionLive', { lesson_id: nextLesson.id, player_id: nextLesson.player_id })}>
-                  <Ionicons name="play" size={14} color="#fff" />
+                  <Ionicons name="play" size={14} color={colors.textInverse} />
                   <Text style={styles.startSessionBtnTxt}>{t('session_live.start_session')}</Text>
                 </TouchableOpacity>
               </View>
@@ -190,13 +189,13 @@ export default function CoachApp({ navigation }) {
             )}
           </HeroCard>
 
-          <HeroCard icon="calendar-outline" iconColor="#374151" bgColor="#fff" borderColor="#E5E7EB" title={t('home.today')} delay={100}>
+          <HeroCard icon="calendar-outline" iconColor={colors.textSecondary} bgColor={colors.surface} borderColor={colors.borderStrong} title={t('home.today')} delay={100}>
             <Text style={styles.heroMainText}>{t('home.sessions_today', { count: lessons.length })}</Text>
             {todayRevenue > 0 && <Text style={styles.heroSubText}>{t('home.expected_revenue', { amount: todayRevenue })}</Text>}
           </HeroCard>
 
           {inactivePlayers.length > 0 && (
-            <HeroCard icon="alert-circle-outline" iconColor="#D97706" bgColor="#FFFBEB" borderColor="#FDE68A" title={t('home.to_note')} delay={200}>
+            <HeroCard icon="alert-circle-outline" iconColor={colors.warning} bgColor="#FFFBEB" borderColor="#FDE68A" title={t('home.to_note')} delay={200}>
               <Text style={styles.heroMainText}>{t('home.students_to_contact', { count: inactivePlayers.length })}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                 {inactivePlayers.slice(0, 4).map(p => (
@@ -204,7 +203,7 @@ export default function CoachApp({ navigation }) {
                     <Text style={styles.inactiveChipTxt}>{p.full_name?.split(' ')[0]}</Text>
                   </TouchableOpacity>
                 ))}
-                {inactivePlayers.length > 4 && <Text style={{ fontSize: 11, color: '#D97706', alignSelf: 'center' }}>+{inactivePlayers.length - 4}</Text>}
+                {inactivePlayers.length > 4 && <Text style={{ fontSize: 11, color: colors.warning, alignSelf: 'center' }}>+{inactivePlayers.length - 4}</Text>}
               </View>
             </HeroCard>
           )}
@@ -234,7 +233,7 @@ export default function CoachApp({ navigation }) {
                   <Text style={styles.rowSub}>HCP {p.current_handicap} · {days ? t('home.days_ago', { days }) : t('players.never')}</Text>
                 </View>
                 <View style={[styles.badge, inactive ? styles.badgeAmber : styles.badgeGreen]}>
-                  <Text style={[styles.badgeTxt, inactive ? { color: '#D97706' } : { color: G }]}>{inactive ? t('home.inactive') : t('home.active')}</Text>
+                  <Text style={[styles.badgeTxt, inactive ? { color: colors.warning } : { color: colors.primary }]}>{inactive ? t('home.inactive') : t('home.active')}</Text>
                 </View>
               </TouchableOpacity>
             )
@@ -266,11 +265,11 @@ export default function CoachApp({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  headerDate: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  header: { backgroundColor: colors.surface, padding: 20, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  headerTitle: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  headerDate: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
   signOutBtn: { padding: 8 },
   scroll: { flex: 1 },
 
@@ -279,27 +278,27 @@ const styles = StyleSheet.create({
   heroCard: { borderRadius: 16, padding: 16, borderWidth: 1 },
   heroCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   heroCardTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
-  heroMainText: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  heroSubText: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  heroMainText: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  heroSubText: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   inactiveChip: { backgroundColor: '#FEF3C7', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   inactiveChipTxt: { fontSize: 11, fontWeight: '600', color: '#92400E' },
-  startSessionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: G, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginTop: 10, alignSelf: 'flex-start' },
-  startSessionBtnTxt: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  startSessionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginTop: 10, alignSelf: 'flex-start' },
+  startSessionBtnTxt: { fontSize: 13, fontWeight: '700', color: colors.textInverse },
 
   // Sections
-  section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, marginTop: 0, overflow: 'hidden', borderWidth: 0.5, borderColor: '#E5E7EB' },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', padding: 16, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
-  empty: { padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderBottomWidth: 0.5, borderBottomColor: '#F8FAF8' },
-  av: { width: 36, height: 36, borderRadius: 18, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
+  section: { backgroundColor: colors.surface, borderRadius: 16, margin: 16, marginTop: 0, overflow: 'hidden', borderWidth: 0.5, borderColor: colors.borderStrong },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.border },
+  empty: { padding: 24, textAlign: 'center', color: colors.textTertiary, fontSize: 13 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated },
+  av: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   avAmber: { backgroundColor: '#FBBF24' },
-  avTxt: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  avTxt: { color: colors.textInverse, fontSize: 14, fontWeight: '700' },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  rowSub: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  rowName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  rowSub: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
-  badgeGreen: { backgroundColor: '#E8F5EE' },
+  badgeGreen: { backgroundColor: colors.primaryLight },
   badgeAmber: { backgroundColor: '#FEF3C7' },
   badgeTxt: { fontSize: 10, fontWeight: '600' },
-  price: { fontSize: 15, fontWeight: '700', color: G },
+  price: { fontSize: 15, fontWeight: '700', color: colors.primary },
 })

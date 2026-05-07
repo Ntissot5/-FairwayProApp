@@ -4,14 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
+import { colors } from './theme'
 
-const G = '#1B5E35'
 const { width: SCREEN_W } = Dimensions.get('window')
 
 const CARDS = [
-  { icon: 'videocam-outline', color: G, bg: '#E8F5E9', titleKey: 'onboarding.tut_1_title', textKey: 'onboarding.tut_1_text' },
+  { icon: 'videocam-outline', color: colors.primary, bg: colors.primaryLight, titleKey: 'onboarding.tut_1_title', textKey: 'onboarding.tut_1_text' },
   { icon: 'sunny-outline', color: '#2563EB', bg: '#EFF6FF', titleKey: 'onboarding.tut_2_title', textKey: 'onboarding.tut_2_text' },
-  { icon: 'card-outline', color: '#D97706', bg: '#FFFBEB', titleKey: 'onboarding.tut_3_title', textKey: 'onboarding.tut_3_text' },
+  { icon: 'card-outline', color: colors.warning, bg: '#FFFBEB', titleKey: 'onboarding.tut_3_title', textKey: 'onboarding.tut_3_text' },
 ]
 
 export default function CoachOnboardingTutorialScreen({ route, navigation }) {
@@ -81,7 +81,7 @@ export default function CoachOnboardingTutorialScreen({ route, navigation }) {
       <View style={s.footer}>
         {isLast ? (
           <TouchableOpacity style={s.cta} onPress={handleFinish} disabled={finishing}>
-            {finishing ? <ActivityIndicator color="#fff" /> : <Text style={s.ctaTxt}>{t('onboarding.start')}</Text>}
+            {finishing ? <ActivityIndicator color={colors.textInverse} /> : <Text style={s.ctaTxt}>{t('onboarding.start')}</Text>}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={s.cta} onPress={() => {
@@ -96,21 +96,21 @@ export default function CoachOnboardingTutorialScreen({ route, navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.surface },
   header: { padding: 24, paddingBottom: 0 },
-  stepBadge: { backgroundColor: '#E8F5E9', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, alignSelf: 'flex-start' },
-  stepTxt: { fontSize: 13, fontWeight: '700', color: G },
+  stepBadge: { backgroundColor: colors.primaryLight, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, alignSelf: 'flex-start' },
+  stepTxt: { fontSize: 13, fontWeight: '700', color: colors.primary },
   pager: { flex: 1 },
   card: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   cardIconWrap: { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  screenshotPlaceholder: { width: SCREEN_W - 80, height: 180, backgroundColor: '#F8FAF8', borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-  screenshotTxt: { fontSize: 14, color: '#9CA3AF' },
-  cardTitle: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', textAlign: 'center', letterSpacing: -0.5, marginBottom: 8 },
-  cardText: { fontSize: 16, color: '#6B7280', textAlign: 'center', lineHeight: 24 },
+  screenshotPlaceholder: { width: SCREEN_W - 80, height: 180, backgroundColor: colors.surfaceElevated, borderRadius: 16, borderWidth: 1, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  screenshotTxt: { fontSize: 14, color: colors.textTertiary },
+  cardTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', letterSpacing: -0.5, marginBottom: 8 },
+  cardText: { fontSize: 16, color: colors.textSecondary, textAlign: 'center', lineHeight: 24 },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 16 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5E7EB' },
-  dotActive: { backgroundColor: G, width: 24 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.borderStrong },
+  dotActive: { backgroundColor: colors.primary, width: 24 },
   footer: { padding: 24, paddingTop: 0 },
-  cta: { backgroundColor: G, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
-  ctaTxt: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  cta: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
+  ctaTxt: { color: colors.textInverse, fontSize: 17, fontWeight: '700' },
 })

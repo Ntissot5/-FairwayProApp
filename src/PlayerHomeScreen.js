@@ -8,8 +8,7 @@ import { useOnboarding, OnboardingTooltip } from './OnboardingContext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import PlayerOnboarding from './PlayerOnboarding'
 import { Svg, Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function PlayerHomeScreen({ navigation }) {
   const { t } = useTranslation()
@@ -95,8 +94,8 @@ export default function PlayerHomeScreen({ navigation }) {
     return (
       <View style={{ marginTop: 16 }}>
         <View style={{ flexDirection: "row", gap: 16, marginBottom: 8 }}>
-          <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Début: <Text style={{ fontWeight: "700", color: "#fff" }}>{first}</Text></Text>
-          <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Actuel: <Text style={{ fontWeight: "700", color: "#fff" }}>{last}</Text></Text>
+          <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Début: <Text style={{ fontWeight: "700", color: colors.textInverse }}>{first}</Text></Text>
+          <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Actuel: <Text style={{ fontWeight: "700", color: colors.textInverse }}>{last}</Text></Text>
           <Text style={{ fontSize: 12, fontWeight: "700", color: parseFloat(diff) <= 0 ? "#86EFAC" : "#FCA5A5" }}>{parseFloat(diff) > 0 ? "+" : ""}{diff} pts</Text>
         </View>
         <Svg width={W} height={H}>
@@ -116,15 +115,15 @@ export default function PlayerHomeScreen({ navigation }) {
     )
   }
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
 
   if (!player) return (
     <SafeAreaView style={s.safe}>
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
-        <Ionicons name="flag-outline" size={40} color={G} style={{ marginBottom: 16 }} />
-        <Text style={{ fontSize: 20, fontWeight: "800", color: "#1a1a1a", textAlign: "center", marginBottom: 8 }}>{t('player_home.empty_title')}</Text>
-        <Text style={{ fontSize: 14, color: "#6B7280", textAlign: "center" }}>{t('player_home.empty_subtitle')}</Text>
+        <Ionicons name="flag-outline" size={40} color={colors.primary} style={{ marginBottom: 16 }} />
+        <Text style={{ fontSize: 20, fontWeight: "800", color: colors.textPrimary, textAlign: "center", marginBottom: 8 }}>{t('player_home.empty_title')}</Text>
+        <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: "center" }}>{t('player_home.empty_subtitle')}</Text>
       </View>
     </SafeAreaView>
   )
@@ -133,7 +132,7 @@ export default function PlayerHomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.safe}>
-      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
+      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
 
         {/* Header Card */}
         <View style={s.headerCard}>
@@ -165,7 +164,7 @@ export default function PlayerHomeScreen({ navigation }) {
         {nextBooking && (
           <View style={s.card}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={s.cardIcon}><Ionicons name="calendar-outline" size={22} color={G} /></View>
+              <View style={s.cardIcon}><Ionicons name="calendar-outline" size={22} color={colors.primary} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cardLabel}>{t('player_home.next_lesson').toUpperCase()}</Text>
                 <Text style={s.cardTitle}>{nextBooking.lesson_date} à {nextBooking.start_time?.slice(0,5)}</Text>
@@ -179,13 +178,13 @@ export default function PlayerHomeScreen({ navigation }) {
         {lastMessage && (
           <TouchableOpacity style={s.card} onPress={() => navigation.navigate("PlayerChat")}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={[s.cardIcon, { backgroundColor: '#E8F5EE' }]}><Ionicons name="chatbubbles-outline" size={22} color={G} /></View>
+              <View style={[s.cardIcon, { backgroundColor: colors.primaryLight }]}><Ionicons name="chatbubbles-outline" size={22} color={colors.primary} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cardLabel}>{t('player_home.coach_label').toUpperCase()}</Text>
                 <Text style={s.cardTitle} numberOfLines={2}>{lastMessage.content}</Text>
                 <Text style={s.cardSub}>{new Date(lastMessage.created_at).toLocaleDateString('fr-FR')}</Text>
               </View>
-              <Text style={{ fontSize: 20, color: '#9CA3AF' }}>›</Text>
+              <Text style={{ fontSize: 20, color: colors.textTertiary }}>›</Text>
             </View>
           </TouchableOpacity>
         )}
@@ -194,13 +193,13 @@ export default function PlayerHomeScreen({ navigation }) {
         {todoExercises.length > 0 && (
           <TouchableOpacity style={s.card} onPress={() => navigation.navigate("PlayerPlan")}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={[s.cardIcon, { backgroundColor: '#FEF3C7' }]}><Ionicons name="clipboard-outline" size={22} color="#D97706" /></View>
+              <View style={[s.cardIcon, { backgroundColor: '#FEF3C7' }]}><Ionicons name="clipboard-outline" size={22} color={colors.warning} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cardLabel}>{t('player_home.my_plan').toUpperCase()}</Text>
                 <Text style={s.cardTitle}>{todoExercises.length} exercice{todoExercises.length > 1 ? 's' : ''} à faire</Text>
                 <Text style={s.cardSub} numberOfLines={1}>{todoExercises[0]?.title}</Text>
               </View>
-              <Text style={{ fontSize: 20, color: '#9CA3AF' }}>›</Text>
+              <Text style={{ fontSize: 20, color: colors.textTertiary }}>›</Text>
             </View>
           </TouchableOpacity>
         )}
@@ -216,14 +215,14 @@ export default function PlayerHomeScreen({ navigation }) {
               return (
                 <TouchableOpacity key={sum.id} style={s.roundRow} onPress={() => navigation.navigate('PlayerSessionSummary', { session_record_id: sum.id })}>
                   <View style={[s.cardIcon, { width: 40, height: 40, borderRadius: 12 }]}>
-                    <Ionicons name="document-text-outline" size={20} color={G} />
+                    <Ionicons name="document-text-outline" size={20} color={colors.primary} />
                   </View>
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={s.roundCourse} numberOfLines={1}>{sum.ai_summary?.worked_on?.slice(0, 60) || 'Session summary'}</Text>
                     <Text style={s.roundDate}>{dateStr} · {dMin} min</Text>
                   </View>
-                  {isNew && <View style={{ backgroundColor: '#E8F5E9', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}><Text style={{ fontSize: 10, fontWeight: '700', color: G }}>{t('player_summaries.new_badge')}</Text></View>}
-                  <Text style={{ fontSize: 20, color: '#9CA3AF', marginLeft: 6 }}>›</Text>
+                  {isNew && <View style={{ backgroundColor: colors.primaryLight, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}><Text style={{ fontSize: 10, fontWeight: '700', color: colors.primary }}>{t('player_summaries.new_badge')}</Text></View>}
+                  <Text style={{ fontSize: 20, color: colors.textTertiary, marginLeft: 6 }}>›</Text>
                 </TouchableOpacity>
               )
             })}
@@ -254,7 +253,7 @@ export default function PlayerHomeScreen({ navigation }) {
         {/* Empty state */}
         {rounds.length === 0 && todoExercises.length === 0 && !lastMessage && (
           <View style={s.emptyState}>
-            <Ionicons name="flag-outline" size={48} color={G} style={{ marginBottom: 16 }} />
+            <Ionicons name="flag-outline" size={48} color={colors.primary} style={{ marginBottom: 16 }} />
             <Text style={s.emptyTitle}>{t('player_rounds.empty')}</Text>
             <Text style={s.emptySub}>{t('player_rounds.empty_sub')}</Text>
           </View>
@@ -267,33 +266,33 @@ export default function PlayerHomeScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f8f8f8" },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: "center", justifyContent: "center" },
   scroll: { flex: 1 },
-  headerCard: { backgroundColor: G, margin: 16, borderRadius: 20, padding: 20 },
+  headerCard: { backgroundColor: colors.primary, margin: 16, borderRadius: 20, padding: 20 },
   welcome: { fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 4 },
-  playerName: { fontSize: 28, fontWeight: "800", color: "#fff", letterSpacing: -0.5 },
+  playerName: { fontSize: 28, fontWeight: "800", color: colors.textInverse, letterSpacing: -0.5 },
   avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
-  avatarTxt: { color: "#fff", fontSize: 18, fontWeight: "700" },
+  avatarTxt: { color: colors.textInverse, fontSize: 18, fontWeight: "700" },
   statsRow: { flexDirection: "row", gap: 12, marginTop: 20 },
   stat: { flex: 1, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 12, padding: 12, alignItems: "center" },
-  statValue: { fontSize: 24, fontWeight: "800", color: "#fff" },
+  statValue: { fontSize: 24, fontWeight: "800", color: colors.textInverse },
   statLabel: { fontSize: 10, color: "rgba(255,255,255,0.7)", marginTop: 2, fontWeight: "600" },
-  card: { backgroundColor: "#fff", borderRadius: 16, margin: 16, marginTop: 0, marginBottom: 8, padding: 16, borderWidth: 0.5, borderColor: "#E5E7EB" },
-  cardIcon: { width: 48, height: 48, borderRadius: 14, backgroundColor: "#F0FAF4", alignItems: "center", justifyContent: "center" },
-  cardLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", letterSpacing: 0.5, marginBottom: 3 },
-  cardTitle: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  cardSub: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  addRoundBtn: { backgroundColor: G, margin: 16, marginTop: 8, marginBottom: 8, borderRadius: 14, padding: 16, alignItems: "center" },
-  addRoundTxt: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  section: { backgroundColor: "#fff", borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: "#E5E7EB", overflow: "hidden" },
-  sectionTitle: { fontSize: 14, fontWeight: "700", color: "#1a1a1a", padding: 16, borderBottomWidth: 0.5, borderBottomColor: "#F0F4F0" },
-  roundRow: { flexDirection: "row", alignItems: "center", padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#F8FAF8" },
+  card: { backgroundColor: colors.surface, borderRadius: 16, margin: 16, marginTop: 0, marginBottom: 8, padding: 16, borderWidth: 0.5, borderColor: colors.borderStrong },
+  cardIcon: { width: 48, height: 48, borderRadius: 14, backgroundColor: colors.primaryLight, alignItems: "center", justifyContent: "center" },
+  cardLabel: { fontSize: 10, fontWeight: "700", color: colors.textTertiary, letterSpacing: 0.5, marginBottom: 3 },
+  cardTitle: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
+  cardSub: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  addRoundBtn: { backgroundColor: colors.primary, margin: 16, marginTop: 8, marginBottom: 8, borderRadius: 14, padding: 16, alignItems: "center" },
+  addRoundTxt: { color: colors.textInverse, fontSize: 16, fontWeight: "700" },
+  section: { backgroundColor: colors.surface, borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: colors.borderStrong, overflow: "hidden" },
+  sectionTitle: { fontSize: 14, fontWeight: "700", color: colors.textPrimary, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.border },
+  roundRow: { flexDirection: "row", alignItems: "center", padding: 14, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated },
   roundInfo: { flex: 1 },
-  roundCourse: { fontSize: 13, fontWeight: "500", color: "#1a1a1a" },
-  roundDate: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
-  roundScore: { fontSize: 22, fontWeight: "800", color: G },
+  roundCourse: { fontSize: 13, fontWeight: "500", color: colors.textPrimary },
+  roundDate: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  roundScore: { fontSize: 22, fontWeight: "800", color: colors.primary },
   emptyState: { margin: 32, alignItems: "center" },
-  emptyTitle: { fontSize: 20, fontWeight: "800", color: "#1a1a1a", marginBottom: 8 },
-  emptySub: { fontSize: 14, color: "#6B7280", textAlign: "center", lineHeight: 22 },
+  emptyTitle: { fontSize: 20, fontWeight: "800", color: colors.textPrimary, marginBottom: 8 },
+  emptySub: { fontSize: 14, color: colors.textSecondary, textAlign: "center", lineHeight: 22 },
 })

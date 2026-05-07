@@ -3,8 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Keyboa
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function CoachOnboardingProfileScreen({ route, navigation }) {
   const { t } = useTranslation()
@@ -25,13 +24,13 @@ export default function CoachOnboardingProfileScreen({ route, navigation }) {
           </View>
 
           <Text style={s.label}>{t('onboarding.full_name')}</Text>
-          <TextInput style={s.input} value={fullName} onChangeText={setFullName} placeholder="Jean Dupont" placeholderTextColor="#9CA3AF" autoFocus />
+          <TextInput style={s.input} value={fullName} onChangeText={setFullName} placeholder="Jean Dupont" placeholderTextColor={colors.textTertiary} autoFocus />
 
           <Text style={s.label}>{t('onboarding.city')}</Text>
-          <TextInput style={s.input} value={city} onChangeText={setCity} placeholder="Lausanne" placeholderTextColor="#9CA3AF" />
+          <TextInput style={s.input} value={city} onChangeText={setCity} placeholder="Lausanne" placeholderTextColor={colors.textTertiary} />
 
           <Text style={s.label}>{t('onboarding.club_optional')}</Text>
-          <TextInput style={s.input} value={club} onChangeText={setClub} placeholder="Golf Club de Lausanne" placeholderTextColor="#9CA3AF" />
+          <TextInput style={s.input} value={club} onChangeText={setClub} placeholder="Golf Club de Lausanne" placeholderTextColor={colors.textTertiary} />
 
           <TouchableOpacity
             style={[s.cta, !canContinue && s.ctaDisabled]}
@@ -47,16 +46,16 @@ export default function CoachOnboardingProfileScreen({ route, navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.surface },
   scroll: { flexGrow: 1, padding: 24 },
   header: { marginBottom: 24 },
-  stepBadge: { backgroundColor: '#E8F5E9', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, alignSelf: 'flex-start', marginBottom: 16 },
-  stepTxt: { fontSize: 13, fontWeight: '700', color: G },
-  title: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5, marginBottom: 6 },
-  subtitle: { fontSize: 15, color: '#6B7280', lineHeight: 22 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 16 },
-  input: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 12, padding: 16, fontSize: 16, color: '#1a1a1a' },
-  cta: { backgroundColor: G, borderRadius: 14, paddingVertical: 18, alignItems: 'center', marginTop: 32 },
+  stepBadge: { backgroundColor: colors.primaryLight, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, alignSelf: 'flex-start', marginBottom: 16 },
+  stepTxt: { fontSize: 13, fontWeight: '700', color: colors.primary },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5, marginBottom: 6 },
+  subtitle: { fontSize: 15, color: colors.textSecondary, lineHeight: 22 },
+  label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 16 },
+  input: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 12, padding: 16, fontSize: 16, color: colors.textPrimary },
+  cta: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 18, alignItems: 'center', marginTop: 32 },
   ctaDisabled: { opacity: 0.4 },
-  ctaTxt: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  ctaTxt: { color: colors.textInverse, fontSize: 17, fontWeight: '700' },
 })
