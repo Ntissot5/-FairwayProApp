@@ -18,20 +18,30 @@ export default function PlayerChatScreen() {
 
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: player } = await supabase.from('players').select('*, coaches:coach_id(*)').eq('player_user_id', user.id).single()
+    const { data: player, error: playerErr } = await supabase.from('players').select('*').eq('player_user_id', user.id).single()
+    if (playerErr || !player) { setLoading(false); return }
     setMyPlayer(player)
-    const { data: msgs } = await supabase.from('messages').select('*').eq('player_id', player?.id).order('created_at', { ascending: true })
+    const { data: msgs } = await supabase.from('messages').select('*').eq('player_id', player.id).order('created_at', { ascending: true })
     setMessages(msgs || [])
     setLoading(false)
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: false }), 100)
   }
 
   const sendMessage = async () => {
-    if (!input.trim() || !myPlayer) return
-    const { error: insertErr } = await supabase.from('messages').insert({ coach_id: myPlayer.coach_id, player_id: myPlayer.id, sender: 'player', content: input.trim() })
-    if (insertErr) { Alert.alert('Erreur', 'Message non envoyé: ' + insertErr.message); return }
-    setInput('')
-    fetchAll()
+    if (!input || !input.trim()) return
+    const messageContent = input.trim()
+    try {
+      const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser()
+      if (authErr || !authUser) { Alert.alert('Erreur', 'Session expirée'); return }
+      const { data: playerData, error: playerErr } = await supabase.from('players').select('id, coach_id').eq('player_user_id', authUser.id).single()
+      if (playerErr || !playerData || !playerData.coach_id) { Alert.alert('Erreur', 'Profil joueur introuvable'); return }
+      const { error: insertErr } = await supabase.from('messages').insert({ coach_id: playerData.coach_id, player_id: playerData.id, sender: 'player', content: messageContent })
+      if (insertErr) { Alert.alert('Erreur', 'Message non envoyé: ' + insertErr.message); return }
+      setInput('')
+      fetchAll()
+    } catch (err) {
+      Alert.alert('Erreur', err.message)
+    }
   }
 
   if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
