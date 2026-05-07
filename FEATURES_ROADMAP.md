@@ -26,6 +26,6 @@ Features qui posent problème en React Native pur (à discuter avec Noa avant d'
 | F-005d Briefing Settings | ✅ DONE | Toggle/time/pause in Settings |
 | F-007 Session Mode (Note + Drill) | ✅ DONE | Timeline + DB persistence validated |
 | F-008 AI Summary | ✅ DONE | Whisper + Claude edge function + editable summary + send to player |
-| F-V01 Video Annotation | ✅ DONE | Record + annotate (line/circle) + upload Storage + player replay with synced annotations |
+| F-V01 Video Annotation | ✅ DONE | Camera in-app, line/circle annotations multi-frame (accumulate from timestamp to end), 4 colors, upload Storage, player replay with synced annotations. Pattern C display. |
 | F-006 Onboarding Coach | 🟡 NEXT | |
 
