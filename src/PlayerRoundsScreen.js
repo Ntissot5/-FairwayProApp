@@ -89,6 +89,7 @@ function DetailedSetupScreen({ onStart, onBack }) {
 }
 
 function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack, isLast, holesData, currentHoleNum }) {
+  const { t } = useTranslation()
   const [localStrokes, setLocalStrokes] = useState(holeData.strokes || 0)
   const otherHolesScore = Object.entries(holesData || {}).filter(([k]) => parseInt(k) !== currentHoleNum).reduce((sum, [, h]) => sum + (h.strokes || 0), 0)
   const totalScore = otherHolesScore + localStrokes
