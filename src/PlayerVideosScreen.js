@@ -5,6 +5,8 @@ import * as ImagePicker from 'expo-image-picker'
 import { VideoView, useVideoPlayer } from 'expo-video'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
+import * as FileSystem from 'expo-file-system/legacy'
+import { decode } from 'base64-arraybuffer'
 import { supabase } from './supabase'
 import { colors } from './theme'
 
@@ -52,9 +54,9 @@ export default function PlayerVideosScreen() {
     try {
       const uri = result.assets[0].uri
       const fileName = 'swing_player_' + playerId + '_' + Date.now() + '.mp4'
-      const response = await fetch(uri)
-      const blob = await response.blob()
-      const { error } = await supabase.storage.from('swing-videos').upload(fileName, blob, { contentType: 'video/mp4' })
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' })
+      const arrayBuffer = decode(base64)
+      const { error } = await supabase.storage.from('swing-videos').upload(fileName, arrayBuffer, { contentType: 'video/mp4', upsert: false })
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from('swing-videos').getPublicUrl(fileName)
       await supabase.from('swing_videos').insert({ player_id: playerId, video_url: publicUrl, title: 'Swing ' + new Date().toLocaleDateString('fr-FR') })

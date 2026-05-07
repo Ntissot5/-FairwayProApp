@@ -5,6 +5,8 @@ import * as ImagePicker from 'expo-image-picker'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
 import { Svg, Path, Circle, Text as SvgText, Line, Defs, LinearGradient, Stop } from 'react-native-svg'
+import * as FileSystem from 'expo-file-system/legacy'
+import { decode } from 'base64-arraybuffer'
 import { supabase } from './supabase'
 import { colors } from './theme'
 import RelanceModal from './components/RelanceModal'
@@ -108,9 +110,9 @@ export default function PlayerDetailScreen({ route, navigation }) {
       const { data: { user } } = await supabase.auth.getUser()
       const uri = result.assets[0].uri
       const fileName = "swing_" + player.id + "_" + Date.now() + ".mp4"
-      const response = await fetch(uri)
-      const blob = await response.blob()
-      const { error } = await supabase.storage.from("swing-videos").upload(fileName, blob, { contentType: "video/mp4" })
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' })
+      const arrayBuffer = decode(base64)
+      const { error } = await supabase.storage.from("swing-videos").upload(fileName, arrayBuffer, { contentType: "video/mp4", upsert: false })
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from("swing-videos").getPublicUrl(fileName)
       await supabase.from("swing_videos").insert({ player_id: player.id, coach_id: user.id, video_url: publicUrl, title: "Swing " + new Date().toLocaleDateString("fr-FR") })
