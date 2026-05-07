@@ -78,7 +78,7 @@ export default function VideoAnnotationScreen({ route, navigation }) {
 
   // Visible annotations at current time
   const visibleAnnotations = annotations.filter(a =>
-    Math.abs(a.timestamp_ms - currentTimeMs) <= TOLERANCE_MS
+    a.timestamp_ms <= currentTimeMs + TOLERANCE_MS
   )
 
   // Refs for values needed inside PanResponder (avoids stale closures)

@@ -70,7 +70,7 @@ export default function PlayerVideoReplayScreen({ route, navigation }) {
   }
 
   const visibleAnnotations = annotations.filter(a =>
-    Math.abs(a.timestamp_ms - currentTimeMs) <= TOLERANCE_MS
+    a.timestamp_ms <= currentTimeMs + TOLERANCE_MS
   )
 
   const formatMs = (ms) => (ms / 1000).toFixed(1) + 's'
