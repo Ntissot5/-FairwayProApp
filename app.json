@@ -58,7 +58,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "FairwayPro needs access to your microphone to record voice notes during coaching sessions."
+          "microphonePermission": "FairwayPro a besoin du microphone pour enregistrer le son de vos vidéos de swing."
         }
       ],
       "expo-font"
