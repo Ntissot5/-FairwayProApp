@@ -49,13 +49,11 @@ export default function SessionLiveScreen({ route, navigation }) {
       setIsUploadingVideo(true)
       const { videoUri, annotations, duration_ms } = pendingVideo
 
-      console.log('[Video] Reading file:', videoUri)
       const base64 = await FileSystem.readAsStringAsync(videoUri, { encoding: 'base64' })
       const arrayBuffer = decode(base64)
-      console.log('[Video] File size:', arrayBuffer.byteLength, 'bytes')
 
-      const fileName = `${userId}/${recordIdRef.current}/${Date.now()}.mp4`
-      console.log('[Video] Uploading to:', fileName)
+      const authUser = (await supabase.auth.getUser()).data.user
+      const fileName = `${authUser.id}/${recordIdRef.current}/${Date.now()}.mp4`
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('session-videos')
@@ -66,8 +64,6 @@ export default function SessionLiveScreen({ route, navigation }) {
         Alert.alert('Erreur', "Échec de l'envoi de la vidéo. Réessaye.")
         return
       }
-      console.log('[Video] Upload OK:', uploadData)
-
       const { data: urlData } = await supabase.storage
         .from('session-videos')
         .createSignedUrl(fileName, 60 * 60 * 24 * 7)
@@ -88,7 +84,6 @@ export default function SessionLiveScreen({ route, navigation }) {
       if (recordIdRef.current) {
         const { error } = await supabase.from('session_records').update({ events: updatedEvents }).eq('id', recordIdRef.current)
         if (error) console.error('[Video] DB update failed:', error)
-        else console.log('[Video] DB update OK')
       }
     } catch (e) {
       console.error('[Video] Save failed:', e)
@@ -100,10 +95,7 @@ export default function SessionLiveScreen({ route, navigation }) {
 
   // Init: fetch player, create session_record, start chrono
   useEffect(() => {
-    if (recordIdRef.current) {
-      console.log('[SessionLive] recordId already set, skip INSERT')
-      return
-    }
+    if (recordIdRef.current) return
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUserId(user.id)
@@ -121,7 +113,6 @@ export default function SessionLiveScreen({ route, navigation }) {
       }).select().single()
       if (recErr) console.error('[SessionLive] Failed to create session_record:', recErr)
       if (rec) {
-        console.log('[SessionLive] Created session_record:', rec.id)
         recordIdRef.current = rec.id
         setRecordId(rec.id)
       }

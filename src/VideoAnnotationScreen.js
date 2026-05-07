@@ -140,7 +140,6 @@ export default function VideoAnnotationScreen({ route, navigation }) {
   }
 
   const handleSave = () => {
-    console.log('[Video] Saved:', { videoUri, annotations, duration_ms: durationMs })
     setPendingVideo({ videoUri, annotations, duration_ms: durationMs })
     navigation.pop(2)
   }
