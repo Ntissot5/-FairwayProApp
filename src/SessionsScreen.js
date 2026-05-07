@@ -202,7 +202,7 @@ export default function SessionsScreen({ navigation }) {
         {tab === 'sessions' && (
           <>
             {sessions.length === 0 ? (
-              <EmptyState icon={CalendarIcon} title={t('sessions.empty_title') || 'Aucune séance'} description={t('sessions.empty_desc') || 'Crée ta première séance pour organiser ton coaching'} ctaLabel={'+ ' + t('sessions.add_session')} onCtaPress={() => setShowAddSession(true)} />
+              <EmptyState icon={CalendarIcon} title="Aucune séance" description="Crée ta première séance pour commencer à organiser ton coaching" ctaLabel="+ Ajouter une séance" onCtaPress={() => setShowAddSession(true)} />
             ) : sessions.map(session => {
               const player = players.find(p => p.id === session.player_id)
               return (

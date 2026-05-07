@@ -26,7 +26,7 @@ function HeroCard({ icon, iconColor, bgColor, borderColor, title, children, dela
       <Wrapper onPress={onPress} style={[styles.heroCard, { backgroundColor: bgColor, borderColor }]}>
         <View style={styles.heroCardHeader}>
           <Ionicons name={icon} size={18} color={iconColor} />
-          <Text style={[styles.heroCardTitle, { color: iconColor }]}>{title}</Text>
+          <Text style={styles.heroCardTitle}>{title}</Text>
         </View>
         {children}
       </Wrapper>
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   heroSection: { padding: 16, gap: 10 },
   heroCard: { borderRadius: 16, padding: 16, borderWidth: 1 },
   heroCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  heroCardTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
+  heroCardTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2, color: colors.textSecondary },
   heroMainText: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   heroSubText: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   inactiveChip: { backgroundColor: colors.surfaceElevated, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },

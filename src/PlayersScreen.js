@@ -63,9 +63,9 @@ export default function PlayersScreen({ navigation }) {
           const days = last ? Math.floor((now - new Date(last.session_date)) / (1000*60*60*24)) : null
           const inactive = !days || days > 14
           return (
-            <TouchableOpacity key={p.id} style={[s.row, inactive && s.rowRed]} onPress={() => navigation.navigate("PlayerDetail", { player: p })}>
-              <View style={[s.av, { backgroundColor: avatarColors[i % avatarColors.length] }]}>
-                <Text style={s.avTxt}>{p.full_name?.charAt(0)}</Text>
+            <TouchableOpacity key={p.id} style={s.row} onPress={() => navigation.navigate("PlayerDetail", { player: p })}>
+              <View style={[s.av, { backgroundColor: inactive ? colors.warningLight : colors.primaryLight }]}>
+                <Text style={[s.avTxt, { color: inactive ? colors.warning : colors.primary }]}>{p.full_name?.charAt(0)}</Text>
               </View>
               <View style={s.info}>
                 <Text style={s.name}>{p.full_name}</Text>
@@ -79,8 +79,8 @@ export default function PlayersScreen({ navigation }) {
                 <Text style={s.rev}>{revenue}€</Text>
                 <Text style={s.hcpLabel}>{t('players.revenue')}</Text>
               </View>
-              <View style={[s.badge, inactive ? s.badgeRed : s.badgeGreen]}>
-                <Text style={[s.badgeTxt, { color: inactive ? colors.error : colors.primary }]}>{inactive ? t('players.inactive') : t('players.active')}</Text>
+              <View style={[s.badge, inactive ? s.badgeAmber : s.badgeGreen]}>
+                <Text style={[s.badgeTxt, { color: inactive ? colors.warning : colors.primary }]}>{inactive ? t('players.inactive') : t('players.active')}</Text>
               </View>
             </TouchableOpacity>
           )
@@ -121,7 +121,7 @@ const s = StyleSheet.create({
   addBtnTxt: { color: colors.textInverse, fontSize: 13, fontWeight: '700' },
   scroll: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, backgroundColor: colors.surface, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated, marginHorizontal: 16, marginTop: 8, borderRadius: 12, borderWidth: 0.5, borderColor: colors.borderStrong },
-  rowRed: { backgroundColor: colors.errorLight, borderColor: colors.error },
+  badgeAmber: { backgroundColor: colors.warningLight },
   av: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   avTxt: { color: colors.textInverse, fontSize: 15, fontWeight: '700' },
   info: { flex: 1 },
@@ -133,7 +133,6 @@ const s = StyleSheet.create({
   rev: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   badgeGreen: { backgroundColor: colors.primaryLight },
-  badgeRed: { backgroundColor: colors.errorLight },
   badgeTxt: { fontSize: 10, fontWeight: '600' },
   modal: { flex: 1, backgroundColor: colors.surface },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
