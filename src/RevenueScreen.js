@@ -5,6 +5,7 @@ import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { colors } from './theme'
+import { useCountUp } from './hooks/useCountUp'
 
 export default function RevenueScreen({ navigation }) {
   const { t } = useTranslation()
@@ -76,6 +77,9 @@ export default function RevenueScreen({ navigation }) {
   const total = sessions.reduce((sum, s) => sum + (s.price || 0), 0)
   const thisMonth = sessions.filter(s => { const d = new Date(s.session_date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() }).reduce((sum, s) => sum + (s.price || 0), 0)
   const avg = sessions.length > 0 ? Math.round(total / sessions.length) : 0
+  const animTotal = useCountUp(total, 1200)
+  const animMonth = useCountUp(thisMonth, 1200)
+  const animAvg = useCountUp(avg, 1200)
 
   if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
@@ -93,7 +97,7 @@ export default function RevenueScreen({ navigation }) {
 
       <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
         <View style={s.statsRow}>
-          {[{label:t('revenue.total_revenue').toUpperCase(), value: total+'€', sub: t('revenue.sessions_count', { count: sessions.length })}, {label:t('revenue.this_month').toUpperCase(), value: thisMonth+'€'}, {label:t('revenue.avg_session').toUpperCase(), value: avg+'€'}].map((item, i) => (
+          {[{label:t('revenue.total_revenue').toUpperCase(), value: animTotal+'€', sub: t('revenue.sessions_count', { count: sessions.length })}, {label:t('revenue.this_month').toUpperCase(), value: animMonth+'€'}, {label:t('revenue.avg_session').toUpperCase(), value: animAvg+'€'}].map((item, i) => (
             <View key={i} style={[s.stat, i === 0 && s.statGreen]}>
               <Text style={s.statLabel}>{item.label}</Text>
               <Text style={[s.statValue, i === 0 && { color: colors.primary }]}>{item.value}</Text>
