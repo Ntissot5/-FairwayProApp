@@ -58,6 +58,25 @@ export const typography = {
   tight: 1.2,
   normal: 1.4,
   relaxed: 1.6,
+
+  // Font families
+  fontFamily: {
+    regular: 'Inter_400Regular',
+    medium: 'Inter_500Medium',
+    semibold: 'Inter_600SemiBold',
+    bold: 'Inter_700Bold',
+  },
+
+  // Scale presets
+  scale: {
+    displayLarge: { fontSize: 32, lineHeight: 38, fontFamily: 'Inter_700Bold' },
+    displayMedium: { fontSize: 28, lineHeight: 34, fontFamily: 'Inter_700Bold' },
+    h1: { fontSize: 22, lineHeight: 28, fontFamily: 'Inter_600SemiBold' },
+    h2: { fontSize: 18, lineHeight: 24, fontFamily: 'Inter_600SemiBold' },
+    body: { fontSize: 16, lineHeight: 24, fontFamily: 'Inter_400Regular' },
+    bodyMedium: { fontSize: 14, lineHeight: 20, fontFamily: 'Inter_400Regular' },
+    caption: { fontSize: 12, lineHeight: 16, fontFamily: 'Inter_500Medium' },
+  },
 }
 
 export const spacing = {

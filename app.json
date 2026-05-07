@@ -59,7 +59,8 @@
         {
           "microphonePermission": "FairwayPro needs access to your microphone to record voice notes during coaching sessions."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "runtimeVersion": "1.0.0",
     "updates": {

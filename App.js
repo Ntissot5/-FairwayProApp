@@ -7,6 +7,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context"
 import { Text, View, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter"
+
+Text.defaultProps = Text.defaultProps || {}
+Text.defaultProps.style = { fontFamily: 'Inter_400Regular' }
 import WelcomeScreen from "./src/WelcomeScreen"
 import SubscribeScreen from "./src/SubscribeScreen"
 import LoginScreen from "./src/LoginScreen"
@@ -77,6 +81,7 @@ function PlayerTabs() {
 const navigationRef = { current: null }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold })
   const notificationListener = useRef()
   const responseListener = useRef()
   const [initialRoute, setInitialRoute] = useState(null)
@@ -130,7 +135,7 @@ export default function App() {
     }
   }, [])
 
-  if (isLoading) {
+  if (isLoading || !fontsLoaded) {
     return (
       <View style={{ flex: 1, backgroundColor: G, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontSize: 36, fontWeight: '800', color: '#fff', letterSpacing: -1 }}>Fairway<Text style={{ color: '#4ade80' }}>Pro</Text></Text>
