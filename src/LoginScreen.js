@@ -30,7 +30,14 @@ export default function LoginScreen({ navigation, route }) {
     }
     setLoading(false)
     if (mode === 'coach') {
-      navigation.replace('CoachTabs')
+      const { data: { user } } = await supabase.auth.getUser()
+      const isOnboarded = !!user?.user_metadata?.onboarded_at
+      if (isOnboarded) {
+        navigation.replace('CoachTabs')
+      } else {
+        const firstName = user?.email?.split('@')[0] || ''
+        navigation.replace('OnboardingWelcome', { firstName })
+      }
     } else {
       navigation.replace('PlayerApp')
     }

@@ -23,6 +23,10 @@ import VideoRecordScreen from "./src/VideoRecordScreen"
 import VideoAnnotationScreen from "./src/VideoAnnotationScreen"
 import SessionSummaryScreen from "./src/SessionSummaryScreen"
 import PlayerSessionSummaryScreen from "./src/PlayerSessionSummaryScreen"
+import CoachOnboardingWelcomeScreen from "./src/CoachOnboardingWelcomeScreen"
+import CoachOnboardingProfileScreen from "./src/CoachOnboardingProfileScreen"
+import CoachOnboardingFirstPlayerScreen from "./src/CoachOnboardingFirstPlayerScreen"
+import CoachOnboardingTutorialScreen from "./src/CoachOnboardingTutorialScreen"
 import PlayerVideoReplayScreen from "./src/PlayerVideoReplayScreen"
 import { supabase } from "./src/supabase"
 import { OnboardingProvider } from "./src/OnboardingContext"
@@ -90,7 +94,15 @@ export default function App() {
             .select('id')
             .eq('coach_id', session.user.id)
             .limit(1)
-          setInitialRoute(players && players.length > 0 ? 'CoachTabs' : 'PlayerApp')
+          const isCoach = players && players.length > 0
+          if (isCoach) {
+            // Check if coach completed onboarding
+            const { data: { user } } = await supabase.auth.getUser()
+            const isOnboarded = !!user?.user_metadata?.onboarded_at
+            setInitialRoute(isOnboarded ? 'CoachTabs' : 'OnboardingWelcome')
+          } else {
+            setInitialRoute('PlayerApp')
+          }
         } else {
           setInitialRoute('Welcome')
         }
@@ -134,6 +146,10 @@ export default function App() {
         <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
           <RootStack.Screen name="Welcome" component={WelcomeScreen} />
           <RootStack.Screen name="Login" component={LoginScreen} />
+          <RootStack.Screen name="OnboardingWelcome" component={CoachOnboardingWelcomeScreen} />
+          <RootStack.Screen name="OnboardingProfile" component={CoachOnboardingProfileScreen} />
+          <RootStack.Screen name="OnboardingFirstPlayer" component={CoachOnboardingFirstPlayerScreen} />
+          <RootStack.Screen name="OnboardingTutorial" component={CoachOnboardingTutorialScreen} />
           <RootStack.Screen name="CoachTabs" component={CoachTabs} />
           <RootStack.Screen name="PlayerApp" component={PlayerTabs} />
           <RootStack.Screen name="PlayerDetail" component={PlayerDetailScreen} />
