@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from './theme'
 
-const G = '#1B5E35'
 const { width } = Dimensions.get('window')
 
 const SLIDES = [
@@ -11,7 +11,7 @@ const SLIDES = [
     icon: 'flag-outline',
     title: 'Bienvenue sur FairwayPro',
     sub: 'Ton espace personnel pour progresser au golf avec ton coach.',
-    color: '#1B5E35',
+    color: colors.primary,
   },
   {
     icon: 'stats-chart-outline',
@@ -29,13 +29,13 @@ const SLIDES = [
     icon: 'calendar-outline',
     title: 'Réserve tes cours',
     sub: "Consulte le calendrier de ton coach et reserve tes creneaux directement depuis l'app.",
-    color: '#D97706',
+    color: colors.warning,
   },
   {
     icon: 'chatbubbles-outline',
     title: 'Reste connecté',
     sub: 'Envoie des messages à ton coach, partage tes vidéos de swing et rejoins la communauté.',
-    color: '#DC2626',
+    color: colors.error,
   },
 ]
 
@@ -93,11 +93,11 @@ const s = StyleSheet.create({
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   icon: { fontSize: 80, marginBottom: 8 },
   welcome: { fontSize: 20, color: 'rgba(255,255,255,0.9)', fontWeight: '600' },
-  title: { fontSize: 28, fontWeight: '800', color: '#fff', textAlign: 'center', lineHeight: 36 },
+  title: { fontSize: 28, fontWeight: '800', color: colors.textInverse, textAlign: 'center', lineHeight: 36 },
   sub: { fontSize: 16, color: 'rgba(255,255,255,0.8)', textAlign: 'center', lineHeight: 26, paddingHorizontal: 16 },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 24 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.3)' },
-  dotActive: { width: 24, backgroundColor: '#fff' },
-  btn: { backgroundColor: '#fff', borderRadius: 16, padding: 18, alignItems: 'center' },
+  dotActive: { width: 24, backgroundColor: colors.surface },
+  btn: { backgroundColor: colors.surface, borderRadius: 16, padding: 18, alignItems: 'center' },
   btnTxt: { fontSize: 17, fontWeight: '800' },
 })

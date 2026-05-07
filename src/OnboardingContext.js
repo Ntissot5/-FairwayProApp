@@ -1,7 +1,6 @@
 import { createContext, useContext, useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 const OnboardingContext = createContext(null)
 
@@ -64,16 +63,16 @@ export function OnboardingTooltip({ stepId, children, style }) {
 }
 
 const s = StyleSheet.create({
-  tooltip: { position: 'absolute', left: 0, right: 0, backgroundColor: G, borderRadius: 16, padding: 16, zIndex: 9999, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 10 },
+  tooltip: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.primary, borderRadius: 16, padding: 16, zIndex: 9999, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 10 },
   tooltipBottom: { top: '100%', marginTop: 10 },
   tooltipTop: { bottom: '100%', marginBottom: 10 },
   arrow: { position: 'absolute', left: 20, width: 0, height: 0, borderLeftWidth: 8, borderRightWidth: 8, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
-  arrowTop: { top: -8, borderBottomWidth: 8, borderBottomColor: G },
-  arrowBottom: { bottom: -8, borderTopWidth: 8, borderTopColor: G },
-  tooltipTxt: { fontSize: 14, color: '#fff', lineHeight: 22, marginBottom: 12 },
+  arrowTop: { top: -8, borderBottomWidth: 8, borderBottomColor: colors.primary },
+  arrowBottom: { bottom: -8, borderTopWidth: 8, borderTopColor: colors.primary },
+  tooltipTxt: { fontSize: 14, color: colors.textInverse, lineHeight: 22, marginBottom: 12 },
   tooltipBtns: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   skipBtn: { padding: 6 },
   skipTxt: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
-  nextBtn: { backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
-  nextTxt: { fontSize: 13, fontWeight: '700', color: G },
+  nextBtn: { backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  nextTxt: { fontSize: 13, fontWeight: '700', color: colors.primary },
 })

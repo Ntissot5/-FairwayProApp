@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native'
+import { colors } from './theme'
 
-const G = '#1B5E35'
 const DAYS = ['L','M','M','J','V','S','D']
 const MONTHS = ['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre']
 
@@ -82,20 +82,20 @@ export default function CalendarPicker({ value, onChange, onClose }) {
 
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-  container: { backgroundColor: '#fff', borderRadius: 20, padding: 20, width: 320 },
+  container: { backgroundColor: colors.surface, borderRadius: 20, padding: 20, width: 320 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  navBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F8FAF8', alignItems: 'center', justifyContent: 'center' },
-  navTxt: { fontSize: 18, color: G, fontWeight: '600' },
-  monthTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  navBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surfaceElevated, alignItems: 'center', justifyContent: 'center' },
+  navTxt: { fontSize: 18, color: colors.primary, fontWeight: '600' },
+  monthTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   daysHeader: { flexDirection: 'row', marginBottom: 8 },
-  dayLabel: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '600', color: '#9CA3AF' },
+  dayLabel: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '600', color: colors.textTertiary },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   dayCell: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 20 },
-  dayCellSelected: { backgroundColor: G },
-  dayCellToday: { borderWidth: 1.5, borderColor: G },
-  dayTxt: { fontSize: 14, color: '#1a1a1a', fontWeight: '500' },
-  dayTxtSelected: { color: '#fff', fontWeight: '700' },
-  dayTxtToday: { color: G, fontWeight: '700' },
+  dayCellSelected: { backgroundColor: colors.primary },
+  dayCellToday: { borderWidth: 1.5, borderColor: colors.primary },
+  dayTxt: { fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
+  dayTxtSelected: { color: colors.textInverse, fontWeight: '700' },
+  dayTxtToday: { color: colors.primary, fontWeight: '700' },
   cancelBtn: { marginTop: 16, alignItems: 'center', padding: 10 },
-  cancelTxt: { fontSize: 15, color: '#9CA3AF', fontWeight: '600' },
+  cancelTxt: { fontSize: 15, color: colors.textTertiary, fontWeight: '600' },
 })

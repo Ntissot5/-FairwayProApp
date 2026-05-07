@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function SessionsScreen({ navigation }) {
   const { t } = useTranslation()
@@ -172,7 +172,7 @@ export default function SessionsScreen({ navigation }) {
     fetchAll()
   }
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   return (
     <SafeAreaView style={s.safe}>
@@ -188,14 +188,14 @@ export default function SessionsScreen({ navigation }) {
 
       <View style={s.tabs}>
         <TouchableOpacity style={[s.tab, tab === 'sessions' && s.tabActive]} onPress={() => setTab('sessions')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={14} color={tab === 'sessions' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'sessions' && s.tabTxtActive]}>{t('sessions.tab_sessions')}</Text></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={14} color={tab === 'sessions' ? colors.primary : colors.textTertiary} /><Text style={[s.tabTxt, tab === 'sessions' && s.tabTxtActive]}>{t('sessions.tab_sessions')}</Text></View>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tab, tab === 'packages' && s.tabActive]} onPress={() => setTab('packages')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="cube-outline" size={14} color={tab === 'packages' ? G : '#9CA3AF'} /><Text style={[s.tabTxt, tab === 'packages' && s.tabTxtActive]}>{t('sessions.tab_packages')}</Text></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="cube-outline" size={14} color={tab === 'packages' ? colors.primary : colors.textTertiary} /><Text style={[s.tabTxt, tab === 'packages' && s.tabTxtActive]}>{t('sessions.tab_packages')}</Text></View>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
+      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
         
         {tab === 'sessions' && (
           <>
@@ -214,8 +214,8 @@ export default function SessionsScreen({ navigation }) {
                       <Text style={s.date}>{session.session_date}</Text>
                     </View>
                     <Text style={s.price}>{session.price}€</Text>
-                    <TouchableOpacity onPress={() => { setEditSession(session); setEditPrice(String(session.price)); setEditDate(session.session_date) }} style={{ backgroundColor: '#F8FAF8', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, borderWidth: 0.5, borderColor: '#E5E7EB' }}>
-                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#6B7280' }}>{t('common.edit')}</Text>
+                    <TouchableOpacity onPress={() => { setEditSession(session); setEditPrice(String(session.price)); setEditDate(session.session_date) }} style={{ backgroundColor: colors.surfaceElevated, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, borderWidth: 0.5, borderColor: colors.borderStrong }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary }}>{t('common.edit')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => deleteSession(session.id)} style={s.delBtn}>
                       <Text style={s.delTxt}>✕</Text>
@@ -223,8 +223,8 @@ export default function SessionsScreen({ navigation }) {
                   </TouchableOpacity>
                   {session.notes ? <Text style={s.notes}>{session.notes}</Text> : null}
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
-                    <TouchableOpacity onPress={() => generateAIPlan(session)} disabled={generating === session.id} style={[s.aiBtn, generating === session.id && { backgroundColor: '#E8F5EE' }]}>
-                      <Text style={[s.aiBtnTxt, generating === session.id && { color: G }]}>{generating === session.id ? '...' : '✦ ' + t('sessions.generate_ai_plan')}</Text>
+                    <TouchableOpacity onPress={() => generateAIPlan(session)} disabled={generating === session.id} style={[s.aiBtn, generating === session.id && { backgroundColor: colors.primaryLight }]}>
+                      <Text style={[s.aiBtnTxt, generating === session.id && { color: colors.primary }]}>{generating === session.id ? '...' : '✦ ' + t('sessions.generate_ai_plan')}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -242,7 +242,7 @@ export default function SessionsScreen({ navigation }) {
               const remaining = pkg.total_sessions - pkg.used_sessions
               const isAlmostDone = remaining <= 2
               return (
-                <View key={pkg.id} style={[s.card, isAlmostDone && { borderColor: '#FECACA', borderWidth: 1 }]}>
+                <View key={pkg.id} style={[s.card, isAlmostDone && { borderColor: colors.error, borderWidth: 1 }]}>
                   <View style={s.cardTop}>
                     <View style={s.av}>
                       <Text style={s.avTxt}>{pkg.players?.full_name?.charAt(0) || '?'}</Text>
@@ -255,11 +255,11 @@ export default function SessionsScreen({ navigation }) {
                   </View>
                   <View style={{ marginTop: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: isAlmostDone ? '#DC2626' : '#374151' }}>{pkg.used_sessions}/{pkg.total_sessions} séances</Text>
-                      <Text style={{ fontSize: 11, color: isAlmostDone ? '#DC2626' : '#9CA3AF' }}>{t('sessions.remaining', { count: remaining })}</Text>
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: isAlmostDone ? colors.error : colors.textSecondary }}>{pkg.used_sessions}/{pkg.total_sessions} séances</Text>
+                      <Text style={{ fontSize: 11, color: isAlmostDone ? colors.error : colors.textTertiary }}>{t('sessions.remaining', { count: remaining })}</Text>
                     </View>
-                    <View style={{ height: 6, backgroundColor: '#F0F4F0', borderRadius: 3 }}>
-                      <View style={{ height: 6, width: pct + '%', backgroundColor: isAlmostDone ? '#EF4444' : G, borderRadius: 3 }} />
+                    <View style={{ height: 6, backgroundColor: colors.border, borderRadius: 3 }}>
+                      <View style={{ height: 6, width: pct + '%', backgroundColor: isAlmostDone ? '#EF4444' : colors.primary, borderRadius: 3 }} />
                     </View>
                   </View>
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
@@ -267,12 +267,12 @@ export default function SessionsScreen({ navigation }) {
                       <Text style={s.aiBtnTxt}>+ 1 séance</Text>
                     </TouchableOpacity>
                     {pkg.payment_status !== 'paid' ? (
-                      <TouchableOpacity onPress={() => markPaid(pkg)} style={{ backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
-                        <Text style={{ color: G, fontSize: 12, fontWeight: '600' }}>{t('sessions.paid')}</Text>
+                      <TouchableOpacity onPress={() => markPaid(pkg)} style={{ backgroundColor: colors.primaryLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
+                        <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '600' }}>{t('sessions.paid')}</Text>
                       </TouchableOpacity>
                     ) : (
-                      <View style={{ backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
-                        <Text style={{ color: G, fontSize: 12, fontWeight: '600' }}>✅ Payé</Text>
+                      <View style={{ backgroundColor: colors.primaryLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
+                        <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '600' }}>✅ Payé</Text>
                       </View>
                     )}
                   </View>
@@ -296,9 +296,9 @@ export default function SessionsScreen({ navigation }) {
           </View>
           <View style={s.modalBody}>
             <Text style={s.label}>{t('sessions.price')} (€)</Text>
-            <TextInput style={s.input} value={editPrice} onChangeText={setEditPrice} keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={editPrice} onChangeText={setEditPrice} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             <Text style={s.label}>Date</Text>
-            <TextInput style={s.input} value={editDate} onChangeText={setEditDate} placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={editDate} onChangeText={setEditDate} placeholderTextColor={colors.textTertiary} />
             <TouchableOpacity style={[s.btn, { marginTop: 24 }]} onPress={updateSession}>
               <Text style={s.btnTxt}>{t('common.save')}</Text>
             </TouchableOpacity>
@@ -320,7 +320,7 @@ export default function SessionsScreen({ navigation }) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {players.map(p => (
                 <TouchableOpacity key={p.id} onPress={() => { setNewSession({...newSession, player_id: p.id}); fetchPlayerPackages(p.id) }} style={[s.chip, newSession.player_id === p.id && s.chipActive]}>
-                  <Text style={[s.chipTxt, newSession.player_id === p.id && { color: '#fff' }]}>{p.full_name}</Text>
+                  <Text style={[s.chipTxt, newSession.player_id === p.id && { color: colors.textInverse }]}>{p.full_name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -329,30 +329,30 @@ export default function SessionsScreen({ navigation }) {
                 <Text style={s.label}>PACKAGE (optionnel)</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <TouchableOpacity onPress={() => setSelectedPackage(null)} style={[s.chip, !selectedPackage && s.chipActive]}>
-                    <Text style={[s.chipTxt, !selectedPackage && { color: '#fff' }]}>Sans package</Text>
+                    <Text style={[s.chipTxt, !selectedPackage && { color: colors.textInverse }]}>Sans package</Text>
                   </TouchableOpacity>
                   {playerPackages.map(pkg => (
                     <TouchableOpacity key={pkg.id} onPress={() => { setSelectedPackage(pkg); setNewSession(prev => ({...prev, price: pkg.price ? Math.round(pkg.price / pkg.total_sessions) : prev.price})) }} style={[s.chip, selectedPackage?.id === pkg.id && s.chipActive]}>
-                      <Text style={[s.chipTxt, selectedPackage?.id === pkg.id && { color: '#fff' }]}>{pkg.name} ({pkg.used_sessions}/{pkg.total_sessions})</Text>
+                      <Text style={[s.chipTxt, selectedPackage?.id === pkg.id && { color: colors.textInverse }]}>{pkg.name} ({pkg.used_sessions}/{pkg.total_sessions})</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
             )}
             <Text style={s.label}>{t('sessions.price')} (€)</Text>
-            <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1.5 }}>
                 <Text style={s.label}>Date</Text>
-                <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholder="2026-03-22" placeholderTextColor="#9CA3AF" />
+                <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholder="2026-03-22" placeholderTextColor={colors.textTertiary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Heure</Text>
-                <TextInput style={s.input} value={newSession.start_time} onChangeText={v => setNewSession({...newSession, start_time: v})} placeholder="09:00" placeholderTextColor="#9CA3AF" />
+                <TextInput style={s.input} value={newSession.start_time} onChangeText={v => setNewSession({...newSession, start_time: v})} placeholder="09:00" placeholderTextColor={colors.textTertiary} />
               </View>
             </View>
             <Text style={s.label}>{t('sessions.notes')}</Text>
-            <TextInput style={[s.input, { height: 80 }]} value={newSession.notes} onChangeText={v => setNewSession({...newSession, notes: v})} placeholder="Putting, drive..." placeholderTextColor="#9CA3AF" multiline />
+            <TextInput style={[s.input, { height: 80 }]} value={newSession.notes} onChangeText={v => setNewSession({...newSession, notes: v})} placeholder="Putting, drive..." placeholderTextColor={colors.textTertiary} multiline />
             <TouchableOpacity style={[s.btn, saving && { opacity: 0.7 }]} onPress={addSession} disabled={saving}>
               <Text style={s.btnTxt}>{saving ? t('sessions.adding') : '+ ' + t('sessions.add_session')}</Text>
             </TouchableOpacity>
@@ -374,30 +374,30 @@ export default function SessionsScreen({ navigation }) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {players.map(p => (
                 <TouchableOpacity key={p.id} onPress={() => setNewPkg({...newPkg, player_id: p.id})} style={[s.chip, newPkg.player_id === p.id && s.chipActive]}>
-                  <Text style={[s.chipTxt, newPkg.player_id === p.id && { color: '#fff' }]}>{p.full_name}</Text>
+                  <Text style={[s.chipTxt, newPkg.player_id === p.id && { color: colors.textInverse }]}>{p.full_name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
             <Text style={s.label}>Nom (optionnel)</Text>
-            <TextInput style={s.input} value={newPkg.name} onChangeText={v => setNewPkg({...newPkg, name: v})} placeholder="Ex: Formule été" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPkg.name} onChangeText={v => setNewPkg({...newPkg, name: v})} placeholder="Ex: Formule été" placeholderTextColor={colors.textTertiary} />
             <Text style={s.label}>Nombre de séances</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {['5','8','10','12','15','20'].map(n => (
                 <TouchableOpacity key={n} onPress={() => setNewPkg({...newPkg, total_sessions: n})} style={[s.chip, newPkg.total_sessions === n && s.chipActive]}>
-                  <Text style={[s.chipTxt, newPkg.total_sessions === n && { color: '#fff' }]}>{n} séances</Text>
+                  <Text style={[s.chipTxt, newPkg.total_sessions === n && { color: colors.textInverse }]}>{n} séances</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
             <Text style={s.label}>Prix total (€)</Text>
-            <TextInput style={s.input} value={newPkg.price} onChangeText={v => setNewPkg({...newPkg, price: v})} placeholder="1000" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPkg.price} onChangeText={v => setNewPkg({...newPkg, price: v})} placeholder="1000" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             {newPkg.price && newPkg.total_sessions ? (
-              <Text style={{ fontSize: 12, color: G, marginTop: 6, fontWeight: '600' }}>{Math.round(parseFloat(newPkg.price) / parseInt(newPkg.total_sessions))}€ / séance</Text>
+              <Text style={{ fontSize: 12, color: colors.primary, marginTop: 6, fontWeight: '600' }}>{Math.round(parseFloat(newPkg.price) / parseInt(newPkg.total_sessions))}€ / séance</Text>
             ) : null}
             <Text style={s.label}>Paiement</Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {[['pending', t('revenue.unpaid')],['paid', t('sessions.paid')]].map(([val, label]) => (
                 <TouchableOpacity key={val} onPress={() => setNewPkg({...newPkg, payment_status: val})} style={[s.chip, newPkg.payment_status === val && s.chipActive]}>
-                  <Text style={[s.chipTxt, newPkg.payment_status === val && { color: '#fff' }]}>{label}</Text>
+                  <Text style={[s.chipTxt, newPkg.payment_status === val && { color: colors.textInverse }]}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -412,43 +412,43 @@ export default function SessionsScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  title: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  sub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  addBtn: { backgroundColor: G, borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  addBtnTxt: { color: '#fff', fontSize: 22, fontWeight: '400', marginTop: -2 },
-  tabs: { flexDirection: 'row', backgroundColor: '#fff', padding: 4, margin: 16, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: '#E5E7EB' },
+  header: { backgroundColor: colors.surface, padding: 20, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  sub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  addBtn: { backgroundColor: colors.primary, borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  addBtnTxt: { color: colors.textInverse, fontSize: 22, fontWeight: '400', marginTop: -2 },
+  tabs: { flexDirection: 'row', backgroundColor: colors.surface, padding: 4, margin: 16, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: colors.borderStrong },
   tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 10 },
-  tabActive: { backgroundColor: G },
-  tabTxt: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
-  tabTxtActive: { color: '#fff' },
+  tabActive: { backgroundColor: colors.primary },
+  tabTxt: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+  tabTxtActive: { color: colors.textInverse },
   scroll: { flex: 1 },
-  empty: { textAlign: 'center', color: '#9CA3AF', fontSize: 13, padding: 40 },
-  card: { backgroundColor: '#fff', borderRadius: 12, margin: 16, marginBottom: 8, padding: 14, borderWidth: 0.5, borderColor: '#E5E7EB' },
+  empty: { textAlign: 'center', color: colors.textTertiary, fontSize: 13, padding: 40 },
+  card: { backgroundColor: colors.surface, borderRadius: 12, margin: 16, marginBottom: 8, padding: 14, borderWidth: 0.5, borderColor: colors.borderStrong },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  av: { width: 36, height: 36, borderRadius: 18, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  av: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  avTxt: { color: colors.textInverse, fontSize: 14, fontWeight: '700' },
   info: { flex: 1 },
-  name: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  date: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
-  price: { fontSize: 16, fontWeight: '800', color: G },
+  name: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  date: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  price: { fontSize: 16, fontWeight: '800', color: colors.primary },
   delBtn: { padding: 4 },
-  delTxt: { fontSize: 16, color: '#DC2626' },
-  notes: { fontSize: 12, color: '#6B7280', marginTop: 8, fontStyle: 'italic' },
-  aiBtn: { backgroundColor: G, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  aiBtnTxt: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  modal: { flex: 1, backgroundColor: '#fff' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  modalClose: { fontSize: 16, color: G, fontWeight: '600' },
+  delTxt: { fontSize: 16, color: colors.error },
+  notes: { fontSize: 12, color: colors.textSecondary, marginTop: 8, fontStyle: 'italic' },
+  aiBtn: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  aiBtnTxt: { color: colors.textInverse, fontSize: 12, fontWeight: '700' },
+  modal: { flex: 1, backgroundColor: colors.surface },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  modalClose: { fontSize: 16, color: colors.primary, fontWeight: '600' },
   modalBody: { padding: 20 },
-  label: { fontSize: 12, fontWeight: '600', color: '#6B7280', marginBottom: 6, marginTop: 14 },
-  input: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 12, padding: 14, fontSize: 15, color: '#1a1a1a' },
-  chip: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
-  chipActive: { backgroundColor: G, borderColor: G },
-  chipTxt: { fontSize: 13, color: '#1a1a1a', fontWeight: '500' },
-  btn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24, marginBottom: 40 },
-  btnTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  label: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 14 },
+  input: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 12, padding: 14, fontSize: 15, color: colors.textPrimary },
+  chip: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipTxt: { fontSize: 13, color: colors.textPrimary, fontWeight: '500' },
+  btn: { backgroundColor: colors.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24, marginBottom: 40 },
+  btnTxt: { color: colors.textInverse, fontSize: 16, fontWeight: '700' },
 })

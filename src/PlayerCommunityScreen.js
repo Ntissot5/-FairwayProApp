@@ -4,9 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
+import { colors } from './theme'
 
-const G = '#1B5E35'
-const colors = ['#1B5E35','#0891B2','#7C3AED','#DC2626','#D97706','#059669']
+const avatarColors = [colors.primary,'#0891B2','#7C3AED',colors.error,colors.warning,'#059669']
 
 export default function PlayerCommunityScreen() {
   const { t } = useTranslation()
@@ -62,24 +62,24 @@ export default function PlayerCommunityScreen() {
         <Text style={s.chatTitle}>{selectedPlayer.full_name}</Text>
       </View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }} keyboardVerticalOffset={90}>
-        <ScrollView ref={scrollRef} style={{ flex: 1, backgroundColor: '#f8f8f8' }} contentContainerStyle={{ padding: 16 }}>
+        <ScrollView ref={scrollRef} style={{ flex: 1, backgroundColor: colors.surfaceElevated }} contentContainerStyle={{ padding: 16 }}>
           {chatMessages.map(m => (
             <View key={m.id} style={{ alignItems: m.sender_id === myPlayer?.id ? 'flex-end' : 'flex-start', marginBottom: 10 }}>
               <View style={[s.bubble, m.sender_id === myPlayer?.id ? s.bubbleMe : s.bubbleThem]}>
-                <Text style={[s.bubbleTxt, m.sender_id === myPlayer?.id && { color: '#fff' }]}>{m.content}</Text>
+                <Text style={[s.bubbleTxt, m.sender_id === myPlayer?.id && { color: colors.textInverse }]}>{m.content}</Text>
               </View>
             </View>
           ))}
         </ScrollView>
         <View style={s.inputRow}>
-          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder="Message..." placeholderTextColor="#9CA3AF" />
-          <TouchableOpacity style={s.sendBtn} onPress={sendMessage}><Text style={{ color: '#fff', fontSize: 16 }}>↑</Text></TouchableOpacity>
+          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder="Message..." placeholderTextColor={colors.textTertiary} />
+          <TouchableOpacity style={s.sendBtn} onPress={sendMessage}><Text style={{ color: colors.textInverse, fontSize: 16 }}>↑</Text></TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   return (
     <SafeAreaView style={s.safe}>
@@ -100,7 +100,7 @@ export default function PlayerCommunityScreen() {
             <Text style={s.countLabel}>{players.length} GOLFERS SUR FAIRWAYPRO</Text>
             {players.map((p, i) => (
               <View key={p.id} style={s.playerCard}>
-                <View style={[s.av, { backgroundColor: colors[i % colors.length] }]}>
+                <View style={[s.av, { backgroundColor: avatarColors[i % avatarColors.length] }]}>
                   <Text style={s.avTxt}>{p.full_name?.slice(0,2).toUpperCase()}</Text>
                 </View>
                 <View style={s.playerInfo}>
@@ -112,7 +112,7 @@ export default function PlayerCommunityScreen() {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="chatbubble-outline" size={12} color="#fff" /><Text style={s.msgBtnTxt}>{t('player_community.message')}</Text></View>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.gameBtn} onPress={() => requestGame(p)}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={12} color={G} /><Text style={s.gameBtnTxt}>{t('player_community.game')}</Text></View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flag-outline" size={12} color={colors.primary} /><Text style={s.gameBtnTxt}>{t('player_community.game')}</Text></View>
                 </TouchableOpacity>
               </View>
             ))}
@@ -122,7 +122,7 @@ export default function PlayerCommunityScreen() {
           <>
             {players.length === 0 ? <Text style={s.empty}>No messages yet</Text> : players.map((p, i) => (
               <TouchableOpacity key={p.id} style={s.msgRow} onPress={() => setSelectedPlayer(p)}>
-                <View style={[s.av, { backgroundColor: colors[i % colors.length] }]}>
+                <View style={[s.av, { backgroundColor: avatarColors[i % avatarColors.length] }]}>
                   <Text style={s.avTxt}>{p.full_name?.slice(0,2).toUpperCase()}</Text>
                 </View>
                 <View style={s.playerInfo}>
@@ -143,7 +143,7 @@ export default function PlayerCommunityScreen() {
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                   <TouchableOpacity style={[s.gameBtn, { flex: 1, alignItems: 'center' }]}
                     onPress={async () => { await supabase.from('game_requests').update({ status: 'accepted' }).eq('id', gr.id); fetchAll() }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="checkmark" size={14} color={G} /><Text style={s.gameBtnTxt}>{t('player_community.accept')}</Text></View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="checkmark" size={14} color={colors.primary} /><Text style={s.gameBtnTxt}>{t('player_community.accept')}</Text></View>
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.msgBtn, { flex: 1, alignItems: 'center' }]}
                     onPress={async () => { await supabase.from('game_requests').update({ status: 'declined' }).eq('id', gr.id); fetchAll() }}>
@@ -161,44 +161,44 @@ export default function PlayerCommunityScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f8f8f8" },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: { backgroundColor: "#fff", padding: 16, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: "#E5E7EB" },
-  title: { fontSize: 22, fontWeight: "800", color: "#1a1a1a" },
-  sub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
-  tabs: { flexDirection: "row", backgroundColor: "#fff", padding: 4, margin: 16, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: "#E5E7EB" },
+  header: { backgroundColor: colors.surface, padding: 16, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  title: { fontSize: 22, fontWeight: "800", color: colors.textPrimary },
+  sub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  tabs: { flexDirection: "row", backgroundColor: colors.surface, padding: 4, margin: 16, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: colors.borderStrong },
   tab: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10 },
-  tabActive: { backgroundColor: G },
-  tabTxt: { fontSize: 13, fontWeight: "600", color: "#6B7280" },
-  tabTxtActive: { color: "#fff" },
+  tabActive: { backgroundColor: colors.primary },
+  tabTxt: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
+  tabTxtActive: { color: colors.textInverse },
   scroll: { flex: 1 },
-  countLabel: { fontSize: 11, fontWeight: "700", color: "#9CA3AF", paddingHorizontal: 16, marginBottom: 8, letterSpacing: 0.5 },
-  playerCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#F0F4F0", gap: 8 },
+  countLabel: { fontSize: 11, fontWeight: "700", color: colors.textTertiary, paddingHorizontal: 16, marginBottom: 8, letterSpacing: 0.5 },
+  playerCard: { flexDirection: "row", alignItems: "center", backgroundColor: colors.surface, padding: 14, borderBottomWidth: 0.5, borderBottomColor: colors.border, gap: 8 },
   av: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  avTxt: { color: "#fff", fontSize: 13, fontWeight: "700" },
+  avTxt: { color: colors.textInverse, fontSize: 13, fontWeight: "700" },
   playerInfo: { flex: 1 },
-  playerName: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  hcp: { fontSize: 16, fontWeight: "800", color: G },
-  hcpLabel: { fontSize: 9, color: "#9CA3AF" },
-  msgBtn: { backgroundColor: "#F8FAF8", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 0.5, borderColor: "#E5E7EB" },
-  msgBtnTxt: { fontSize: 11, fontWeight: "600", color: "#374151" },
-  gameBtn: { backgroundColor: G, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
-  gameBtnTxt: { fontSize: 11, fontWeight: "600", color: "#fff" },
-  msgRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", padding: 16, borderBottomWidth: 0.5, borderBottomColor: "#F0F4F0", gap: 12 },
-  msgPreview: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
-  arrow: { fontSize: 20, color: "#9CA3AF" },
-  empty: { textAlign: "center", color: "#9CA3AF", padding: 40 },
-  gameRequestCard: { backgroundColor: "#fff", margin: 16, marginBottom: 8, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: "#E5E7EB" },
-  gameRequestFrom: { fontSize: 15, fontWeight: "700", color: "#1a1a1a" },
-  gameRequestCourse: { fontSize: 13, color: "#6B7280", marginTop: 4 },
-  chatHeader: { backgroundColor: "#fff", flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: "#E5E7EB" },
-  backTxt: { fontSize: 16, color: G, fontWeight: "600" },
-  chatTitle: { fontSize: 16, fontWeight: "700", color: "#1a1a1a" },
+  playerName: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
+  hcp: { fontSize: 16, fontWeight: "800", color: colors.primary },
+  hcpLabel: { fontSize: 9, color: colors.textTertiary },
+  msgBtn: { backgroundColor: colors.surfaceElevated, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 0.5, borderColor: colors.borderStrong },
+  msgBtnTxt: { fontSize: 11, fontWeight: "600", color: colors.textSecondary },
+  gameBtn: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  gameBtnTxt: { fontSize: 11, fontWeight: "600", color: colors.textInverse },
+  msgRow: { flexDirection: "row", alignItems: "center", backgroundColor: colors.surface, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.border, gap: 12 },
+  msgPreview: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  arrow: { fontSize: 20, color: colors.textTertiary },
+  empty: { textAlign: "center", color: colors.textTertiary, padding: 40 },
+  gameRequestCard: { backgroundColor: colors.surface, margin: 16, marginBottom: 8, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.borderStrong },
+  gameRequestFrom: { fontSize: 15, fontWeight: "700", color: colors.textPrimary },
+  gameRequestCourse: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
+  chatHeader: { backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  backTxt: { fontSize: 16, color: colors.primary, fontWeight: "600" },
+  chatTitle: { fontSize: 16, fontWeight: "700", color: colors.textPrimary },
   bubble: { maxWidth: "78%", padding: 12, borderRadius: 18 },
-  bubbleMe: { backgroundColor: G, borderBottomRightRadius: 4 },
-  bubbleThem: { backgroundColor: "#fff", borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: "#E5E7EB" },
-  bubbleTxt: { fontSize: 14, color: "#1a1a1a", lineHeight: 20 },
-  inputRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, backgroundColor: "#fff", borderTopWidth: 0.5, borderTopColor: "#E5E7EB" },
-  inputMsg: { flex: 1, backgroundColor: "#f2f2f7", borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: "#1a1a1a" },
-  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: G, alignItems: "center", justifyContent: "center" },
+  bubbleMe: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
+  bubbleThem: { backgroundColor: colors.surface, borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: colors.borderStrong },
+  bubbleTxt: { fontSize: 14, color: colors.textPrimary, lineHeight: 20 },
+  inputRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, backgroundColor: colors.surface, borderTopWidth: 0.5, borderTopColor: colors.borderStrong },
+  inputMsg: { flex: 1, backgroundColor: "#f2f2f7", borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: colors.textPrimary },
+  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
 })

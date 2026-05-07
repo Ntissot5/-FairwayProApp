@@ -3,8 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function PlayersScreen({ navigation }) {
   const { t } = useTranslation()
@@ -40,9 +39,9 @@ export default function PlayersScreen({ navigation }) {
   }
 
   const now = new Date()
-  const colors = ['#1B5E35','#0891B2','#7C3AED','#DC2626','#D97706','#059669']
+  const avatarColors = [colors.primary,'#0891B2','#7C3AED',colors.error,colors.warning,'#059669']
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   return (
     <SafeAreaView style={s.safe}>
@@ -56,7 +55,7 @@ export default function PlayersScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
+      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
         {players.map((p, i) => {
           const ps = sessions.filter(s => s.player_id === p.id)
           const revenue = ps.reduce((sum, s) => sum + (s.price || 0), 0)
@@ -65,7 +64,7 @@ export default function PlayersScreen({ navigation }) {
           const inactive = !days || days > 14
           return (
             <TouchableOpacity key={p.id} style={[s.row, inactive && s.rowRed]} onPress={() => navigation.navigate("PlayerDetail", { player: p })}>
-              <View style={[s.av, { backgroundColor: colors[i % colors.length] }]}>
+              <View style={[s.av, { backgroundColor: avatarColors[i % avatarColors.length] }]}>
                 <Text style={s.avTxt}>{p.full_name?.charAt(0)}</Text>
               </View>
               <View style={s.info}>
@@ -81,7 +80,7 @@ export default function PlayersScreen({ navigation }) {
                 <Text style={s.hcpLabel}>{t('players.revenue')}</Text>
               </View>
               <View style={[s.badge, inactive ? s.badgeRed : s.badgeGreen]}>
-                <Text style={[s.badgeTxt, { color: inactive ? '#DC2626' : G }]}>{inactive ? t('players.inactive') : t('players.active')}</Text>
+                <Text style={[s.badgeTxt, { color: inactive ? colors.error : colors.primary }]}>{inactive ? t('players.inactive') : t('players.active')}</Text>
               </View>
             </TouchableOpacity>
           )
@@ -99,9 +98,9 @@ export default function PlayersScreen({ navigation }) {
           </View>
           <View style={s.modalBody}>
             <Text style={s.label}>{t('players.full_name')}</Text>
-            <TextInput style={s.input} value={newPlayer.full_name} onChangeText={v => setNewPlayer({...newPlayer, full_name: v})} placeholder="Emma Wilson" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPlayer.full_name} onChangeText={v => setNewPlayer({...newPlayer, full_name: v})} placeholder="Emma Wilson" placeholderTextColor={colors.textTertiary} />
             <Text style={s.label}>{t('players.handicap')}</Text>
-            <TextInput style={s.input} value={newPlayer.current_handicap} onChangeText={v => setNewPlayer({...newPlayer, current_handicap: v})} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPlayer.current_handicap} onChangeText={v => setNewPlayer({...newPlayer, current_handicap: v})} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             <TouchableOpacity style={[s.btn, saving && { opacity: 0.7 }]} onPress={addPlayer} disabled={saving}>
               <Text style={s.btnTxt}>{saving ? t('players.adding') : '+ ' + t('players.add_player')}</Text>
             </TouchableOpacity>
@@ -113,36 +112,36 @@ export default function PlayersScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  title: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  sub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  addBtn: { backgroundColor: G, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 9 },
-  addBtnTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  header: { backgroundColor: colors.surface, padding: 20, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  sub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  addBtn: { backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 9 },
+  addBtnTxt: { color: colors.textInverse, fontSize: 13, fontWeight: '700' },
   scroll: { flex: 1 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, backgroundColor: '#fff', borderBottomWidth: 0.5, borderBottomColor: '#F8FAF8', marginHorizontal: 16, marginTop: 8, borderRadius: 12, borderWidth: 0.5, borderColor: '#E5E7EB' },
-  rowRed: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, backgroundColor: colors.surface, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated, marginHorizontal: 16, marginTop: 8, borderRadius: 12, borderWidth: 0.5, borderColor: colors.borderStrong },
+  rowRed: { backgroundColor: colors.errorLight, borderColor: colors.error },
   av: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  avTxt: { color: colors.textInverse, fontSize: 15, fontWeight: '700' },
   info: { flex: 1 },
-  name: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  rowSub: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  name: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  rowSub: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
   right: { alignItems: 'center', minWidth: 45 },
-  hcp: { fontSize: 16, fontWeight: '800', color: G },
-  hcpLabel: { fontSize: 9, color: '#9CA3AF', fontWeight: '600' },
-  rev: { fontSize: 13, fontWeight: '700', color: '#374151' },
+  hcp: { fontSize: 16, fontWeight: '800', color: colors.primary },
+  hcpLabel: { fontSize: 9, color: colors.textTertiary, fontWeight: '600' },
+  rev: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  badgeGreen: { backgroundColor: '#E8F5EE' },
-  badgeRed: { backgroundColor: '#FEF2F2' },
+  badgeGreen: { backgroundColor: colors.primaryLight },
+  badgeRed: { backgroundColor: colors.errorLight },
   badgeTxt: { fontSize: 10, fontWeight: '600' },
-  modal: { flex: 1, backgroundColor: '#fff' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  modalClose: { fontSize: 16, color: G, fontWeight: '600' },
+  modal: { flex: 1, backgroundColor: colors.surface },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  modalClose: { fontSize: 16, color: colors.primary, fontWeight: '600' },
   modalBody: { padding: 20 },
-  label: { fontSize: 12, fontWeight: '600', color: '#6B7280', marginBottom: 6, marginTop: 14 },
-  input: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 12, padding: 14, fontSize: 15, color: '#1a1a1a' },
-  btn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24 },
-  btnTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  label: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 14 },
+  input: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 12, padding: 14, fontSize: 15, color: colors.textPrimary },
+  btn: { backgroundColor: colors.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24 },
+  btnTxt: { color: colors.textInverse, fontSize: 16, fontWeight: '700' },
 })

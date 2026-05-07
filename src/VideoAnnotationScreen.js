@@ -5,9 +5,9 @@ import { useVideoPlayer, VideoView } from 'expo-video'
 import { Ionicons } from '@expo/vector-icons'
 import Svg, { Line, Circle } from 'react-native-svg'
 import { setPendingVideo } from './videoResult'
+import { colors } from './theme'
 
-const G = '#1B5E35'
-const COLORS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6']
+const COLORS = ['#EF4444', colors.warning, '#10B981', '#3B82F6']
 const FPS = 30
 const FRAME_MS = Math.round(1000 / FPS)
 const TOLERANCE_MS = 100
@@ -289,16 +289,16 @@ const s = StyleSheet.create({
   pauseHint: { position: 'absolute', bottom: 12, left: 0, right: 0, alignItems: 'center', zIndex: 15 },
   pauseHintTxt: { fontSize: 12, color: 'rgba(255,255,255,0.6)', backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 10 },
   scrubber: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#111' },
-  playBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
+  playBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   frameBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
   sliderContainer: { flex: 1, height: 30, justifyContent: 'center', position: 'relative' },
   sliderTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, overflow: 'hidden' },
-  sliderFill: { height: 4, backgroundColor: G, borderRadius: 2 },
+  sliderFill: { height: 4, backgroundColor: colors.primary, borderRadius: 2 },
   marker: { position: 'absolute', width: 4, height: 12, borderRadius: 2, top: 9 },
-  timeLabel: { fontSize: 11, color: '#9CA3AF', fontVariant: ['tabular-nums'], minWidth: 42, textAlign: 'right' },
+  timeLabel: { fontSize: 11, color: colors.textTertiary, fontVariant: ['tabular-nums'], minWidth: 42, textAlign: 'right' },
   footer: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, backgroundColor: '#111' },
   cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#333', alignItems: 'center' },
-  cancelBtnTxt: { fontSize: 15, fontWeight: '600', color: '#9CA3AF' },
-  saveBtn: { flex: 2, paddingVertical: 14, borderRadius: 12, backgroundColor: G, alignItems: 'center' },
-  saveBtnTxt: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  cancelBtnTxt: { fontSize: 15, fontWeight: '600', color: colors.textTertiary },
+  saveBtn: { flex: 2, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center' },
+  saveBtnTxt: { fontSize: 15, fontWeight: '700', color: colors.textInverse },
 })

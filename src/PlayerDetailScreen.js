@@ -6,8 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
 import { Svg, Path, Circle, Text as SvgText, Line, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { supabase } from './supabase'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function PlayerDetailScreen({ route, navigation }) {
   const { player: initialPlayer } = route.params
@@ -120,7 +119,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
   const last = sessions[0]
   const days = last ? Math.floor((now - new Date(last.session_date)) / (1000*60*60*24)) : null
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   const renderHcpChart = () => {
     if (hcpEntries.length < 2) return <Text style={s.empty}>Add at least 2 entries to see the chart</Text>
@@ -146,33 +145,33 @@ export default function PlayerDetailScreen({ route, navigation }) {
     return (
       <View style={{ padding: 16 }}>
         <View style={{ flexDirection: "row", gap: 16, marginBottom: 10 }}>
-          <Text style={{ fontSize: 12, color: "#6B7280" }}>Début: <Text style={{ fontWeight: "700", color: "#1a1a1a" }}>{first}</Text></Text>
-          <Text style={{ fontSize: 12, color: "#6B7280" }}>Actuel: <Text style={{ fontWeight: "700", color: "#1a1a1a" }}>{lastVal}</Text></Text>
-          <Text style={{ fontSize: 12, fontWeight: "700", color: diff <= 0 ? G : "#DC2626" }}>{diff > 0 ? "+" : ""}{diff} pts</Text>
+          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Début: <Text style={{ fontWeight: "700", color: colors.textPrimary }}>{first}</Text></Text>
+          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Actuel: <Text style={{ fontWeight: "700", color: colors.textPrimary }}>{lastVal}</Text></Text>
+          <Text style={{ fontSize: 12, fontWeight: "700", color: diff <= 0 ? colors.primary : colors.error }}>{diff > 0 ? "+" : ""}{diff} pts</Text>
         </View>
         <Svg width={W} height={H}>
           <Defs>
             <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={G} stopOpacity="0.2" />
-              <Stop offset="1" stopColor={G} stopOpacity="0.02" />
+              <Stop offset="0" stopColor={colors.primary} stopOpacity="0.2" />
+              <Stop offset="1" stopColor={colors.primary} stopOpacity="0.02" />
             </LinearGradient>
           </Defs>
-          <Line x1={padL} y1={padT} x2={padL} y2={padT + chartH} stroke="#E5E7EB" strokeWidth="1" />
-          <Line x1={padL} y1={padT + chartH} x2={W - padR} y2={padT + chartH} stroke="#E5E7EB" strokeWidth="1" />
-          <SvgText x={padL - 4} y={padT + 4} fontSize="9" fill="#9CA3AF" textAnchor="end">{maxV.toFixed(1)}</SvgText>
-          <SvgText x={padL - 4} y={padT + chartH + 2} fontSize="9" fill="#9CA3AF" textAnchor="end">{minV.toFixed(1)}</SvgText>
+          <Line x1={padL} y1={padT} x2={padL} y2={padT + chartH} stroke={colors.borderStrong} strokeWidth="1" />
+          <Line x1={padL} y1={padT + chartH} x2={W - padR} y2={padT + chartH} stroke={colors.borderStrong} strokeWidth="1" />
+          <SvgText x={padL - 4} y={padT + 4} fontSize="9" fill={colors.textTertiary} textAnchor="end">{maxV.toFixed(1)}</SvgText>
+          <SvgText x={padL - 4} y={padT + chartH + 2} fontSize="9" fill={colors.textTertiary} textAnchor="end">{minV.toFixed(1)}</SvgText>
           <Path d={areaPath} fill="url(#grad)" />
-          <Path d={linePath} stroke={G} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <Path d={linePath} stroke={colors.primary} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           {pts.map((p, i) => (
-            <Circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 3} fill={i === pts.length - 1 ? G : "#86EFAC"} stroke="white" strokeWidth="1.5" />
+            <Circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 3} fill={i === pts.length - 1 ? colors.primary : "#86EFAC"} stroke="white" strokeWidth="1.5" />
           ))}
-          <SvgText x={pts[0]?.x} y={H} fontSize="9" fill="#9CA3AF" textAnchor="start">{pts[0]?.date}</SvgText>
-          <SvgText x={pts[pts.length-1]?.x} y={H} fontSize="9" fill="#9CA3AF" textAnchor="end">{pts[pts.length-1]?.date}</SvgText>
+          <SvgText x={pts[0]?.x} y={H} fontSize="9" fill={colors.textTertiary} textAnchor="start">{pts[0]?.date}</SvgText>
+          <SvgText x={pts[pts.length-1]?.x} y={H} fontSize="9" fill={colors.textTertiary} textAnchor="end">{pts[pts.length-1]?.date}</SvgText>
         </Svg>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
           {data.map((e, i) => (
-            <View key={i} style={{ backgroundColor: "#F8FAF8", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 0.5, borderColor: "#E5E7EB" }}>
-              <Text style={{ fontSize: 11, color: "#374151" }}>{e.date} — <Text style={{ fontWeight: "700", color: G }}>{e.handicap}</Text></Text>
+            <View key={i} style={{ backgroundColor: colors.surfaceElevated, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 0.5, borderColor: colors.borderStrong }}>
+              <Text style={{ fontSize: 11, color: colors.textSecondary }}>{e.date} — <Text style={{ fontWeight: "700", color: colors.primary }}>{e.handicap}</Text></Text>
             </View>
           ))}
         </View>
@@ -191,7 +190,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
           <Text style={s.inviteBtnTxt}>🔗 Inviter</Text>
         </TouchableOpacity>
       </View>
-      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
+      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
 
         <View style={s.statsRow}>
           {[
@@ -215,11 +214,11 @@ export default function PlayerDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
           {showHcpInput && (
-            <View style={{ padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#F0F4F0", gap: 10 }}>
+            <View style={{ padding: 14, borderBottomWidth: 0.5, borderBottomColor: colors.border, gap: 10 }}>
               <View style={{ flexDirection: "row", gap: 10 }}>
-                <TextInput style={[s.hcpInput, { flex: 1 }]} value={newHcp} onChangeText={setNewHcp} placeholder="HCP (ex: 8.2)" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+                <TextInput style={[s.hcpInput, { flex: 1 }]} value={newHcp} onChangeText={setNewHcp} placeholder="HCP (ex: 8.2)" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
                 <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[s.hcpInput, { flex: 1.5, justifyContent: "center" }]}>
-                  <Text style={{ color: "#1a1a1a", fontSize: 15 }}>{newHcpDate}</Text>
+                  <Text style={{ color: colors.textPrimary, fontSize: 15 }}>{newHcpDate}</Text>
                 </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker
@@ -256,7 +255,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
               </View>
               <Text style={s.sessionPrice}>{session.price}€</Text>
               <TouchableOpacity onPress={() => generateAIPlan(session)} disabled={generating === session.id} style={[s.aiBtn, generating === session.id && s.aiBtnLoading]}>
-                <Text style={[s.aiBtnTxt, generating === session.id && { color: G }]}>{generating === session.id ? "..." : "✦ AI Plan"}</Text>
+                <Text style={[s.aiBtnTxt, generating === session.id && { color: colors.primary }]}>{generating === session.id ? "..." : "✦ AI Plan"}</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -265,20 +264,20 @@ export default function PlayerDetailScreen({ route, navigation }) {
         <View style={s.section}>
           <View style={s.sectionHead}>
             <Text style={s.sectionTitle}>Swing Videos</Text>
-            <TouchableOpacity onPress={uploadVideo} disabled={uploadingVideo} style={[s.aiBtn, uploadingVideo && { backgroundColor: "#E8F5EE" }]}>
-              <Text style={[s.aiBtnTxt, uploadingVideo && { color: G }]}>{uploadingVideo ? "..." : "+ Film"}</Text>
+            <TouchableOpacity onPress={uploadVideo} disabled={uploadingVideo} style={[s.aiBtn, uploadingVideo && { backgroundColor: colors.primaryLight }]}>
+              <Text style={[s.aiBtnTxt, uploadingVideo && { color: colors.primary }]}>{uploadingVideo ? "..." : "+ Film"}</Text>
             </TouchableOpacity>
           </View>
           {videos.length === 0 ? (
             <Text style={s.empty}>No videos yet</Text>
           ) : videos.map(v => (
             <View key={v.id} style={s.sessionRow}>
-              <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: "#f0faf4", alignItems: "center", justifyContent: "center", marginRight: 8 }}>
-                <Ionicons name="videocam-outline" size={20} color={G} />
+              <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: colors.primaryLight, alignItems: "center", justifyContent: "center", marginRight: 8 }}>
+                <Ionicons name="videocam-outline" size={20} color={colors.primary} />
               </View>
               <View style={s.sessionInfo}>
                 <Text style={s.sessionDate}>{v.title || "Swing video"}</Text>
-                <Text style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(v.created_at).toLocaleDateString("fr-FR")}</Text>
+                <Text style={{ fontSize: 11, color: colors.textTertiary }}>{new Date(v.created_at).toLocaleDateString("fr-FR")}</Text>
               </View>
             </View>
           ))}
@@ -313,11 +312,11 @@ export default function PlayerDetailScreen({ route, navigation }) {
             <View key={r.id} style={s.sessionRow}>
               <View style={s.sessionInfo}>
                 <Text style={s.sessionDate}>{r.course_name || "Golf course"}</Text>
-                <Text style={{ fontSize: 11, color: "#9CA3AF" }}>{r.played_at}</Text>
+                <Text style={{ fontSize: 11, color: colors.textTertiary }}>{r.played_at}</Text>
               </View>
               <View style={{ alignItems: "center", marginRight: 8 }}>
-                <Text style={{ fontSize: 22, fontWeight: "800", color: G }}>{r.score}</Text>
-                <Text style={{ fontSize: 9, color: "#9CA3AF" }}>Score</Text>
+                <Text style={{ fontSize: 22, fontWeight: "800", color: colors.primary }}>{r.score}</Text>
+                <Text style={{ fontSize: 9, color: colors.textTertiary }}>Score</Text>
               </View>
             </View>
           ))}
@@ -330,36 +329,36 @@ export default function PlayerDetailScreen({ route, navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f8f8f8" },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: { backgroundColor: "#fff", flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: "#E5E7EB" },
+  header: { backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
   backBtn: { paddingRight: 8 },
-  backTxt: { fontSize: 16, color: G, fontWeight: "600" },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a1a" },
+  backTxt: { fontSize: 16, color: colors.primary, fontWeight: "600" },
+  headerTitle: { fontSize: 17, fontWeight: "700", color: colors.textPrimary },
   scroll: { flex: 1 },
   statsRow: { flexDirection: "row", gap: 8, padding: 16 },
-  stat: { flex: 1, backgroundColor: "#fff", borderRadius: 12, padding: 12, alignItems: "center", borderWidth: 0.5, borderColor: "#E5E7EB" },
-  statLabel: { fontSize: 8, color: "#9CA3AF", fontWeight: "600", letterSpacing: 0.1, marginBottom: 6 },
-  statValue: { fontSize: 18, fontWeight: "800", color: G, letterSpacing: -0.5 },
-  section: { backgroundColor: "#fff", borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: "#E5E7EB", overflow: "hidden" },
-  sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, borderBottomWidth: 0.5, borderBottomColor: "#F0F4F0" },
-  sectionTitle: { fontSize: 14, fontWeight: "700", color: "#1a1a1a" },
-  sectionSub: { fontSize: 12, color: "#9CA3AF" },
-  empty: { padding: 24, textAlign: "center", color: "#9CA3AF", fontSize: 13 },
-  sessionRow: { flexDirection: "row", alignItems: "center", gap: 8, padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#F8FAF8" },
+  stat: { flex: 1, backgroundColor: colors.surface, borderRadius: 12, padding: 12, alignItems: "center", borderWidth: 0.5, borderColor: colors.borderStrong },
+  statLabel: { fontSize: 8, color: colors.textTertiary, fontWeight: "600", letterSpacing: 0.1, marginBottom: 6 },
+  statValue: { fontSize: 18, fontWeight: "800", color: colors.primary, letterSpacing: -0.5 },
+  section: { backgroundColor: colors.surface, borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: colors.borderStrong, overflow: "hidden" },
+  sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.border },
+  sectionTitle: { fontSize: 14, fontWeight: "700", color: colors.textPrimary },
+  sectionSub: { fontSize: 12, color: colors.textTertiary },
+  empty: { padding: 24, textAlign: "center", color: colors.textTertiary, fontSize: 13 },
+  sessionRow: { flexDirection: "row", alignItems: "center", gap: 8, padding: 14, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated },
   sessionInfo: { flex: 1 },
-  sessionDate: { fontSize: 13, fontWeight: "500", color: "#1a1a1a" },
-  sessionNotes: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
-  sessionPrice: { fontSize: 14, fontWeight: "700", color: G },
-  aiBtn: { backgroundColor: G, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
-  aiBtnLoading: { backgroundColor: "#E8F5EE" },
-  aiBtnTxt: { color: "#fff", fontSize: 11, fontWeight: "700" },
-  exRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#F8FAF8" },
-  exDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: "#E5E7EB", marginTop: 2 },
-  exDotDone: { backgroundColor: G, borderColor: G },
+  sessionDate: { fontSize: 13, fontWeight: "500", color: colors.textPrimary },
+  sessionNotes: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  sessionPrice: { fontSize: 14, fontWeight: "700", color: colors.primary },
+  aiBtn: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  aiBtnLoading: { backgroundColor: colors.primaryLight },
+  aiBtnTxt: { color: colors.textInverse, fontSize: 11, fontWeight: "700" },
+  exRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated },
+  exDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: colors.borderStrong, marginTop: 2 },
+  exDotDone: { backgroundColor: colors.primary, borderColor: colors.primary },
   exInfo: { flex: 1 },
-  exTitle: { fontSize: 13, fontWeight: "600", color: "#1a1a1a" },
-  exTitleDone: { color: "#9CA3AF", textDecorationLine: "line-through" },
-  exDesc: { fontSize: 11, color: "#9CA3AF", marginTop: 2, lineHeight: 16 },
-  hcpInput: { backgroundColor: "#F8FAF8", borderWidth: 1, borderColor: "#E0E5E0", borderRadius: 10, padding: 10, fontSize: 15, color: "#1a1a1a" },
+  exTitle: { fontSize: 13, fontWeight: "600", color: colors.textPrimary },
+  exTitleDone: { color: colors.textTertiary, textDecorationLine: "line-through" },
+  exDesc: { fontSize: 11, color: colors.textTertiary, marginTop: 2, lineHeight: 16 },
+  hcpInput: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 10, padding: 10, fontSize: 15, color: colors.textPrimary },
 })

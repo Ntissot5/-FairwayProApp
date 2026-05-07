@@ -2,8 +2,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 const PLAN_KEYS = [
   {
@@ -36,7 +35,7 @@ export default function SubscribeScreen({ navigation }) {
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
         <View style={s.betaBanner}>
-          <Ionicons name="gift-outline" size={22} color={G} style={{ marginRight: 12 }} />
+          <Ionicons name="gift-outline" size={22} color={colors.primary} style={{ marginRight: 12 }} />
           <View style={{ flex: 1 }}>
             <Text style={s.betaTitle}>{t('plans.beta_banner_title')}</Text>
             <Text style={s.betaSubtitle}>{t('plans.beta_banner_subtitle')}</Text>
@@ -60,7 +59,7 @@ export default function SubscribeScreen({ navigation }) {
             <View style={s.features}>
               {plan.featureKeys.map((key) => (
                 <View key={key} style={s.featRow}>
-                  <Ionicons name="checkmark" size={16} color={G} style={s.check} />
+                  <Ionicons name="checkmark" size={16} color={colors.primary} style={s.check} />
                   <Text style={s.featText}>{t(key)}</Text>
                 </View>
               ))}
@@ -74,28 +73,28 @@ export default function SubscribeScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB', alignItems: 'center' },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, color: '#9CA3AF', marginTop: 4 },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
+  header: { backgroundColor: colors.surface, padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong, alignItems: 'center' },
+  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, color: colors.textTertiary, marginTop: 4 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-  cardHighlight: { borderColor: G, borderWidth: 2 },
+  card: { backgroundColor: colors.surface, borderRadius: 16, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: colors.borderStrong },
+  cardHighlight: { borderColor: colors.primary, borderWidth: 2 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  planName: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  badge: { backgroundColor: '#f0faf4', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontSize: 11, fontWeight: '700', color: G },
+  planName: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  badge: { backgroundColor: colors.primaryLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
   priceRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 16 },
-  price: { fontSize: 28, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  priceCurrency: { fontSize: 14, color: '#6B7280', fontWeight: '500' },
+  price: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  priceCurrency: { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
   features: { gap: 8 },
   featRow: { flexDirection: 'row', alignItems: 'center' },
   check: { marginRight: 10, width: 18 },
-  featText: { fontSize: 14, color: '#374151' },
-  footer: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', lineHeight: 18, marginTop: 20, paddingHorizontal: 16 },
-  betaBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', borderRadius: 12, padding: 16, marginBottom: 16 },
-  betaTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
-  betaSubtitle: { fontSize: 14, color: '#6B7280', lineHeight: 20 },
-  startingSept: { fontSize: 11, color: '#9CA3AF', fontWeight: '500', marginBottom: 8 },
+  featText: { fontSize: 14, color: colors.textSecondary },
+  footer: { fontSize: 12, color: colors.textTertiary, textAlign: 'center', lineHeight: 18, marginTop: 20, paddingHorizontal: 16 },
+  betaBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 16, marginBottom: 16 },
+  betaTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  betaSubtitle: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
+  startingSept: { fontSize: 11, color: colors.textTertiary, fontWeight: '500', marginBottom: 8 },
 })

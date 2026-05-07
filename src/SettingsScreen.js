@@ -5,8 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 import { getBriefingSettings, saveBriefingSettings } from './utils/briefingSettings'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 const LANGUAGES = [
   { code: 'fr', label: 'Français', enabled: true },
@@ -81,7 +80,7 @@ export default function SettingsScreen({ navigation }) {
                 {!lang.enabled && <Text style={s.langSoon}>{t('settings.language_de_soon')}</Text>}
               </View>
               {lang.enabled && i18n.language === lang.code && (
-                <Ionicons name="checkmark-circle" size={22} color={G} />
+                <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
               )}
             </TouchableOpacity>
           ))}
@@ -105,11 +104,11 @@ export default function SettingsScreen({ navigation }) {
 
         <View style={s.section}>
           <Text style={s.sectionTitle}>{t('settings.briefing.section_title').toUpperCase()}</Text>
-          <Text style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 14, marginTop: -8 }}>{t('settings.briefing.section_subtitle')}</Text>
+          <Text style={{ fontSize: 13, color: colors.textTertiary, marginBottom: 14, marginTop: -8 }}>{t('settings.briefing.section_subtitle')}</Text>
 
           <View style={[s.infoRow, { paddingVertical: 12 }]}>
             <Text style={s.infoLabel}>{t('settings.briefing.enabled')}</Text>
-            <Switch value={briefSettings.enabled} onValueChange={(v) => updateBriefSettings({ enabled: v })} trackColor={{ true: G }} />
+            <Switch value={briefSettings.enabled} onValueChange={(v) => updateBriefSettings({ enabled: v })} trackColor={{ true: colors.primary }} />
           </View>
 
           {briefSettings.enabled && (
@@ -118,7 +117,7 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={s.infoLabel}>{t('settings.briefing.time')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Text style={s.infoValue}>{briefSettings.time}</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+                  <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
                 </View>
               </TouchableOpacity>
 
@@ -126,16 +125,16 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={s.infoLabel}>{t('settings.briefing.pause')}</Text>
                 {isPaused ? (
                   <TouchableOpacity onPress={() => updateBriefSettings({ paused_until: null })} style={{ backgroundColor: '#FEF3C7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#D97706' }}>{t('settings.briefing.reactivate')}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: colors.warning }}>{t('settings.briefing.reactivate')}</Text>
                   </TouchableOpacity>
                 ) : (
-                  <TouchableOpacity onPress={() => setShowPausePicker(true)} style={{ backgroundColor: '#F8FAF8', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 0.5, borderColor: '#E5E7EB' }}>
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#6B7280' }}>{t('settings.briefing.pause')}</Text>
+                  <TouchableOpacity onPress={() => setShowPausePicker(true)} style={{ backgroundColor: colors.surfaceElevated, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 0.5, borderColor: colors.borderStrong }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }}>{t('settings.briefing.pause')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
               {isPaused && (
-                <Text style={{ fontSize: 12, color: '#D97706', marginTop: 4 }}>
+                <Text style={{ fontSize: 12, color: colors.warning, marginTop: 4 }}>
                   {t('settings.briefing.paused_until', { date: new Date(briefSettings.paused_until).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long' }) })}
                 </Text>
               )}
@@ -153,9 +152,9 @@ export default function SettingsScreen({ navigation }) {
             <View style={s.modalCard}>
               <Text style={s.modalTitle}>{t('settings.briefing.time')}</Text>
               {TIME_OPTIONS.map((time) => (
-                <TouchableOpacity key={time} style={[s.modalRow, briefSettings.time === time && { backgroundColor: '#E8F5E9' }]} onPress={() => { updateBriefSettings({ time }); setShowTimePicker(false) }}>
-                  <Text style={[s.modalRowTxt, briefSettings.time === time && { color: G, fontWeight: '700' }]}>{time}</Text>
-                  {briefSettings.time === time && <Ionicons name="checkmark" size={18} color={G} />}
+                <TouchableOpacity key={time} style={[s.modalRow, briefSettings.time === time && { backgroundColor: colors.primaryLight }]} onPress={() => { updateBriefSettings({ time }); setShowTimePicker(false) }}>
+                  <Text style={[s.modalRowTxt, briefSettings.time === time && { color: colors.primary, fontWeight: '700' }]}>{time}</Text>
+                  {briefSettings.time === time && <Ionicons name="checkmark" size={18} color={colors.primary} />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -186,31 +185,31 @@ export default function SettingsScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  title: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
+  header: { backgroundColor: colors.surface, padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
   scroll: { flex: 1 },
-  section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, marginBottom: 8, padding: 16, borderWidth: 0.5, borderColor: '#E5E7EB' },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.1, marginBottom: 14 },
+  section: { backgroundColor: colors.surface, borderRadius: 16, margin: 16, marginBottom: 8, padding: 16, borderWidth: 0.5, borderColor: colors.borderStrong },
+  sectionTitle: { fontSize: 12, fontWeight: '700', color: colors.textTertiary, letterSpacing: 0.1, marginBottom: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  av: { width: 48, height: 48, borderRadius: 24, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  av: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  avTxt: { color: colors.textInverse, fontSize: 18, fontWeight: '700' },
   info: { flex: 1 },
-  email: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
-  role: { fontSize: 11, color: '#9CA3AF', marginTop: 2, letterSpacing: 0.1 },
+  email: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
+  role: { fontSize: 11, color: colors.textTertiary, marginTop: 2, letterSpacing: 0.1 },
   langRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
-  langRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
-  langLabel: { fontSize: 15, color: '#1a1a1a', fontWeight: '500' },
+  langRowBorder: { borderBottomWidth: 0.5, borderBottomColor: colors.border },
+  langLabel: { fontSize: 15, color: colors.textPrimary, fontWeight: '500' },
   langDisabled: { color: '#C4C4C4' },
   langSoon: { fontSize: 11, color: '#C4C4C4', marginTop: 2 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
-  infoLabel: { fontSize: 14, color: '#1a1a1a' },
-  infoValue: { fontSize: 14, color: '#9CA3AF' },
-  signOutBtn: { margin: 16, backgroundColor: '#FEF2F2', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#FECACA' },
-  signOutTxt: { color: '#DC2626', fontSize: 16, fontWeight: '700' },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: colors.border },
+  infoLabel: { fontSize: 14, color: colors.textPrimary },
+  infoValue: { fontSize: 14, color: colors.textTertiary },
+  signOutBtn: { margin: 16, backgroundColor: colors.errorLight, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: colors.error },
+  signOutTxt: { color: colors.error, fontSize: 16, fontWeight: '700' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  modalCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, width: '100%' },
-  modalTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 12 },
-  modalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0', borderRadius: 8, paddingHorizontal: 8 },
-  modalRowTxt: { fontSize: 15, color: '#374151' },
+  modalCard: { backgroundColor: colors.surface, borderRadius: 16, padding: 20, width: '100%' },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
+  modalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: colors.border, borderRadius: 8, paddingHorizontal: 8 },
+  modalRowTxt: { fontSize: 15, color: colors.textSecondary },
 })

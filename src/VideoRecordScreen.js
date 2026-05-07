@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from './theme'
 
-const G = '#1B5E35'
 const MAX_DURATION = 60
 
 export default function VideoRecordScreen({ navigation }) {
@@ -62,7 +62,7 @@ export default function VideoRecordScreen({ navigation }) {
   if (!permission?.granted) {
     return (
       <View style={s.permissionContainer}>
-        <Ionicons name="videocam-off-outline" size={48} color="#9CA3AF" />
+        <Ionicons name="videocam-off-outline" size={48} color={colors.textTertiary} />
         <Text style={s.permissionText}>Permission caméra requise</Text>
         <TouchableOpacity style={s.permissionBtn} onPress={requestPermission}>
           <Text style={s.permissionBtnTxt}>Autoriser</Text>
@@ -115,15 +115,15 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   camera: { flex: 1 },
   permissionContainer: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  permissionText: { fontSize: 16, color: '#9CA3AF', fontWeight: '500' },
-  permissionBtn: { backgroundColor: G, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 },
-  permissionBtnTxt: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  permissionText: { fontSize: 16, color: colors.textTertiary, fontWeight: '500' },
+  permissionBtn: { backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 },
+  permissionBtnTxt: { color: colors.textInverse, fontSize: 14, fontWeight: '700' },
   topBar: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20 },
   closeBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   flipBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 },
   recDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' },
-  timerText: { fontSize: 16, fontWeight: '700', color: '#fff', fontVariant: ['tabular-nums'] },
+  timerText: { fontSize: 16, fontWeight: '700', color: colors.textInverse, fontVariant: ['tabular-nums'] },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10, alignItems: 'center', paddingBottom: 50 },
   recordBtn: { width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
   recordBtnActive: { borderColor: '#EF4444' },

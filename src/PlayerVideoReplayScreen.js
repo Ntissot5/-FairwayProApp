@@ -5,8 +5,8 @@ import { useVideoPlayer, VideoView } from 'expo-video'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import Svg, { Line, Circle } from 'react-native-svg'
+import { colors } from './theme'
 
-const G = '#1B5E35'
 const TOLERANCE_MS = 100
 const { width: SCREEN_W } = Dimensions.get('window')
 
@@ -95,7 +95,7 @@ export default function PlayerVideoReplayScreen({ route, navigation }) {
     return (
       <SafeAreaView style={s.container}>
         <View style={s.errorContainer}>
-          <Ionicons name="videocam-off-outline" size={48} color="#9CA3AF" />
+          <Ionicons name="videocam-off-outline" size={48} color={colors.textTertiary} />
           <Text style={s.errorText}>{t('player_session_summary.video_expired')}</Text>
           <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
             <Text style={s.backBtnTxt}>{t('common.back')}</Text>
@@ -161,19 +161,19 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   headerSafe: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 },
   headerBack: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 16 },
-  headerBackTxt: { fontSize: 16, fontWeight: '600', color: '#fff' },
+  headerBackTxt: { fontSize: 16, fontWeight: '600', color: colors.textInverse },
   videoContainer: { flex: 1, position: 'relative' },
   video: { flex: 1 },
   svgOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 10 },
   scrubber: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 40, backgroundColor: '#111' },
-  playBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
+  playBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   sliderContainer: { flex: 1, height: 30, justifyContent: 'center', position: 'relative' },
   sliderTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, overflow: 'hidden' },
-  sliderFill: { height: 4, backgroundColor: G, borderRadius: 2 },
+  sliderFill: { height: 4, backgroundColor: colors.primary, borderRadius: 2 },
   marker: { position: 'absolute', width: 4, height: 12, borderRadius: 2, top: 9 },
-  timeLabel: { fontSize: 12, color: '#9CA3AF', fontVariant: ['tabular-nums'], minWidth: 40, textAlign: 'right' },
+  timeLabel: { fontSize: 12, color: colors.textTertiary, fontVariant: ['tabular-nums'], minWidth: 40, textAlign: 'right' },
   errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 },
-  errorText: { fontSize: 16, color: '#9CA3AF', textAlign: 'center', lineHeight: 22 },
-  backBtn: { backgroundColor: G, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10, marginTop: 8 },
-  backBtnTxt: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  errorText: { fontSize: 16, color: colors.textTertiary, textAlign: 'center', lineHeight: 22 },
+  backBtn: { backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10, marginTop: 8 },
+  backBtnTxt: { color: colors.textInverse, fontSize: 14, fontWeight: '700' },
 })

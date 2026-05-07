@@ -4,8 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function RevenueScreen({ navigation }) {
   const { t } = useTranslation()
@@ -78,7 +77,7 @@ export default function RevenueScreen({ navigation }) {
   const thisMonth = sessions.filter(s => { const d = new Date(s.session_date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() }).reduce((sum, s) => sum + (s.price || 0), 0)
   const avg = sessions.length > 0 ? Math.round(total / sessions.length) : 0
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   return (
     <SafeAreaView style={s.safe}>
@@ -92,12 +91,12 @@ export default function RevenueScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={G} />}>
+      <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={colors.primary} />}>
         <View style={s.statsRow}>
           {[{label:t('revenue.total_revenue').toUpperCase(), value: total+'€', sub: t('revenue.sessions_count', { count: sessions.length })}, {label:t('revenue.this_month').toUpperCase(), value: thisMonth+'€'}, {label:t('revenue.avg_session').toUpperCase(), value: avg+'€'}].map((item, i) => (
             <View key={i} style={[s.stat, i === 0 && s.statGreen]}>
               <Text style={s.statLabel}>{item.label}</Text>
-              <Text style={[s.statValue, i === 0 && { color: G }]}>{item.value}</Text>
+              <Text style={[s.statValue, i === 0 && { color: colors.primary }]}>{item.value}</Text>
             </View>
           ))}
         </View>
@@ -115,7 +114,7 @@ export default function RevenueScreen({ navigation }) {
                   <Text style={s.rowDate}>{session.session_date}</Text>
                 </View>
                 <Text style={s.rowPrice}>{session.price}€</Text>
-                <View style={s.paidBadge}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Ionicons name="checkmark" size={12} color={G} /><Text style={s.paidTxt}>{t('revenue.paid')}</Text></View></View>
+                <View style={s.paidBadge}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Ionicons name="checkmark" size={12} color={colors.primary} /><Text style={s.paidTxt}>{t('revenue.paid')}</Text></View></View>
               </TouchableOpacity>
             )
           })}
@@ -124,7 +123,7 @@ export default function RevenueScreen({ navigation }) {
       </ScrollView>
 
       <Modal visible={showAddSession} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
           <View style={s.modalHead}>
             <Text style={s.modalTitle}>{t('sessions.add_session')}</Text>
             <TouchableOpacity onPress={() => setShowAddSession(false)}>
@@ -136,14 +135,14 @@ export default function RevenueScreen({ navigation }) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {players.map(p => (
                 <TouchableOpacity key={p.id} onPress={() => setNewSession({...newSession, player_id: p.id})} style={[s.chip, newSession.player_id === p.id && s.chipActive]}>
-                  <Text style={[s.chipTxt, newSession.player_id === p.id && { color: '#fff' }]}>{p.full_name}</Text>
+                  <Text style={[s.chipTxt, newSession.player_id === p.id && { color: colors.textInverse }]}>{p.full_name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
             <Text style={s.label}>{t('sessions.price')} (€)</Text>
-            <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             <Text style={s.label}>{t('sessions.date')}</Text>
-            <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholderTextColor={colors.textTertiary} />
             <TouchableOpacity style={[s.submitBtn, savingS && { opacity: 0.7 }]} onPress={addSession} disabled={savingS}>
               <Text style={s.submitTxt}>{savingS ? t('sessions.adding') : '+ ' + t('sessions.add_session')}</Text>
             </TouchableOpacity>
@@ -152,7 +151,7 @@ export default function RevenueScreen({ navigation }) {
       </Modal>
 
       <Modal visible={showAddPlayer} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
           <View style={s.modalHead}>
             <Text style={s.modalTitle}>{t('players.add_player')}</Text>
             <TouchableOpacity onPress={() => setShowAddPlayer(false)}>
@@ -161,9 +160,9 @@ export default function RevenueScreen({ navigation }) {
           </View>
           <View style={{ padding: 20 }}>
             <Text style={s.label}>{t('players.full_name')}</Text>
-            <TextInput style={s.input} value={newPlayerName} onChangeText={setNewPlayerName} placeholder="Emma Wilson" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPlayerName} onChangeText={setNewPlayerName} placeholder="Emma Wilson" placeholderTextColor={colors.textTertiary} />
             <Text style={s.label}>{t('players.handicap')}</Text>
-            <TextInput style={s.input} value={newPlayerHcp} onChangeText={setNewPlayerHcp} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPlayerHcp} onChangeText={setNewPlayerHcp} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             <TouchableOpacity style={[s.submitBtn, savingP && { opacity: 0.7 }]} onPress={addPlayer} disabled={savingP}>
               <Text style={s.submitTxt}>{savingP ? t('players.adding') : '+ ' + t('players.add_player')}</Text>
             </TouchableOpacity>
@@ -175,38 +174,38 @@ export default function RevenueScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  sub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  btn2: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
-  btn2Txt: { fontSize: 11, fontWeight: '600', color: '#374151' },
+  header: { backgroundColor: colors.surface, padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  sub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  btn2: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
+  btn2Txt: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
   scroll: { flex: 1 },
   statsRow: { padding: 16, gap: 10 },
-  stat: { backgroundColor: '#fff', borderRadius: 14, padding: 18, borderWidth: 0.5, borderColor: '#E5E7EB', marginBottom: 2 },
-  statGreen: { borderTopWidth: 3, borderTopColor: G },
-  statLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '600', marginBottom: 8 },
-  statValue: { fontSize: 36, fontWeight: '800', color: '#1a1a1a', letterSpacing: -1 },
-  section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: '#E5E7EB', overflow: 'hidden' },
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
-  sectionSub: { fontSize: 12, color: '#9CA3AF' },
-  row: { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 0.5, borderBottomColor: '#F8FAF8' },
+  stat: { backgroundColor: colors.surface, borderRadius: 14, padding: 18, borderWidth: 0.5, borderColor: colors.borderStrong, marginBottom: 2 },
+  statGreen: { borderTopWidth: 3, borderTopColor: colors.primary },
+  statLabel: { fontSize: 10, color: colors.textTertiary, fontWeight: '600', marginBottom: 8 },
+  statValue: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1 },
+  section: { backgroundColor: colors.surface, borderRadius: 16, margin: 16, marginTop: 0, borderWidth: 0.5, borderColor: colors.borderStrong, overflow: 'hidden' },
+  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.border },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  sectionSub: { fontSize: 12, color: colors.textTertiary },
+  row: { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 13, fontWeight: '500', color: '#1a1a1a' },
-  rowDate: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
-  rowPrice: { fontSize: 15, fontWeight: '700', color: G, marginRight: 10 },
-  paidBadge: { backgroundColor: '#E8F5EE', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  paidTxt: { fontSize: 10, fontWeight: '600', color: G },
-  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  modalClose: { fontSize: 16, color: G, fontWeight: '600' },
-  label: { fontSize: 12, fontWeight: '600', color: '#6B7280', marginBottom: 6, marginTop: 14 },
-  input: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 12, padding: 14, fontSize: 15, color: '#1a1a1a' },
-  chip: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
-  chipActive: { backgroundColor: G, borderColor: G },
-  chipTxt: { fontSize: 13, color: '#1a1a1a', fontWeight: '500' },
-  submitBtn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24, marginBottom: 40 },
-  submitTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  rowName: { fontSize: 13, fontWeight: '500', color: colors.textPrimary },
+  rowDate: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  rowPrice: { fontSize: 15, fontWeight: '700', color: colors.primary, marginRight: 10 },
+  paidBadge: { backgroundColor: colors.primaryLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  paidTxt: { fontSize: 10, fontWeight: '600', color: colors.primary },
+  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  modalClose: { fontSize: 16, color: colors.primary, fontWeight: '600' },
+  label: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 14 },
+  input: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 12, padding: 14, fontSize: 15, color: colors.textPrimary },
+  chip: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipTxt: { fontSize: 13, color: colors.textPrimary, fontWeight: '500' },
+  submitBtn: { backgroundColor: colors.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24, marginBottom: 40 },
+  submitTxt: { color: colors.textInverse, fontSize: 16, fontWeight: '700' },
 })

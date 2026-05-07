@@ -6,8 +6,7 @@ import { VideoView, useVideoPlayer } from 'expo-video'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 function VideoPlayer({ url, onClose }) {
   const player = useVideoPlayer(url, p => { p.play() })
@@ -15,7 +14,7 @@ function VideoPlayer({ url, onClose }) {
     <Modal visible animationType="slide" presentationStyle="fullScreen">
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: 56, right: 20, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#fff', fontSize: 18 }}>✕</Text>
+          <Text style={{ color: colors.textInverse, fontSize: 18 }}>✕</Text>
         </TouchableOpacity>
         <VideoView player={player} style={{ flex: 1 }} contentFit="contain" allowsFullscreen />
       </View>
@@ -75,7 +74,7 @@ export default function PlayerVideosScreen() {
     ])
   }
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   return (
     <SafeAreaView style={s.safe}>
@@ -94,9 +93,9 @@ export default function PlayerVideosScreen() {
       <ScrollView style={s.scroll}>
         {videos.length === 0 ? (
           <View style={{ padding: 40, alignItems: 'center' }}>
-            <Ionicons name="videocam-outline" size={40} color={G} style={{ marginBottom: 16 }} />
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 }}>No videos yet</Text>
-            <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginBottom: 24 }}>{t('player_videos.empty_sub')}</Text>
+            <Ionicons name="videocam-outline" size={40} color={colors.primary} style={{ marginBottom: 16 }} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>No videos yet</Text>
+            <Text style={{ fontSize: 13, color: colors.textTertiary, textAlign: 'center', marginBottom: 24 }}>{t('player_videos.empty_sub')}</Text>
             <TouchableOpacity style={s.addBtn} onPress={recordVideo}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="videocam-outline" size={16} color="#fff" /><Text style={s.addBtnTxt}>{t('player_videos.film_swing')}</Text></View>
             </TouchableOpacity>
@@ -116,7 +115,7 @@ export default function PlayerVideosScreen() {
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity onPress={() => deleteVideo(v.id)} style={s.deleteBtn}>
-                  <Text style={{ color: '#DC2626', fontSize: 16 }}>✕</Text>
+                  <Text style={{ color: colors.error, fontSize: 16 }}>✕</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -129,21 +128,21 @@ export default function PlayerVideosScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
-  sub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  header: { backgroundColor: colors.surface, padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
+  sub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
   scroll: { flex: 1 },
-  addBtn: { backgroundColor: G, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
-  addBtnTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  section: { backgroundColor: '#fff', borderRadius: 16, margin: 16, borderWidth: 0.5, borderColor: '#E5E7EB', overflow: 'hidden' },
-  videoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: '#F8FAF8' },
-  videoThumb: { width: 60, height: 60, borderRadius: 10, backgroundColor: '#F0FAF4', alignItems: 'center', justifyContent: 'center' },
+  addBtn: { backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9 },
+  addBtnTxt: { color: colors.textInverse, fontSize: 13, fontWeight: '700' },
+  section: { backgroundColor: colors.surface, borderRadius: 16, margin: 16, borderWidth: 0.5, borderColor: colors.borderStrong, overflow: 'hidden' },
+  videoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderBottomWidth: 0.5, borderBottomColor: colors.surfaceElevated },
+  videoThumb: { width: 60, height: 60, borderRadius: 10, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   videoInfo: { flex: 1 },
-  videoTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  videoDate: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
-  watchBtn: { marginTop: 6, backgroundColor: '#E8F5EE', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
-  watchBtnTxt: { fontSize: 12, fontWeight: '600', color: G },
+  videoTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  videoDate: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  watchBtn: { marginTop: 6, backgroundColor: colors.primaryLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
+  watchBtnTxt: { fontSize: 12, fontWeight: '600', color: colors.primary },
   deleteBtn: { padding: 8 },
 })

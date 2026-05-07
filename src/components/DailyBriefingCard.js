@@ -5,8 +5,7 @@ import { useTranslation } from 'react-i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { supabase } from '../supabase'
 import { isBriefingActive } from '../utils/briefingSettings'
-
-const G = '#1B5E35'
+import { colors } from '../theme'
 
 // TODO: dismissed flag clears tomorrow automatically (date-based key)
 
@@ -18,6 +17,10 @@ export default forwardRef(function DailyBriefingCard({ userId }, ref) {
   useImperativeHandle(ref, () => fetchBriefing)
 
   useEffect(() => {
+    if (__DEV__) {
+      const today = new Date().toISOString().split('T')[0]
+      AsyncStorage.removeItem(`@briefing_dismissed_${today}`)
+    }
     fetchBriefing()
   }, [])
 
@@ -30,7 +33,7 @@ export default forwardRef(function DailyBriefingCard({ userId }, ref) {
 
     // Check time window (5h - 14h local)
     const hour = new Date().getHours()
-    if (hour < 5 || hour >= 14) { setBriefing(null); return }
+    if (!__DEV__ && (hour < 5 || hour >= 14)) { setBriefing(null); return }
 
     const today = new Date().toISOString().split('T')[0]
 
@@ -99,7 +102,7 @@ export default forwardRef(function DailyBriefingCard({ userId }, ref) {
           <Text style={s.date}>{dateStr}</Text>
         </View>
         <TouchableOpacity onPress={handleDismiss} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel={t('briefing.dismiss')}>
-          <Ionicons name="close" size={20} color="#9CA3AF" />
+          <Ionicons name="close" size={20} color={colors.textTertiary} />
         </TouchableOpacity>
       </View>
 
@@ -137,15 +140,15 @@ export default forwardRef(function DailyBriefingCard({ userId }, ref) {
 const s = StyleSheet.create({
   container: { marginTop: 12, marginHorizontal: 16, marginBottom: 8, gap: 8 },
   header: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 },
-  greeting: { fontSize: 18, fontWeight: '600', color: '#1a1a1a' },
-  date: { fontSize: 14, color: '#9CA3AF', marginTop: 2 },
+  greeting: { fontSize: 18, fontWeight: '600', color: colors.textPrimary },
+  date: { fontSize: 14, color: colors.textTertiary, marginTop: 2 },
   card: { borderRadius: 8, padding: 12, borderLeftWidth: 4 },
   cardGreen: { backgroundColor: '#F0FDF4', borderLeftColor: '#22C55E' },
-  cardAmber: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
+  cardAmber: { backgroundColor: '#FFFBEB', borderLeftColor: colors.warning },
   cardBlue: { backgroundColor: '#EFF6FF', borderLeftColor: '#3B82F6' },
-  cardTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a', marginBottom: 6 },
-  cardItem: { fontSize: 14, color: '#374151', lineHeight: 22, paddingLeft: 4 },
-  cardText: { fontSize: 15, color: '#374151', lineHeight: 22 },
+  cardTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 6 },
+  cardItem: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, paddingLeft: 4 },
+  cardText: { fontSize: 15, color: colors.textSecondary, lineHeight: 22 },
   pill: { alignSelf: 'flex-end', marginRight: 16, marginTop: 8, backgroundColor: '#F0FDF4', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 6 },
   pillText: { fontSize: 12, fontWeight: '500', color: '#22C55E' },
 })

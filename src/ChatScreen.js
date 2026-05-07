@@ -4,9 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { sendPushNotification } from './notifications'
 import { useTranslation } from 'react-i18next'
+import { colors } from './theme'
 
-const G = '#1B5E35'
-const colors = ['#1B5E35','#0891B2','#7C3AED','#DC2626','#D97706','#059669']
+const avatarColors = [colors.primary,'#0891B2','#7C3AED',colors.error,colors.warning,'#059669']
 
 export default function ChatScreen({ navigation }) {
   const { t } = useTranslation()
@@ -86,14 +86,14 @@ export default function ChatScreen({ navigation }) {
           {messages.map(m => (
             <View key={m.id} style={{ alignItems: m.sender === 'coach' ? 'flex-end' : 'flex-start', marginBottom: 10 }}>
               <View style={[s.bubble, m.sender === 'coach' ? s.bubbleCoach : s.bubblePlayer]}>
-                <Text style={[s.bubbleTxt, m.sender === 'coach' && { color: '#fff' }]}>{m.content}</Text>
+                <Text style={[s.bubbleTxt, m.sender === 'coach' && { color: colors.textInverse }]}>{m.content}</Text>
               </View>
               <Text style={s.time}>{new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</Text>
             </View>
           ))}
         </ScrollView>
         <View style={s.inputRow}>
-          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder={t('chat.type_message', { name: selected.full_name })} placeholderTextColor="#9CA3AF" multiline />
+          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder={t('chat.type_message', { name: selected.full_name })} placeholderTextColor={colors.textTertiary} multiline />
           <TouchableOpacity style={[s.sendBtn, !input.trim() && { backgroundColor: '#c7c7cc' }]} onPress={sendMessage}>
             <Text style={s.sendTxt}>↑</Text>
           </TouchableOpacity>
@@ -114,7 +114,7 @@ export default function ChatScreen({ navigation }) {
       <ScrollView style={s.scroll}>
         {players.map((p, i) => (
           <TouchableOpacity key={p.id} style={s.playerRow} onPress={() => setSelected(p)} onLongPress={() => navigation.navigate('PlayerDetail', { player: p })}>
-            <View style={[s.av, { backgroundColor: colors[i % colors.length] }]}>
+            <View style={[s.av, { backgroundColor: avatarColors[i % avatarColors.length] }]}>
               <Text style={s.avTxt}>{p.full_name?.charAt(0)}</Text>
             </View>
             <View style={s.playerInfo}>
@@ -127,7 +127,7 @@ export default function ChatScreen({ navigation }) {
       </ScrollView>
 
       <Modal visible={showAddSession} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
           <View style={s.modalHead}>
             <Text style={s.modalTitle}>{t('chat.add_session')}</Text>
             <TouchableOpacity onPress={() => setShowAddSession(false)}>
@@ -139,14 +139,14 @@ export default function ChatScreen({ navigation }) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {players.map(p => (
                 <TouchableOpacity key={p.id} onPress={() => setNewSession({...newSession, player_id: p.id})} style={[s.chip, newSession.player_id === p.id && s.chipActive]}>
-                  <Text style={[s.chipTxt, newSession.player_id === p.id && { color: '#fff' }]}>{p.full_name}</Text>
+                  <Text style={[s.chipTxt, newSession.player_id === p.id && { color: colors.textInverse }]}>{p.full_name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
             <Text style={s.label}>{t('sessions.price')} (€)</Text>
-            <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newSession.price} onChangeText={v => setNewSession({...newSession, price: v})} placeholder="120" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             <Text style={s.label}>{t('sessions.date')}</Text>
-            <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newSession.session_date} onChangeText={v => setNewSession({...newSession, session_date: v})} placeholderTextColor={colors.textTertiary} />
             <TouchableOpacity style={[s.submitBtn, savingS && { opacity: 0.7 }]} onPress={addSession} disabled={savingS}>
               <Text style={s.submitTxt}>{savingS ? t('sessions.adding') : '+ ' + t('sessions.add_session')}</Text>
             </TouchableOpacity>
@@ -155,7 +155,7 @@ export default function ChatScreen({ navigation }) {
       </Modal>
 
       <Modal visible={showAddPlayer} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
           <View style={s.modalHead}>
             <Text style={s.modalTitle}>{t('chat.add_player')}</Text>
             <TouchableOpacity onPress={() => setShowAddPlayer(false)}>
@@ -164,9 +164,9 @@ export default function ChatScreen({ navigation }) {
           </View>
           <View style={{ padding: 20 }}>
             <Text style={s.label}>{t('players.full_name')}</Text>
-            <TextInput style={s.input} value={newPlayerName} onChangeText={setNewPlayerName} placeholder="Emma Wilson" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPlayerName} onChangeText={setNewPlayerName} placeholder="Emma Wilson" placeholderTextColor={colors.textTertiary} />
             <Text style={s.label}>{t('players.handicap')}</Text>
-            <TextInput style={s.input} value={newPlayerHcp} onChangeText={setNewPlayerHcp} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor="#9CA3AF" />
+            <TextInput style={s.input} value={newPlayerHcp} onChangeText={setNewPlayerHcp} placeholder="8.2" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
             <TouchableOpacity style={[s.submitBtn, savingP && { opacity: 0.7 }]} onPress={addPlayer} disabled={savingP}>
               <Text style={s.submitTxt}>{savingP ? t('players.adding') : '+ ' + t('players.add_player')}</Text>
             </TouchableOpacity>
@@ -178,43 +178,43 @@ export default function ChatScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
-  header: { backgroundColor: '#fff', padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
-  sub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  btn2: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
-  btn2Txt: { fontSize: 11, fontWeight: '600', color: '#374151' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
+  header: { backgroundColor: colors.surface, padding: 16, paddingTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  sub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  btn2: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
+  btn2Txt: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
   scroll: { flex: 1 },
-  playerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: '#fff', borderBottomWidth: 0.5, borderBottomColor: '#F0F4F0' },
+  playerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: colors.surface, borderBottomWidth: 0.5, borderBottomColor: colors.border },
   av: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  avTxt: { color: colors.textInverse, fontSize: 16, fontWeight: '700' },
   playerInfo: { flex: 1 },
-  playerName: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
-  playerSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  arrow: { fontSize: 22, color: '#9CA3AF' },
-  chatHeader: { backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
+  playerName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
+  playerSub: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  arrow: { fontSize: 22, color: colors.textTertiary },
+  chatHeader: { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
   backBtn: { paddingRight: 8 },
-  backTxt: { fontSize: 16, color: G, fontWeight: '600' },
-  chatTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  messages: { flex: 1, backgroundColor: '#f8f8f8' },
-  empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 40, fontSize: 13 },
+  backTxt: { fontSize: 16, color: colors.primary, fontWeight: '600' },
+  chatTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  messages: { flex: 1, backgroundColor: colors.surfaceElevated },
+  empty: { textAlign: 'center', color: colors.textTertiary, marginTop: 40, fontSize: 13 },
   bubble: { maxWidth: '78%', padding: 12, borderRadius: 18 },
-  bubbleCoach: { backgroundColor: G, borderBottomRightRadius: 4 },
-  bubblePlayer: { backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: '#E5E7EB' },
-  bubbleTxt: { fontSize: 14, color: '#1a1a1a', lineHeight: 20 },
-  time: { fontSize: 10, color: '#9CA3AF', marginTop: 3, paddingHorizontal: 4 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: '#fff', borderTopWidth: 0.5, borderTopColor: '#E5E7EB' },
-  inputMsg: { flex: 1, backgroundColor: '#f2f2f7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#1a1a1a', maxHeight: 100 },
-  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
-  sendTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  modalClose: { fontSize: 16, color: G, fontWeight: '600' },
-  label: { fontSize: 12, fontWeight: '600', color: '#6B7280', marginBottom: 6, marginTop: 14 },
-  input: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 12, padding: 14, fontSize: 15, color: '#1a1a1a' },
-  chip: { backgroundColor: '#F8FAF8', borderWidth: 1, borderColor: '#E0E5E0', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
-  chipActive: { backgroundColor: G, borderColor: G },
-  chipTxt: { fontSize: 13, color: '#1a1a1a', fontWeight: '500' },
-  submitBtn: { backgroundColor: G, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24, marginBottom: 40 },
-  submitTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  bubbleCoach: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
+  bubblePlayer: { backgroundColor: colors.surface, borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: colors.borderStrong },
+  bubbleTxt: { fontSize: 14, color: colors.textPrimary, lineHeight: 20 },
+  time: { fontSize: 10, color: colors.textTertiary, marginTop: 3, paddingHorizontal: 4 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: colors.surface, borderTopWidth: 0.5, borderTopColor: colors.borderStrong },
+  inputMsg: { flex: 1, backgroundColor: '#f2f2f7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: colors.textPrimary, maxHeight: 100 },
+  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  sendTxt: { color: colors.textInverse, fontSize: 16, fontWeight: '700' },
+  modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  modalClose: { fontSize: 16, color: colors.primary, fontWeight: '600' },
+  label: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 14 },
+  input: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 12, padding: 14, fontSize: 15, color: colors.textPrimary },
+  chip: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipTxt: { fontSize: 13, color: colors.textPrimary, fontWeight: '500' },
+  submitBtn: { backgroundColor: colors.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24, marginBottom: 40 },
+  submitTxt: { color: colors.textInverse, fontSize: 16, fontWeight: '700' },
 })

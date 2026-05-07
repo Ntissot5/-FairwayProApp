@@ -3,8 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Keyboa
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { useTranslation } from 'react-i18next'
-
-const G = '#1B5E35'
+import { colors } from './theme'
 
 export default function PlayerChatScreen() {
   const { t } = useTranslation()
@@ -34,7 +33,7 @@ export default function PlayerChatScreen() {
     fetchAll()
   }
 
-  if (loading) return <View style={s.loading}><ActivityIndicator color={G} size="large" /></View>
+  if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   return (
     <SafeAreaView style={s.safe}>
@@ -53,16 +52,16 @@ export default function PlayerChatScreen() {
           {messages.map(m => (
             <View key={m.id} style={{ alignItems: m.sender === 'player' ? 'flex-end' : 'flex-start', marginBottom: 12 }}>
               <View style={[s.bubble, m.sender === 'player' ? s.bubblePlayer : s.bubbleCoach]}>
-                <Text style={[s.bubbleTxt, m.sender === 'player' && { color: '#fff' }]}>{m.content}</Text>
+                <Text style={[s.bubbleTxt, m.sender === 'player' && { color: colors.textInverse }]}>{m.content}</Text>
               </View>
               <Text style={s.time}>{new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</Text>
             </View>
           ))}
         </ScrollView>
         <View style={s.inputRow}>
-          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder="Message your coach..." placeholderTextColor="#9CA3AF" multiline />
+          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder="Message your coach..." placeholderTextColor={colors.textTertiary} multiline />
           <TouchableOpacity style={[s.sendBtn, !input.trim() && { backgroundColor: '#c7c7cc' }]} onPress={sendMessage}>
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>↑</Text>
+            <Text style={{ color: colors.textInverse, fontSize: 16, fontWeight: '700' }}>↑</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -71,21 +70,21 @@ export default function PlayerChatScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB' },
-  coachAv: { width: 44, height: 44, borderRadius: 22, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
-  coachAvTxt: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  coachName: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  header: { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong },
+  coachAv: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  coachAvTxt: { color: colors.textInverse, fontSize: 18, fontWeight: '700' },
+  coachName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   online: { fontSize: 11, color: '#22c55e', fontWeight: '600' },
   messages: { flex: 1 },
-  empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 40 },
+  empty: { textAlign: 'center', color: colors.textTertiary, marginTop: 40 },
   bubble: { maxWidth: '80%', padding: 14, borderRadius: 18 },
-  bubbleCoach: { backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: '#E5E7EB' },
-  bubblePlayer: { backgroundColor: G, borderBottomRightRadius: 4 },
-  bubbleTxt: { fontSize: 14, color: '#1a1a1a', lineHeight: 21 },
-  time: { fontSize: 10, color: '#9CA3AF', marginTop: 4, paddingHorizontal: 4 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: '#fff', borderTopWidth: 0.5, borderTopColor: '#E5E7EB' },
-  inputMsg: { flex: 1, backgroundColor: '#f2f2f7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#1a1a1a', maxHeight: 100 },
-  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
+  bubbleCoach: { backgroundColor: colors.surface, borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: colors.borderStrong },
+  bubblePlayer: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
+  bubbleTxt: { fontSize: 14, color: colors.textPrimary, lineHeight: 21 },
+  time: { fontSize: 10, color: colors.textTertiary, marginTop: 4, paddingHorizontal: 4 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: colors.surface, borderTopWidth: 0.5, borderTopColor: colors.borderStrong },
+  inputMsg: { flex: 1, backgroundColor: '#f2f2f7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: colors.textPrimary, maxHeight: 100 },
+  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
 })

@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { colors } from './theme'
 
-const G = '#1B5E35'
 const CLAUDE_PROXY = 'https://aqdifzgqfemfdcigxsgw.supabase.co/functions/v1/claude-proxy'
 
 export default function AICoachScreen() {
@@ -76,7 +76,7 @@ Answer in the same language as the coach's question.`
             <View key={i} style={[s.msgWrap, m.role === 'user' ? s.msgUser : s.msgAI]}>
               {m.role === 'assistant' && <Text style={s.aiLabel}>COACH IA</Text>}
               <View style={[s.bubble, m.role === 'user' ? s.bubbleUser : s.bubbleAI]}>
-                <Text style={[s.bubbleTxt, m.role === 'user' && { color: '#fff' }]}>{m.content}</Text>
+                <Text style={[s.bubbleTxt, m.role === 'user' && { color: colors.textInverse }]}>{m.content}</Text>
               </View>
             </View>
           ))}
@@ -84,13 +84,13 @@ Answer in the same language as the coach's question.`
             <View style={s.msgAI}>
               <Text style={s.aiLabel}>COACH IA</Text>
               <View style={s.bubbleAI}>
-                <ActivityIndicator color={G} size="small" />
+                <ActivityIndicator color={colors.primary} size="small" />
               </View>
             </View>
           )}
         </ScrollView>
         <View style={s.inputRow}>
-          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder="Ask a question about your players..." placeholderTextColor="#9CA3AF" multiline onSubmitEditing={sendMessage} />
+          <TextInput style={s.inputMsg} value={input} onChangeText={setInput} placeholder="Ask a question about your players..." placeholderTextColor={colors.textTertiary} multiline onSubmitEditing={sendMessage} />
           <TouchableOpacity style={[s.sendBtn, (!input.trim() || loading) && { backgroundColor: '#c7c7cc' }]} onPress={sendMessage} disabled={!input.trim() || loading}>
             <Text style={s.sendTxt}>↑</Text>
           </TouchableOpacity>
@@ -101,22 +101,22 @@ Answer in the same language as the coach's question.`
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f8f8' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: '#E5E7EB', flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', letterSpacing: -0.5 },
+  safe: { flex: 1, backgroundColor: colors.surfaceElevated },
+  header: { backgroundColor: colors.surface, padding: 20, paddingTop: 10, borderBottomWidth: 0.5, borderBottomColor: colors.borderStrong, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e' },
-  powered: { fontSize: 12, color: '#9CA3AF' },
+  powered: { fontSize: 12, color: colors.textTertiary },
   scroll: { flex: 1 },
   msgWrap: { marginBottom: 16 },
   msgUser: { alignItems: 'flex-end' },
   msgAI: { alignItems: 'flex-start' },
-  aiLabel: { fontSize: 9, color: '#9CA3AF', fontWeight: '600', letterSpacing: 0.1, marginBottom: 4 },
+  aiLabel: { fontSize: 9, color: colors.textTertiary, fontWeight: '600', letterSpacing: 0.1, marginBottom: 4 },
   bubble: { maxWidth: '85%', padding: 14, borderRadius: 16 },
-  bubbleUser: { backgroundColor: G, borderBottomRightRadius: 4 },
-  bubbleAI: { backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: '#E5E7EB', minWidth: 60, minHeight: 44, justifyContent: 'center' },
-  bubbleTxt: { fontSize: 14, color: '#1a1a1a', lineHeight: 21 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: '#fff', borderTopWidth: 0.5, borderTopColor: '#E5E7EB' },
-  inputMsg: { flex: 1, backgroundColor: '#f2f2f7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#1a1a1a', maxHeight: 100 },
-  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: G, alignItems: 'center', justifyContent: 'center' },
-  sendTxt: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  bubbleUser: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
+  bubbleAI: { backgroundColor: colors.surface, borderBottomLeftRadius: 4, borderWidth: 0.5, borderColor: colors.borderStrong, minWidth: 60, minHeight: 44, justifyContent: 'center' },
+  bubbleTxt: { fontSize: 14, color: colors.textPrimary, lineHeight: 21 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: colors.surface, borderTopWidth: 0.5, borderTopColor: colors.borderStrong },
+  inputMsg: { flex: 1, backgroundColor: '#f2f2f7', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: colors.textPrimary, maxHeight: 100 },
+  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  sendTxt: { color: colors.textInverse, fontSize: 16, fontWeight: '700' },
 })

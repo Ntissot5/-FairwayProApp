@@ -1,8 +1,7 @@
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-
-const G = '#1B5E35'
+import { colors } from '../theme'
 
 export default function PermissionPushModal({ visible, onEnable, onLater }) {
   const { t } = useTranslation()
@@ -11,7 +10,7 @@ export default function PermissionPushModal({ visible, onEnable, onLater }) {
       <View style={s.overlay}>
         <View style={s.card}>
           <View style={s.iconWrap}>
-            <Ionicons name="notifications-outline" size={32} color={G} />
+            <Ionicons name="notifications-outline" size={32} color={colors.primary} />
           </View>
           <Text style={s.title}>{t('notifications.permission_title')}</Text>
           <Text style={s.body}>{t('notifications.permission_body')}</Text>
@@ -31,13 +30,13 @@ export default function PermissionPushModal({ visible, onEnable, onLater }) {
 
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  card: { backgroundColor: '#fff', borderRadius: 20, padding: 28, width: '100%', alignItems: 'center' },
-  iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#E8F5E9', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  title: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', marginBottom: 10, textAlign: 'center' },
-  body: { fontSize: 14, color: '#6B7280', lineHeight: 22, textAlign: 'center', marginBottom: 24 },
+  card: { backgroundColor: colors.surface, borderRadius: 20, padding: 28, width: '100%', alignItems: 'center' },
+  iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  title: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 10, textAlign: 'center' },
+  body: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, textAlign: 'center', marginBottom: 24 },
   buttons: { flexDirection: 'row', gap: 12, width: '100%' },
-  btnLater: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center' },
-  btnLaterTxt: { fontSize: 15, fontWeight: '600', color: '#6B7280' },
-  btnEnable: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: G, alignItems: 'center' },
-  btnEnableTxt: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  btnLater: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.borderStrong, alignItems: 'center' },
+  btnLaterTxt: { fontSize: 15, fontWeight: '600', color: colors.textSecondary },
+  btnEnable: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center' },
+  btnEnableTxt: { fontSize: 15, fontWeight: '700', color: colors.textInverse },
 })
