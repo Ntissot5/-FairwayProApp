@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { useTranslation } from 'react-i18next'
@@ -28,7 +28,8 @@ export default function PlayerChatScreen() {
 
   const sendMessage = async () => {
     if (!input.trim() || !myPlayer) return
-    await supabase.from('messages').insert({ coach_id: myPlayer.coach_id, player_id: myPlayer.id, sender: 'player', content: input.trim() })
+    const { error: insertErr } = await supabase.from('messages').insert({ coach_id: myPlayer.coach_id, player_id: myPlayer.id, sender: 'player', content: input.trim() })
+    if (insertErr) { Alert.alert('Erreur', 'Message non envoyé: ' + insertErr.message); return }
     setInput('')
     fetchAll()
   }

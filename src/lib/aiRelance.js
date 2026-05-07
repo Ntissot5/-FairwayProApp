@@ -31,13 +31,18 @@ export async function generateRelanceMessage(player, sessions) {
 }
 
 export async function sendRelanceMessage(coachId, player, message) {
+  // Get fresh auth user to avoid stale coachId
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  const safeCoachId = authUser?.id || coachId
+
   // Insert message in DB
-  await supabase.from('messages').insert({
-    coach_id: coachId,
+  const { error: insertErr } = await supabase.from('messages').insert({
+    coach_id: safeCoachId,
     player_id: player.id,
     sender: 'coach',
     content: message,
   })
+  if (insertErr) throw new Error('Message non envoyé: ' + insertErr.message)
 
   // Send push notification to player
   if (player.player_user_id) {

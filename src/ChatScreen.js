@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, Modal } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
 import { sendPushNotification } from './notifications'
@@ -42,7 +42,10 @@ export default function ChatScreen({ navigation }) {
 
   const sendMessage = async () => {
     if (!input.trim()) return
-    await supabase.from('messages').insert({ coach_id: coachId, player_id: selected.id, sender: 'coach', content: input.trim() })
+    const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser()
+    if (authErr || !authUser) { Alert.alert('Erreur', 'Session expirée, reconnecte-toi'); return }
+    const { error: insertErr } = await supabase.from('messages').insert({ coach_id: authUser.id, player_id: selected.id, sender: 'coach', content: input.trim() })
+    if (insertErr) { Alert.alert('Erreur', 'Message non envoyé: ' + insertErr.message); return }
     // Send push notification to player
     const { data: tokenRow } = await supabase.from('push_tokens').select('token').eq('user_id', selected.player_user_id).single()
     if (tokenRow?.token) {
