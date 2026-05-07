@@ -195,7 +195,7 @@ export default function CoachApp({ navigation }) {
           </HeroCard>
 
           {inactivePlayers.length > 0 && (
-            <HeroCard icon="alert-circle-outline" iconColor={colors.warning} bgColor="#FFFBEB" borderColor="#FDE68A" title={t('home.to_note')} delay={200}>
+            <HeroCard icon="alert-circle-outline" iconColor={colors.warning} bgColor={colors.surface} borderColor={colors.border} title={t('home.to_note')} delay={200}>
               <Text style={styles.heroMainText}>{t('home.students_to_contact', { count: inactivePlayers.length })}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                 {inactivePlayers.slice(0, 4).map(p => (
@@ -208,8 +208,8 @@ export default function CoachApp({ navigation }) {
             </HeroCard>
           )}
 
-          <HeroCard icon="wallet-outline" iconColor="#2563EB" bgColor="#EFF6FF" borderColor="#BFDBFE" title={t('home.revenue_this_month')} delay={300}>
-            <Text style={[styles.heroMainText, { fontSize: 28, color: '#2563EB', letterSpacing: -1 }]}>{revenueThisMonth}€</Text>
+          <HeroCard icon="wallet-outline" iconColor={colors.info} bgColor={colors.surface} borderColor={colors.border} title={t('home.revenue_this_month')} delay={300}>
+            <Text style={[styles.heroMainText, { fontSize: 28, color: colors.textPrimary, letterSpacing: -1 }]}>{revenueThisMonth}€</Text>
           </HeroCard>
         </View>
 
@@ -280,8 +280,8 @@ const styles = StyleSheet.create({
   heroCardTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
   heroMainText: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   heroSubText: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-  inactiveChip: { backgroundColor: '#FEF3C7', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  inactiveChipTxt: { fontSize: 11, fontWeight: '600', color: '#92400E' },
+  inactiveChip: { backgroundColor: colors.surfaceElevated, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  inactiveChipTxt: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
   startSessionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginTop: 10, alignSelf: 'flex-start' },
   startSessionBtnTxt: { fontSize: 13, fontWeight: '700', color: colors.textInverse },
 
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   rowSub: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
   badgeGreen: { backgroundColor: colors.primaryLight },
-  badgeAmber: { backgroundColor: '#FEF3C7' },
+  badgeAmber: { backgroundColor: colors.warningLight },
   badgeTxt: { fontSize: 10, fontWeight: '600' },
   price: { fontSize: 15, fontWeight: '700', color: colors.primary },
 })
