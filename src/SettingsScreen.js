@@ -88,10 +88,6 @@ export default function SettingsScreen({ navigation }) {
 
         <View style={s.section}>
           <Text style={s.sectionTitle}>{t('settings.app')}</Text>
-          <TouchableOpacity style={s.infoRow} onPress={() => navigation.navigate('Plans')}>
-            <Text style={s.infoLabel}>{t('settings.plans')}</Text>
-            <Text style={s.infoValue}>›</Text>
-          </TouchableOpacity>
           <View style={s.infoRow}>
             <Text style={s.infoLabel}>{t('settings.version')}</Text>
             <Text style={s.infoValue}>1.0.0</Text>

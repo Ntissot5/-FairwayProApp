@@ -183,30 +183,6 @@
       "pause_14days": "14 jours"
     }
   },
-  "plans": {
-    "title": "Plans FairwayPro",
-    "subtitle": "Outil professionnel pour coachs de golf",
-    "per_month": "CHF / mois",
-    "popular": "Populaire",
-    "footer": "FairwayPro est un outil B2B destiné aux coachs professionnels. Les comptes sont activés par notre équipe après inscription.",
-    "solo": "Solo",
-    "pro": "Pro",
-    "academy": "Académie",
-    "feature_1_coach": "1 coach",
-    "feature_30_students": "Jusqu'à 30 élèves",
-    "feature_daily_briefing": "Briefing IA quotidien",
-    "feature_voice_notes": "Notes vocales + résumé IA",
-    "feature_unlimited_students": "Élèves illimités",
-    "feature_advanced_ai": "IA avancée",
-    "feature_full_analytics": "Analytics complets",
-    "feature_multi_coach": "Coachs multiples",
-    "feature_director_mode": "Mode directeur",
-    "feature_centralized_analytics": "Analytics centralisés",
-    "feature_academy_management": "Gestion académie",
-    "beta_banner_title": "Beta gratuite jusqu'à fin août 2026",
-    "beta_banner_subtitle": "Tous les coachs bénéficient de l'accès complet pendant la phase beta. Les tarifs ci-dessous s'appliqueront à partir de septembre 2026.",
-    "starting_september": "À partir de septembre 2026"
-  },
   "player_home": {
     "title": "Mon espace",
     "welcome": "Bienvenue {{name}} !",

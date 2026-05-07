@@ -12,7 +12,8 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 Text.defaultProps = Text.defaultProps || {}
 Text.defaultProps.style = { fontFamily: 'Inter_400Regular' }
 import WelcomeScreen from "./src/WelcomeScreen"
-import SubscribeScreen from "./src/SubscribeScreen"
+// SubscribeScreen disabled for App Store 3.1.1 compliance
+// import SubscribeScreen from "./src/SubscribeScreen"
 import LoginScreen from "./src/LoginScreen"
 import CoachApp from "./src/CoachApp"
 import PlayersScreen from "./src/PlayersScreen"
@@ -165,7 +166,6 @@ export default function App() {
           <RootStack.Screen name="SessionSummary" component={SessionSummaryScreen} />
           <RootStack.Screen name="PlayerSessionSummary" component={PlayerSessionSummaryScreen} />
           <RootStack.Screen name="PlayerVideoReplay" component={PlayerVideoReplayScreen} options={{ headerShown: false }} />
-          <RootStack.Screen name="Plans" component={SubscribeScreen} options={{ headerShown: true, headerTitle: '', headerBackTitle: '', headerTintColor: '#1a1a1a', headerStyle: { backgroundColor: '#fff' }, headerShadowVisible: false }} />
         </RootStack.Navigator>
       </NavigationContainer>
       </OnboardingProvider>

@@ -183,30 +183,6 @@
       "pause_14days": "14 days"
     }
   },
-  "plans": {
-    "title": "FairwayPro Plans",
-    "subtitle": "Professional tool for golf coaches",
-    "per_month": "CHF / month",
-    "popular": "Popular",
-    "footer": "FairwayPro is a B2B tool for professional coaches. Accounts are activated by our team after registration.",
-    "solo": "Solo",
-    "pro": "Pro",
-    "academy": "Academy",
-    "feature_1_coach": "1 coach",
-    "feature_30_students": "Up to 30 students",
-    "feature_daily_briefing": "Daily AI briefing",
-    "feature_voice_notes": "Voice notes + AI summary",
-    "feature_unlimited_students": "Unlimited students",
-    "feature_advanced_ai": "Advanced AI",
-    "feature_full_analytics": "Full analytics",
-    "feature_multi_coach": "Multiple coaches",
-    "feature_director_mode": "Director mode",
-    "feature_centralized_analytics": "Centralized analytics",
-    "feature_academy_management": "Academy management",
-    "beta_banner_title": "Free beta until end of August 2026",
-    "beta_banner_subtitle": "All coaches enjoy full access during the beta phase. The pricing below will apply from September 2026.",
-    "starting_september": "From September 2026"
-  },
   "player_home": {
     "title": "My space",
     "welcome": "Welcome {{name}}!",

@@ -34,9 +34,6 @@ export default function WelcomeScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.navigate('Login', { mode: 'coach', demo: true })}>
           <Text style={styles.demo}>{t('auth.view_demo')} →</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Plans')}>
-          <Text style={styles.plans}>{t('auth.view_plans')}</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   )
