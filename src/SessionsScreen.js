@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from './supabase'
+import { deleteCoachSession } from './lib/sessions'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { colors } from './theme'
@@ -77,9 +78,24 @@ export default function SessionsScreen({ navigation }) {
     fetchAll()
   }
 
-  const deleteSession = async (id) => {
-    await supabase.from('sessions').delete().eq('id', id)
-    fetchAll()
+  const deleteSession = async (session) => {
+    Alert.alert('Supprimer cette séance ?', '', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser()
+          await deleteCoachSession({
+            coachId: user.id,
+            playerId: session.player_id,
+            sessionDate: session.session_date,
+            sessionId: session.id,
+          })
+          fetchAll()
+        } catch (e) {
+          Alert.alert('Erreur', e?.message || 'Impossible de supprimer la séance')
+        }
+      }}
+    ])
   }
 
   const generateAIPlan = async (session) => {
@@ -219,7 +235,7 @@ export default function SessionsScreen({ navigation }) {
                     <TouchableOpacity onPress={() => { setEditSession(session); setEditPrice(String(session.price)); setEditDate(session.session_date) }} style={{ backgroundColor: colors.surfaceElevated, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, borderWidth: 0.5, borderColor: colors.borderStrong }}>
                       <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary }}>{t('common.edit')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => deleteSession(session.id)} style={s.delBtn}>
+                    <TouchableOpacity onPress={() => deleteSession(session)} style={s.delBtn}>
                       <Text style={s.delTxt}>✕</Text>
                     </TouchableOpacity>
                   </TouchableOpacity>

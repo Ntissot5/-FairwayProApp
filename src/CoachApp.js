@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Animated } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -11,6 +12,9 @@ import PermissionPushModal from './components/PermissionPushModal'
 import DailyBriefingCard from './components/DailyBriefingCard'
 import RelanceModal from './components/RelanceModal'
 import { colors } from './theme'
+
+// Local-time YYYY-MM-DD. toISOString() converts to UTC and at 11pm Geneva returns tomorrow.
+const toLocalDateStr = (d) => d.toLocaleDateString('en-CA')
 
 function HeroCard({ icon, iconColor, bgColor, borderColor, title, children, delay, onPress }) {
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -49,6 +53,9 @@ export default function CoachApp({ navigation }) {
   const briefingRef = useRef(null)
 
   useEffect(() => { fetchAll() }, [])
+
+  // Refetch when the home screen regains focus so newly-added lessons/sessions appear.
+  useFocusEffect(useCallback(() => { fetchAll() }, []))
 
   // Push notification permission flow
   useEffect(() => {
@@ -92,7 +99,7 @@ export default function CoachApp({ navigation }) {
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     setUserId(user.id)
-    const today = new Date().toISOString().split('T')[0]
+    const today = toLocalDateStr(new Date())
     const [pRes, sRes, lRes] = await Promise.all([
       supabase.from('players').select('*').eq('coach_id', user.id),
       supabase.from('sessions').select('*').eq('coach_id', user.id).order('session_date', { ascending: false }),
@@ -155,7 +162,7 @@ export default function CoachApp({ navigation }) {
           <HeroCard icon="flag-outline" iconColor={colors.primary} bgColor={colors.primaryLight} borderColor="#d1fae5" title={t('home.next_session')} delay={0}>
             {nextLesson ? (
               <View>
-                <Text style={styles.heroMainText}>{nextLesson.players?.full_name || '—'}</Text>
+                <Text style={styles.heroMainText}>{nextLesson.is_private_event ? (nextLesson.title || t('booking.private')) : nextLesson.is_group ? 'Cours collectif' : (nextLesson.players?.full_name || '—')}</Text>
                 <Text style={styles.heroSubText}>{t('home.at_time', { time: nextLesson.start_time?.slice(0, 5) })}</Text>
                 <TouchableOpacity style={styles.startSessionBtn} onPress={() => navigation.navigate('SessionLive', { lesson_id: nextLesson.id, player_id: nextLesson.player_id })}>
                   <Ionicons name="play" size={14} color={colors.textInverse} />

@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { supabase } from './supabase'
+import { deleteCoachSession } from './lib/sessions'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { colors } from './theme'
@@ -9,12 +11,16 @@ import { colors } from './theme'
 const DAYS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
 const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']
 
+// Local-time YYYY-MM-DD. toISOString() converts to UTC and at 11pm Geneva returns tomorrow.
+const toLocalDateStr = (d) => d.toLocaleDateString('en-CA')
+
 export default function BookingScreen({ navigation }) {
   const { t } = useTranslation()
   const [tab, setTab] = useState('agenda')
   const [workHours, setWorkHours] = useState([])
   const [collectifs, setCollectifs] = useState([])
   const [prefs, setPrefs] = useState({ default_duration: 60, max_group_size: 4, private_price: 120, group_price: 25 })
+  const [prefsDraft, setPrefsDraft] = useState({ default_duration: '60', max_group_size: '4', private_price: '120', group_price: '25' })
   const [lessons, setLessons] = useState([])
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -37,17 +43,28 @@ export default function BookingScreen({ navigation }) {
 
   useEffect(() => { fetchAll() }, [])
 
+  // Refetch when this screen regains focus so newly-added lessons appear immediately.
+  useFocusEffect(useCallback(() => { fetchAll() }, []))
+
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     setUserId(user.id)
     const { data: wh } = await supabase.from('work_hours').select('*').eq('coach_id', user.id).order('day_of_week')
     const { data: col } = await supabase.from('availabilities').select('*').eq('coach_id', user.id).order('day_of_week')
     const { data: p } = await supabase.from('coach_preferences').select('*').eq('coach_id', user.id).single()
-    const { data: l } = await supabase.from('lessons').select('*, players(full_name, current_handicap)').eq('coach_id', user.id).gte('lesson_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+    const { data: l } = await supabase.from('lessons').select('*, players(full_name, current_handicap)').eq('coach_id', user.id).gte('lesson_date', toLocalDateStr(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)))
     const { data: pl } = await supabase.from('players').select('*').eq('coach_id', user.id)
     setWorkHours(wh || [])
     setCollectifs(col || [])
-    if (p) setPrefs(p)
+    if (p) {
+      setPrefs(p)
+      setPrefsDraft({
+        default_duration: String(p.default_duration ?? 60),
+        max_group_size: String(p.max_group_size ?? 4),
+        private_price: String(p.private_price ?? 120),
+        group_price: String(p.group_price ?? 25),
+      })
+    }
     setLessons(l || [])
     setPlayers(pl || [])
     setLoading(false)
@@ -75,14 +92,27 @@ export default function BookingScreen({ navigation }) {
   }
 
   const savePrefs = async () => {
-    const existing = await supabase.from('coach_preferences').select('id').eq('coach_id', userId).single()
-    if (existing.data) {
-      await supabase.from('coach_preferences').update({ ...prefs, coach_id: userId }).eq('coach_id', userId)
-    } else {
-      await supabase.from('coach_preferences').insert({ ...prefs, coach_id: userId })
+    try {
+      const parsed = {
+        default_duration: parseFloat(prefsDraft.default_duration) || 60,
+        max_group_size: parseInt(prefsDraft.max_group_size) || 4,
+        private_price: parseFloat(prefsDraft.private_price) || 120,
+        group_price: parseFloat(prefsDraft.group_price) || 25,
+      }
+      setPrefs({ ...prefs, ...parsed })
+      const existing = await supabase.from('coach_preferences').select('id').eq('coach_id', userId).single()
+      if (existing.data) {
+        const { error } = await supabase.from('coach_preferences').update({ ...parsed, coach_id: userId }).eq('coach_id', userId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('coach_preferences').insert({ ...parsed, coach_id: userId })
+        if (error) throw error
+      }
+      Alert.alert(t('booking.preferences_saved'))
+      fetchAll()
+    } catch (e) {
+      Alert.alert('Erreur', e?.message || 'Impossible de sauvegarder les préférences')
     }
-    Alert.alert(t('booking.preferences_saved'))
-    fetchAll()
   }
 
   const addLesson = async () => {
@@ -121,13 +151,22 @@ export default function BookingScreen({ navigation }) {
     fetchAll()
   }
 
-  const deleteLesson = async (id) => {
+  const deleteLesson = async (lesson) => {
     Alert.alert('Supprimer ce cours ?', '', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: async () => {
-        await supabase.from('lessons').delete().eq('id', id)
-        setShowSlotDetail(false)
-        fetchAll()
+        try {
+          await deleteCoachSession({
+            coachId: userId,
+            playerId: lesson.player_id,
+            sessionDate: lesson.lesson_date,
+            lessonId: lesson.id,
+          })
+          setShowSlotDetail(false)
+          fetchAll()
+        } catch (e) {
+          Alert.alert('Erreur', e?.message || 'Impossible de supprimer le cours')
+        }
       }}
     ])
   }
@@ -143,7 +182,7 @@ export default function BookingScreen({ navigation }) {
   const weekLabel = weekDates[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' — ' + weekDates[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 
   const getLessonsForSlot = (date, time) => {
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = toLocalDateStr(date)
     return lessons.filter(l => l.lesson_date === dateStr && l.start_time?.slice(0,5) === time)
   }
 
@@ -219,7 +258,7 @@ export default function BookingScreen({ navigation }) {
                       const isWorking = isWorkingHour(date, time)
                       const slotLessons = getLessonsForSlot(date, time)
                       const col = collectifs.find(c => c.day_of_week === dow && c.start_time?.startsWith(time))
-                      const dateStr = date.toISOString().split('T')[0]
+                      const dateStr = toLocalDateStr(date)
                       const isPast = date < new Date() && date.toDateString() !== new Date().toDateString()
 
                       return (
@@ -369,21 +408,21 @@ export default function BookingScreen({ navigation }) {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Durée par défaut (min)</Text>
-                <TextInput style={s.input} value={String(prefs.default_duration || 60)} onChangeText={v => setPrefs({...prefs, default_duration: parseInt(v) || 60})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.default_duration} onChangeText={v => setPrefsDraft({...prefsDraft, default_duration: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Max cours collectif</Text>
-                <TextInput style={s.input} value={String(prefs.max_group_size || 4)} onChangeText={v => setPrefs({...prefs, max_group_size: parseInt(v) || 4})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.max_group_size} onChangeText={v => setPrefsDraft({...prefsDraft, max_group_size: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
             </View>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>💚 Cours privé (€)</Text>
-                <TextInput style={s.input} value={String(prefs.private_price || 120)} onChangeText={v => setPrefs({...prefs, private_price: parseInt(v) || 120})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.private_price} onChangeText={v => setPrefsDraft({...prefsDraft, private_price: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Collectif/élève (€)</Text>
-                <TextInput style={s.input} value={String(prefs.group_price || 25)} onChangeText={v => setPrefs({...prefs, group_price: parseInt(v) || 25})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.group_price} onChangeText={v => setPrefsDraft({...prefsDraft, group_price: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
             </View>
             <View style={{ backgroundColor: colors.primaryLight, borderRadius: 12, padding: 14, marginTop: 12 }}>
@@ -476,7 +515,7 @@ export default function BookingScreen({ navigation }) {
                   </View>
                   <Text style={{ fontSize: 18, fontWeight: '800', color: colors.primary }}>{lesson.price}€</Text>
                 </View>
-                <TouchableOpacity onPress={() => deleteLesson(lesson.id)} style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: colors.errorLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
+                <TouchableOpacity onPress={() => deleteLesson(lesson)} style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: colors.errorLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
                   <Text style={{ color: colors.error, fontSize: 12, fontWeight: '600' }}>✕ Supprimer</Text>
                 </TouchableOpacity>
               </View>
