@@ -162,7 +162,7 @@ export default function CoachApp({ navigation }) {
           <HeroCard icon="flag-outline" iconColor={colors.primary} bgColor={colors.primaryLight} borderColor="#d1fae5" title={t('home.next_session')} delay={0}>
             {nextLesson ? (
               <View>
-                <Text style={styles.heroMainText}>{nextLesson.players?.full_name || '—'}</Text>
+                <Text style={styles.heroMainText}>{nextLesson.is_private_event ? (nextLesson.title || t('booking.private')) : nextLesson.is_group ? 'Cours collectif' : (nextLesson.players?.full_name || '—')}</Text>
                 <Text style={styles.heroSubText}>{t('home.at_time', { time: nextLesson.start_time?.slice(0, 5) })}</Text>
                 <TouchableOpacity style={styles.startSessionBtn} onPress={() => navigation.navigate('SessionLive', { lesson_id: nextLesson.id, player_id: nextLesson.player_id })}>
                   <Ionicons name="play" size={14} color={colors.textInverse} />
