@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FairwayPro — Rotato Background 4K</title>
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; background: #041a0a; overflow: hidden; }
+  .scene {
+    width: 2160px;
+    height: 3840px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  canvas { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+<div class="scene">
+  <canvas id="c" width="2160" height="3840"></canvas>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 2160, H = 3840;
+
+const imageData = ctx.createImageData(W, H);
+const data = imageData.data;
+
+let seed = 42;
+function srand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v) { return Math.max(0, Math.min(255, Math.round(v))); }
+
+// Gradient stops: dark top → bright middle → dark bottom
+// Like Monty: navy top → light blue/white middle → navy bottom
+// Ours: deep emerald top → light green/white middle → deep emerald bottom
+const stops = [
+  { t: 0.00, r: 4,   g: 25,  b: 12  }, // very dark emerald
+  { t: 0.15, r: 6,   g: 40,  b: 20  },
+  { t: 0.30, r: 15,  g: 80,  b: 42  },
+  { t: 0.40, r: 60,  g: 160, b: 100 },
+  { t: 0.48, r: 150, g: 220, b: 185 }, // light green
+  { t: 0.52, r: 180, g: 235, b: 210 }, // near white-green (brightest)
+  { t: 0.58, r: 140, g: 210, b: 175 },
+  { t: 0.65, r: 50,  g: 140, b: 85  },
+  { t: 0.75, r: 12,  g: 70,  b: 35  },
+  { t: 0.85, r: 6,   g: 40,  b: 20  },
+  { t: 1.00, r: 3,   g: 18,  b: 10  }, // very dark emerald
+];
+
+function getColor(t) {
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (t >= stops[i].t && t <= stops[i + 1].t) {
+      const p = (t - stops[i].t) / (stops[i + 1].t - stops[i].t);
+      // Smooth interpolation
+      const sp = p * p * (3 - 2 * p);
+      return {
+        r: lerp(stops[i].r, stops[i + 1].r, sp),
+        g: lerp(stops[i].g, stops[i + 1].g, sp),
+        b: lerp(stops[i].b, stops[i + 1].b, sp),
+      };
+    }
+  }
+  const last = stops[stops.length - 1];
+  return { r: last.r, g: last.g, b: last.b };
+}
+
+for (let y = 0; y < H; y++) {
+  const t = y / H;
+  const base = getColor(t);
+
+  for (let x = 0; x < W; x++) {
+    const idx = (y * W + x) * 4;
+
+    // Subtle radial glow from center
+    const dx = (x - W * 0.5) / W;
+    const dy = (y - H * 0.5) / H;
+    const dist = Math.sqrt(dx * dx + dy * dy * 0.7);
+    const glow = Math.max(0, 1 - dist * 2.5) * 0.15;
+
+    // Grain
+    const noise = (srand() - 0.5) * 30;
+
+    data[idx]     = clamp(base.r + base.r * glow + noise * 0.35);
+    data[idx + 1] = clamp(base.g + base.g * glow + noise);
+    data[idx + 2] = clamp(base.b + base.b * glow + noise * 0.5);
+    data[idx + 3] = 255;
+  }
+}
+
+ctx.putImageData(imageData, 0, 0);
+</script>
+</body>
+</html>

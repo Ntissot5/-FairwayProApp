@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairwayPro Premortem Report — Mai 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0e1a; color: #e0e4ef; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; line-height: 1.65; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: #fff; margin-bottom: 0.3rem; }
+  .subtitle { color: #7a8bb5; font-size: 1rem; margin-bottom: 2.5rem; }
+  .frame { background: #111830; border-left: 4px solid #ff4d4d; padding: 1.2rem 1.5rem; border-radius: 8px; margin-bottom: 2.5rem; font-style: italic; color: #ccc; font-size: 1.05rem; }
+
+  /* Synthesis section */
+  .synthesis { margin-bottom: 3rem; }
+  .synthesis h2 { font-size: 1.5rem; color: #fff; margin-bottom: 1.5rem; border-bottom: 1px solid #1e2a4a; padding-bottom: 0.5rem; }
+  .synth-card { background: #111830; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.2rem; }
+  .synth-card h3 { font-size: 1.1rem; margin-bottom: 0.6rem; }
+  .synth-card p { color: #b0b8d1; font-size: 0.95rem; }
+  .synth-most-likely { border-left: 4px solid #ff6b35; }
+  .synth-most-likely h3 { color: #ff6b35; }
+  .synth-most-dangerous { border-left: 4px solid #ff4d4d; }
+  .synth-most-dangerous h3 { color: #ff4d4d; }
+  .synth-assumption { border-left: 4px solid #ffd700; }
+  .synth-assumption h3 { color: #ffd700; }
+  .synth-revised { border-left: 4px solid #4dff91; }
+  .synth-revised h3 { color: #4dff91; }
+  .synth-checklist { border-left: 4px solid #4d9fff; }
+  .synth-checklist h3 { color: #4d9fff; }
+  .synth-checklist ul { padding-left: 1.2rem; color: #b0b8d1; font-size: 0.95rem; }
+  .synth-checklist li { margin-bottom: 0.4rem; }
+
+  /* Failure cards grid */
+  .cards-header { font-size: 1.5rem; color: #fff; margin-bottom: 0.3rem; border-bottom: 1px solid #1e2a4a; padding-bottom: 0.5rem; }
+  .cards-sub { color: #7a8bb5; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 3rem; }
+  @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: #111830; border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .card h3 { font-size: 1rem; margin-bottom: 0.3rem; }
+  .card .severity { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; font-weight: 600; }
+  .card .story { color: #9aa3bf; font-size: 0.88rem; margin-bottom: 0.8rem; }
+  .card .assumption-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7594; margin-bottom: 0.2rem; }
+  .card .assumption-text { font-size: 0.88rem; color: #ddd; font-style: italic; margin-bottom: 0.8rem; }
+  .card .warning-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7594; margin-bottom: 0.3rem; }
+  .card .warning-text { font-size: 0.85rem; color: #b0b8d1; }
+
+  /* Color themes per card */
+  .card-1::before { background: #ff4d4d; } .card-1 h3 { color: #ff4d4d; } .card-1 .severity { color: #ff4d4d; }
+  .card-2::before { background: #ff6b35; } .card-2 h3 { color: #ff6b35; } .card-2 .severity { color: #ff6b35; }
+  .card-3::before { background: #ffd700; } .card-3 h3 { color: #ffd700; } .card-3 .severity { color: #ffd700; }
+  .card-4::before { background: #ff85a1; } .card-4 h3 { color: #ff85a1; } .card-4 .severity { color: #ff85a1; }
+  .card-5::before { background: #4d9fff; } .card-5 h3 { color: #4d9fff; } .card-5 .severity { color: #4d9fff; }
+  .card-6::before { background: #a78bfa; } .card-6 h3 { color: #a78bfa; } .card-6 .severity { color: #a78bfa; }
+  .card-7::before { background: #4dff91; } .card-7 h3 { color: #4dff91; } .card-7 .severity { color: #4dff91; }
+  .card-8::before { background: #ff9f43; } .card-8 h3 { color: #ff9f43; } .card-8 .severity { color: #ff9f43; }
+
+  .footer { text-align: center; color: #4a5580; font-size: 0.8rem; padding-top: 2rem; border-top: 1px solid #1e2a4a; }
+</style>
+</head>
+<body>
+
+<h1>PREMORTEM REPORT</h1>
+<p class="subtitle">FairwayPro — App iOS de coaching golf &bull; 3 mai 2026 &bull; 8 agents d'investigation</p>
+
+<div class="frame">
+  On est en novembre 2026. FairwayPro a echoue. L'app stagne a moins de 10 utilisateurs payants. Le developpement est au point mort. Voici pourquoi c'est arrive, et comment l'eviter.
+</div>
+
+<!-- ===================== SYNTHESIS ===================== -->
+<div class="synthesis">
+<h2>Synthese</h2>
+
+<div class="synth-card synth-most-likely">
+  <h3>L'echec le plus probable : Pas de distribution</h3>
+  <p>L'app se construit dans le vide. Aucune strategie de go-to-market n'existe. Les coaches de golf ne cherchent pas d'apps sur l'App Store — ils decouvrent des outils par le bouche-a-oreille, les associations PGA, et les collegues au club. Sans presence dans ces canaux, FairwayPro lance dans le neant. 8 utilisateurs apres 3 mois, tous des contacts personnels. Noa interprete le silence comme un probleme produit et construit plus de features au lieu de trouver des utilisateurs.</p>
+</div>
+
+<div class="synth-card synth-most-dangerous">
+  <h3>L'echec le plus dangereux : Cle API exposee</h3>
+  <p>La cle Anthropic <code>sk-ant-api03-...</code> est en clair dans <code>AICoachScreen.js:7</code> et <code>CoachApp.js:58</code>. Des qu'elle est sur l'App Store, n'importe qui peut extraire cette cle d'un .ipa en 2 minutes. Consequence : factures API de centaines de dollars/jour, puis suspension du compte. Toutes les features IA meurent d'un coup. Les coaches payant CHF 40-60/mois pour une app "IA" demandent des remboursements. C'est le seul scenario qui peut causer des pertes financieres directes <strong>et</strong> detruire la reputation du produit simultanement.</p>
+</div>
+
+<div class="synth-card synth-assumption">
+  <h3>L'hypothese cachee : "Un bon produit se vend tout seul"</h3>
+  <p>A travers les 8 scenarios d'echec, une croyance invisible emerge : que le travail de developpement <em>est</em> le travail de lancement. Noa investit 100% de son temps a construire des features et 0% a trouver des utilisateurs, valider le pricing, ou preparer la distribution. L'hypothese non questionnee est que si Session Mode est assez bon, les coaches viendront naturellement. L'histoire des startups dit exactement le contraire — la distribution tue plus de produits que la qualite.</p>
+</div>
+
+<div class="synth-card synth-revised">
+  <h3>Le plan revise</h3>
+  <p><strong>1. Securite d'abord (cette semaine) :</strong> Migrer <code>AICoachScreen.js</code> et <code>CoachApp.js</code> vers le proxy Supabase <code>claude-proxy</code>. Revoquer la cle actuelle. Mettre une alerte budget chez Anthropic. Temps : 1 jour.</p>
+  <p><strong>2. Enterrer la branche <code>main</code> (cette semaine) :</strong> Decision formelle : main est morte. Archiver les fichiers utiles (DailyBriefing) comme reference, mais tout le travail MVP continue sur <code>restore-working-version</code>. Pas de merge, pas de dette.</p>
+  <p><strong>3. Trouver 5 coaches beta avant de coder Session Mode :</strong> Contacter l'ASG (Association Suisse de Golf), poster dans les groupes WhatsApp de coaches, aller physiquement dans 2-3 clubs. Objectif : 5 coaches actifs sur TestFlight qui ne sont pas des amis. Si c'est impossible, le probleme de distribution est confirme avant d'investir 2 mois de dev.</p>
+  <p><strong>4. Lancer avec un prix d'early adopter :</strong> CHF 19/mois au lancement (pas 40). Valider la willingness-to-pay avec de vrais utilisateurs. Monter le prix quand Session Mode + AI Summary sont stables et que 20+ coaches l'utilisent activement.</p>
+  <p><strong>5. Session Mode : prototype minimal d'abord :</strong> V1 = timer + notes texte attaches a une session. Pas de video in-app (les coaches filment deja avec Camera.app). L'IA resume les notes. Valider l'usage reel avant d'investir dans la capture video complexe.</p>
+</div>
+
+<div class="synth-card synth-checklist">
+  <h3>Checklist pre-lancement</h3>
+  <ul>
+    <li><strong>Cle API :</strong> Zero secret dans le code client. Toutes les calls AI passent par <code>claude-proxy</code>. Alerte Anthropic a $50/mois.</li>
+    <li><strong>App Store readiness :</strong> SubscribeScreen n'est PAS le premier ecran. L'app est browsable sans payer. Disclosure AI visible. Privacy policy a jour (capture video de mineurs potentiels).</li>
+    <li><strong>IAP fonctionnel :</strong> RevenueCat installe, sandbox teste, receipt validation en place AVANT soumission App Store.</li>
+    <li><strong>5 coaches non-amis sur TestFlight :</strong> Si ce nombre n'est pas atteint en 3 semaines d'efforts, pivoter la strategie de distribution avant de continuer le dev.</li>
+    <li><strong>Branche unique :</strong> <code>main</code> archivee. Un seul flux de travail. Pas de merge futur a redouter.</li>
+  </ul>
+</div>
+</div>
+
+<!-- ===================== FAILURE CARDS ===================== -->
+<h2 class="cards-header">8 scenarios d'echec analyses</h2>
+<p class="cards-sub">Chaque carte represente un agent d'investigation independant</p>
+
+<div class="grid">
+
+<!-- Card 1: API Key -->
+<div class="card card-1">
+  <h3>1. Cle API exposee</h3>
+  <div class="severity">CRITIQUE &bull; Impact immediat</div>
+  <div class="story">La cle <code>sk-ant-api03-...</code> est hardcodee en clair dans 2 fichiers. Un .ipa est un zip — extraction en 2 minutes. Post-lancement : abus massif, factures de centaines de $/jour, puis suspension Anthropic. Toutes les features IA tombent. Le proxy Supabase existe deja mais n'est pas utilise partout.</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Parce que l'app est sur TestFlight (audience fermee), il n'y a pas d'urgence a securiser la cle avant le lancement public.</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">Usage API Anthropic qui croit plus vite que le nombre d'utilisateurs. Toute exposition du repo (fork public, log CI) declenche des scanners automatiques.</div>
+</div>
+
+<!-- Card 2: No Distribution -->
+<div class="card card-2">
+  <h3>2. Aucune strategie de distribution</h3>
+  <div class="severity">CRITIQUE &bull; Probabilite la plus elevee</div>
+  <div class="story">L'App Store recoit 40 impressions le premier mois. Les coaches ne cherchent pas d'apps — ils ecoutent leurs collegues. Aucun partenariat avec une association golf, aucune presence dans les forums coaching. 8 utilisateurs en 3 mois, tous du reseau personnel. Noa construit plus de features au lieu de chercher des utilisateurs.</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Construire un bon produit et le publier sur l'App Store suffit pour que les coaches le decouvrent et l'adoptent.</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">Zero contact avec une association golf avant le lancement. Moins de 10 testeurs TestFlight qui ne sont pas des contacts personnels.</div>
+</div>
+
+<!-- Card 3: Session Mode -->
+<div class="card card-3">
+  <h3>3. Session Mode ne tient pas sa promesse</h3>
+  <div class="severity">ELEVE &bull; Risque produit fondamental</div>
+  <div class="story">Le pilier du MVP n'existe pas encore. La capture video + micro + notes simultanées en React Native est un defi technique majeur. Meme si ca marche, l'UX sur un driving range (soleil, gants, ecran qui se verrouille) rend l'app plus lente que Camera.app + Notes. Les coaches essaient une fois et reviennent a leurs outils gratuits.</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Les coaches adopteront une interface multi-outils inconnue pendant une lecon active, quand une app native gratuite fait deja le job principal.</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">En beta, les coaches lancent Camera.app au lieu de Session Mode. Moins de 1 video uploadee/semaine par coach = la value prop est morte.</div>
+</div>
+
+<!-- Card 4: Pricing -->
+<div class="card card-4">
+  <h3>4. Prix trop eleve pour le marche</h3>
+  <div class="severity">ELEVE &bull; Conversion killer</div>
+  <div class="story">CHF 40-60/mois est plus cher que Netflix + Spotify combines. A ce prix, les coaches attendent un produit fini, pas un MVP. Le taux de conversion trial-to-paid reste sous 4%. Les coaches disent "c'est utile" mais "pas a ce prix". Apres Apple 30%, Noa touche CHF 28-42 par abonne. Les avis negatifs sur le prix tuent la croissance organique.</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Les coaches paieront un prix SaaS premium pour remplacer des workflows qu'ils gerent actuellement gratuitement.</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">Taux de conversion sous 10% apres 2 mois. Les churned users reviennent aux outils gratuits (pas a des concurrents).</div>
+</div>
+
+<!-- Card 5: IAP -->
+<div class="card card-5">
+  <h3>5. IAP jamais integre</h3>
+  <div class="severity">ELEVE &bull; Bloquant revenue</div>
+  <div class="story">Le SubscribeScreen existe mais AUCUNE librairie de paiement n'est installee. Pas de RevenueCat, pas d'expo-iap dans package.json. Le bouton "S'abonner" n'existe pas — juste "Se connecter". Noa grant manuellement l'acces via Supabase, masquant l'urgence. Apple rejette la soumission : prix affiches sans flow d'achat fonctionnel.</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Le paywall peut etre construit UI-first et branche aux paiements "plus tard", sans realiser qu'Apple exige l'infra de paiement avant tout langage de monetisation.</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">package.json sans dependance IAP. SubscribeScreen sans bouton d'achat fonctionnel. MASTER_CONTEXT mentionne RevenueCat mais le code ne l'a pas.</div>
+</div>
+
+<!-- Card 6: App Store -->
+<div class="card card-6">
+  <h3>6. Rejets App Store repetes</h3>
+  <div class="severity">MOYEN &bull; Delai de lancement</div>
+  <div class="story">Premier rejet : 3.1.1 (SubscribeScreen = premier ecran, pas de navigation possible sans payer). Deuxieme rejet : cle API en clair + pas de disclosure AI. Chaque rejet = 1-2 semaines de fix + resoumission. 3 mois de fenetre de lancement perdus. Les early adopters TestFlight churnent en attendant.</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Passer la review TestFlight (qui n'a pas de scrutin IAP/paywall) equivaut a etre pret pour l'App Store.</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">Le commit recent "fix: remove external URL button for App Store 3.1.1 compliance" montre qu'Apple a deja flag un probleme — le symptome a ete traite mais pas la cause racine.</div>
+</div>
+
+<!-- Card 7: Branch Divergence -->
+<div class="card card-7">
+  <h3>7. Divergence des branches</h3>
+  <div class="severity">MOYEN &bull; Dette technique</div>
+  <div class="story"><code>main</code> a ajoute i18n, ThemeContext, expo-haptics, expo-linear-gradient — chaque ecran importe useTheme() et useTranslation(). La branche stable n'a rien de tout ca. Merger n'importe quel fichier de main casse instantanement. DailyBriefing (feature MVP) est sur main dans une architecture incompatible. Des semaines de reconciliation au lieu de dev.</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Le travail sur main peut etre cherry-pick dans la branche stable plus tard, alors que la divergence est architecturale (dependances, theme, i18n).</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">main reste au commit "WIP: backup before debugging crash" pendant 30+ jours. Toute feature MVP qui touche un fichier existant aussi sur main.</div>
+</div>
+
+<!-- Card 8: Solo Dev -->
+<div class="card card-8">
+  <h3>8. Goulot solo developer</h3>
+  <div class="severity">MOYEN &bull; Risque structurel</div>
+  <div class="story">Noa fait tout seul : dev, design, App Store, marketing, support, bugs. Session Mode (la feature la plus complexe) n'est pas construite. Un evenement de vie (burnout, job, perso) = arret total du projet. La frequence de commits passe de hebdomadaire a mensuelle. Les testeurs TestFlight se desengagent. Le projet entre en mode "j'y reviendrai".</div>
+  <div class="assumption-label">Hypothese sous-jacente</div>
+  <div class="assumption-text">Noa aura une capacite de developpement consistante et ininterrompue pendant 6 mois.</div>
+  <div class="warning-label">Signaux d'alerte</div>
+  <div class="warning-text">Moins d'un commit par semaine pendant 2 semaines consecutives. Taux de reponse des testeurs TestFlight sous 30%.</div>
+</div>
+
+</div>
+
+<div class="footer">
+  Premortem genere le 3 mai 2026 a 22:40 &bull; FairwayPro iOS App &bull; 8 agents d'investigation en parallele &bull; Methode Gary Klein (prospective hindsight)
+</div>
+
+</body>
+</html>

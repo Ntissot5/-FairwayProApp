@@ -24,7 +24,7 @@
           "remote-notification"
         ]
       },
-      "buildNumber": "80"
+      "buildNumber": "89"
     },
     "android": {
       "adaptiveIcon": {
@@ -61,7 +61,8 @@
           "microphonePermission": "FairwayPro a besoin du microphone pour enregistrer le son de vos vidéos de swing."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-asset"
     ],
     "runtimeVersion": "1.0.0",
     "updates": {
