@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
 import { supabase } from './supabase'
+import { deleteCoachSession } from './lib/sessions'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { colors } from './theme'
@@ -150,13 +151,22 @@ export default function BookingScreen({ navigation }) {
     fetchAll()
   }
 
-  const deleteLesson = async (id) => {
+  const deleteLesson = async (lesson) => {
     Alert.alert('Supprimer ce cours ?', '', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: async () => {
-        await supabase.from('lessons').delete().eq('id', id)
-        setShowSlotDetail(false)
-        fetchAll()
+        try {
+          await deleteCoachSession({
+            coachId: userId,
+            playerId: lesson.player_id,
+            sessionDate: lesson.lesson_date,
+            lessonId: lesson.id,
+          })
+          setShowSlotDetail(false)
+          fetchAll()
+        } catch (e) {
+          Alert.alert('Erreur', e?.message || 'Impossible de supprimer le cours')
+        }
       }}
     ])
   }
@@ -505,7 +515,7 @@ export default function BookingScreen({ navigation }) {
                   </View>
                   <Text style={{ fontSize: 18, fontWeight: '800', color: colors.primary }}>{lesson.price}€</Text>
                 </View>
-                <TouchableOpacity onPress={() => deleteLesson(lesson.id)} style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: colors.errorLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
+                <TouchableOpacity onPress={() => deleteLesson(lesson)} style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: colors.errorLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
                   <Text style={{ color: colors.error, fontSize: 12, fontWeight: '600' }}>✕ Supprimer</Text>
                 </TouchableOpacity>
               </View>
