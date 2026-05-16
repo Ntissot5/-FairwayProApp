@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { supabase } from './supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +9,9 @@ import { colors } from './theme'
 
 const DAYS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
 const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']
+
+// Local-time YYYY-MM-DD. toISOString() converts to UTC and at 11pm Geneva returns tomorrow.
+const toLocalDateStr = (d) => d.toLocaleDateString('en-CA')
 
 export default function BookingScreen({ navigation }) {
   const { t } = useTranslation()
@@ -38,13 +42,16 @@ export default function BookingScreen({ navigation }) {
 
   useEffect(() => { fetchAll() }, [])
 
+  // Refetch when this screen regains focus so newly-added lessons appear immediately.
+  useFocusEffect(useCallback(() => { fetchAll() }, []))
+
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     setUserId(user.id)
     const { data: wh } = await supabase.from('work_hours').select('*').eq('coach_id', user.id).order('day_of_week')
     const { data: col } = await supabase.from('availabilities').select('*').eq('coach_id', user.id).order('day_of_week')
     const { data: p } = await supabase.from('coach_preferences').select('*').eq('coach_id', user.id).single()
-    const { data: l } = await supabase.from('lessons').select('*, players(full_name, current_handicap)').eq('coach_id', user.id).gte('lesson_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+    const { data: l } = await supabase.from('lessons').select('*, players(full_name, current_handicap)').eq('coach_id', user.id).gte('lesson_date', toLocalDateStr(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)))
     const { data: pl } = await supabase.from('players').select('*').eq('coach_id', user.id)
     setWorkHours(wh || [])
     setCollectifs(col || [])
@@ -165,7 +172,7 @@ export default function BookingScreen({ navigation }) {
   const weekLabel = weekDates[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' — ' + weekDates[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 
   const getLessonsForSlot = (date, time) => {
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = toLocalDateStr(date)
     return lessons.filter(l => l.lesson_date === dateStr && l.start_time?.slice(0,5) === time)
   }
 
@@ -241,7 +248,7 @@ export default function BookingScreen({ navigation }) {
                       const isWorking = isWorkingHour(date, time)
                       const slotLessons = getLessonsForSlot(date, time)
                       const col = collectifs.find(c => c.day_of_week === dow && c.start_time?.startsWith(time))
-                      const dateStr = date.toISOString().split('T')[0]
+                      const dateStr = toLocalDateStr(date)
                       const isPast = date < new Date() && date.toDateString() !== new Date().toDateString()
 
                       return (
