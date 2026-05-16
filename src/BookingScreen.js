@@ -15,6 +15,7 @@ export default function BookingScreen({ navigation }) {
   const [workHours, setWorkHours] = useState([])
   const [collectifs, setCollectifs] = useState([])
   const [prefs, setPrefs] = useState({ default_duration: 60, max_group_size: 4, private_price: 120, group_price: 25 })
+  const [prefsDraft, setPrefsDraft] = useState({ default_duration: '60', max_group_size: '4', private_price: '120', group_price: '25' })
   const [lessons, setLessons] = useState([])
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -47,7 +48,15 @@ export default function BookingScreen({ navigation }) {
     const { data: pl } = await supabase.from('players').select('*').eq('coach_id', user.id)
     setWorkHours(wh || [])
     setCollectifs(col || [])
-    if (p) setPrefs(p)
+    if (p) {
+      setPrefs(p)
+      setPrefsDraft({
+        default_duration: String(p.default_duration ?? 60),
+        max_group_size: String(p.max_group_size ?? 4),
+        private_price: String(p.private_price ?? 120),
+        group_price: String(p.group_price ?? 25),
+      })
+    }
     setLessons(l || [])
     setPlayers(pl || [])
     setLoading(false)
@@ -75,14 +84,27 @@ export default function BookingScreen({ navigation }) {
   }
 
   const savePrefs = async () => {
-    const existing = await supabase.from('coach_preferences').select('id').eq('coach_id', userId).single()
-    if (existing.data) {
-      await supabase.from('coach_preferences').update({ ...prefs, coach_id: userId }).eq('coach_id', userId)
-    } else {
-      await supabase.from('coach_preferences').insert({ ...prefs, coach_id: userId })
+    try {
+      const parsed = {
+        default_duration: parseFloat(prefsDraft.default_duration) || 60,
+        max_group_size: parseInt(prefsDraft.max_group_size) || 4,
+        private_price: parseFloat(prefsDraft.private_price) || 120,
+        group_price: parseFloat(prefsDraft.group_price) || 25,
+      }
+      setPrefs({ ...prefs, ...parsed })
+      const existing = await supabase.from('coach_preferences').select('id').eq('coach_id', userId).single()
+      if (existing.data) {
+        const { error } = await supabase.from('coach_preferences').update({ ...parsed, coach_id: userId }).eq('coach_id', userId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('coach_preferences').insert({ ...parsed, coach_id: userId })
+        if (error) throw error
+      }
+      Alert.alert(t('booking.preferences_saved'))
+      fetchAll()
+    } catch (e) {
+      Alert.alert('Erreur', e?.message || 'Impossible de sauvegarder les préférences')
     }
-    Alert.alert(t('booking.preferences_saved'))
-    fetchAll()
   }
 
   const addLesson = async () => {
@@ -369,21 +391,21 @@ export default function BookingScreen({ navigation }) {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Durée par défaut (min)</Text>
-                <TextInput style={s.input} value={String(prefs.default_duration || 60)} onChangeText={v => setPrefs({...prefs, default_duration: parseInt(v) || 60})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.default_duration} onChangeText={v => setPrefsDraft({...prefsDraft, default_duration: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Max cours collectif</Text>
-                <TextInput style={s.input} value={String(prefs.max_group_size || 4)} onChangeText={v => setPrefs({...prefs, max_group_size: parseInt(v) || 4})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.max_group_size} onChangeText={v => setPrefsDraft({...prefsDraft, max_group_size: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
             </View>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>💚 Cours privé (€)</Text>
-                <TextInput style={s.input} value={String(prefs.private_price || 120)} onChangeText={v => setPrefs({...prefs, private_price: parseInt(v) || 120})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.private_price} onChangeText={v => setPrefsDraft({...prefsDraft, private_price: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.label}>Collectif/élève (€)</Text>
-                <TextInput style={s.input} value={String(prefs.group_price || 25)} onChangeText={v => setPrefs({...prefs, group_price: parseInt(v) || 25})} keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
+                <TextInput style={s.input} value={prefsDraft.group_price} onChangeText={v => setPrefsDraft({...prefsDraft, group_price: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
             </View>
             <View style={{ backgroundColor: colors.primaryLight, borderRadius: 12, padding: 14, marginTop: 12 }}>
