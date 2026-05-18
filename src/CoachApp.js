@@ -11,7 +11,9 @@ import { registerForPushNotifications, savePushToken } from './notifications'
 import PermissionPushModal from './components/PermissionPushModal'
 import DailyBriefingCard from './components/DailyBriefingCard'
 import RelanceModal from './components/RelanceModal'
+import CoachOnboardingChecklist from './components/CoachOnboardingChecklist'
 import { colors } from './theme'
+import { formatDate, formatCurrency } from './lib/format'
 
 // Local-time YYYY-MM-DD. toISOString() converts to UTC and at 11pm Geneva returns tomorrow.
 const toLocalDateStr = (d) => d.toLocaleDateString('en-CA')
@@ -50,6 +52,10 @@ export default function CoachApp({ navigation }) {
   const [showRelanceModal, setShowRelanceModal] = useState(false)
   const [relanceTarget, setRelanceTarget] = useState(null)
   const [userId, setUserId] = useState(null)
+  const [user, setUser] = useState(null)
+  const [packagesCount, setPackagesCount] = useState(0)
+  const [workHoursCount, setWorkHoursCount] = useState(0)
+  const [exercisesCount, setExercisesCount] = useState(0)
   const briefingRef = useRef(null)
 
   useEffect(() => { fetchAll() }, [])
@@ -98,19 +104,37 @@ export default function CoachApp({ navigation }) {
 
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
+    setUser(user)
     setUserId(user.id)
     const today = toLocalDateStr(new Date())
-    const [pRes, sRes, lRes] = await Promise.all([
+    const [pRes, sRes, lRes, pkgRes, whRes, exRes] = await Promise.all([
       supabase.from('players').select('*').eq('coach_id', user.id),
       supabase.from('sessions').select('*').eq('coach_id', user.id).order('session_date', { ascending: false }),
       supabase.from('lessons').select('*, players(full_name)').eq('coach_id', user.id).eq('lesson_date', today).order('start_time', { ascending: true }),
+      supabase.from('packages').select('id', { count: 'exact', head: true }).eq('coach_id', user.id),
+      supabase.from('work_hours').select('id', { count: 'exact', head: true }).eq('coach_id', user.id),
+      supabase.from('exercises').select('id', { count: 'exact', head: true }).eq('coach_id', user.id),
     ])
     setPlayers(pRes.data || [])
     setSessions(sRes.data || [])
     setLessons(lRes.data || [])
+    setPackagesCount(pkgRes.count || 0)
+    setWorkHoursCount(whRes.count || 0)
+    setExercisesCount(exRes.count || 0)
     setLoading(false)
     setRefreshing(false)
   }
+
+  const handleOnboardingNavigate = (action) => {
+    if (!action?.tab) return
+    if (action.tab === 'Settings') {
+      navigation.navigate('Settings')
+      return
+    }
+    navigation.navigate(action.tab, action.subTab ? { initialTab: action.subTab } : undefined)
+  }
+
+  const hasAIPlan = Boolean(user?.user_metadata?.first_ai_plan_at) || exercisesCount > 0
 
   const now = new Date()
   const revenueThisMonth = sessions.filter(s => {
@@ -157,6 +181,18 @@ export default function CoachApp({ navigation }) {
 
         {userId && <DailyBriefingCard userId={userId} ref={briefingRef} />}
 
+        {user && (
+          <CoachOnboardingChecklist
+            mode="card"
+            user={user}
+            players={players}
+            packagesCount={packagesCount}
+            workHoursCount={workHoursCount}
+            hasAIPlan={hasAIPlan}
+            onNavigate={handleOnboardingNavigate}
+          />
+        )}
+
         {/* Hero Cards */}
         <View style={styles.heroSection}>
           <HeroCard icon="flag-outline" iconColor={colors.primary} bgColor={colors.primaryLight} borderColor="#d1fae5" title={t('home.next_session')} delay={0}>
@@ -195,7 +231,7 @@ export default function CoachApp({ navigation }) {
           )}
 
           <HeroCard icon="wallet-outline" iconColor={colors.info} bgColor={colors.surface} borderColor={colors.border} title={t('home.revenue_this_month')} delay={300}>
-            <Text style={[styles.heroMainText, { fontSize: 28, color: colors.textPrimary, letterSpacing: -1 }]}>{revenueThisMonth}€</Text>
+            <Text style={[styles.heroMainText, { fontSize: 28, color: colors.textPrimary, letterSpacing: -1 }]}>{formatCurrency(revenueThisMonth)}</Text>
           </HeroCard>
         </View>
 
@@ -226,27 +262,79 @@ export default function CoachApp({ navigation }) {
           })}
         </View>
 
-        {/* Recent sessions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('home.last_sessions')}</Text>
-          {sessions.slice(0, 5).map(s => {
-            const player = players.find(p => p.id === s.player_id)
-            return (
-              <TouchableOpacity key={s.id} style={styles.row} onPress={() => player && navigation.navigate("PlayerDetail", { player })}>
-                <View style={styles.rowInfo}>
-                  <Text style={styles.rowName}>{player?.full_name || '—'}</Text>
-                  <Text style={styles.rowSub}>{s.session_date}</Text>
-                </View>
-                <Text style={styles.price}>{s.price}€</Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        {/* Upcoming sessions */}
+        {(() => {
+          const todayStr = toLocalDateStr(new Date())
+          const upcoming = sessions
+            .filter(s => s.session_date > todayStr)
+            .sort((a, b) => new Date(a.session_date) - new Date(b.session_date))
+            .slice(0, 5)
+          const past = sessions
+            .filter(s => s.session_date <= todayStr)
+            .slice(0, 5)
+          return (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Prochaines séances</Text>
+                {upcoming.length === 0 ? (
+                  <Text style={styles.empty}>Aucune séance à venir</Text>
+                ) : upcoming.map(s => {
+                  const player = players.find(p => p.id === s.player_id)
+                  return (
+                    <TouchableOpacity key={s.id} style={styles.row} onPress={() => player && navigation.navigate("PlayerDetail", { player })}>
+                      <View style={styles.rowInfo}>
+                        <Text style={[styles.rowName, { color: colors.textPrimary }]}>{player?.full_name || '—'}</Text>
+                        <Text style={styles.rowSub}>{formatDate(s.session_date)}</Text>
+                      </View>
+                      <View style={[styles.statusBadge, { backgroundColor: colors.primaryLight }]}>
+                        <Text style={[styles.statusBadgeTxt, { color: colors.primary }]}>À venir</Text>
+                      </View>
+                      <Text style={[styles.price, { marginLeft: 8 }]}>{formatCurrency(s.price)}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+
+              {/* Past sessions */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Dernières séances</Text>
+                {past.length === 0 ? (
+                  <Text style={styles.empty}>Aucune séance passée</Text>
+                ) : past.map(s => {
+                  const player = players.find(p => p.id === s.player_id)
+                  return (
+                    <TouchableOpacity key={s.id} style={[styles.row, { opacity: 0.7 }]} onPress={() => player && navigation.navigate("PlayerDetail", { player })}>
+                      <View style={styles.rowInfo}>
+                        <Text style={[styles.rowName, { color: colors.textSecondary }]}>{player?.full_name || '—'}</Text>
+                        <Text style={styles.rowSub}>{formatDate(s.session_date)}</Text>
+                      </View>
+                      <View style={[styles.statusBadge, { backgroundColor: colors.surfaceElevated, borderWidth: 0.5, borderColor: colors.borderStrong }]}>
+                        <Text style={[styles.statusBadgeTxt, { color: colors.textTertiary }]}>Accomplie</Text>
+                      </View>
+                      <Text style={[styles.price, { marginLeft: 8, color: colors.textSecondary }]}>{formatCurrency(s.price)}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </>
+          )
+        })()}
 
         <View style={{ height: 40 }} />
       </ScrollView>
       <PermissionPushModal visible={showPushModal} onEnable={handleEnablePush} onLater={handleLaterPush} />
       <RelanceModal visible={showRelanceModal} player={relanceTarget} coachId={userId} sessions={sessions} onClose={() => { setShowRelanceModal(false); setRelanceTarget(null) }} />
+      {user && (
+        <CoachOnboardingChecklist
+          mode="overlay"
+          user={user}
+          players={players}
+          packagesCount={packagesCount}
+          workHoursCount={workHoursCount}
+          hasAIPlan={hasAIPlan}
+          onNavigate={handleOnboardingNavigate}
+        />
+      )}
     </SafeAreaView>
   )
 }
@@ -288,4 +376,6 @@ const styles = StyleSheet.create({
   badgeAmber: { backgroundColor: colors.warningLight },
   badgeTxt: { fontSize: 10, fontWeight: '600' },
   price: { fontSize: 15, fontWeight: '700', color: colors.primary },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
+  statusBadgeTxt: { fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
 })

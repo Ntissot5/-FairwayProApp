@@ -14,9 +14,16 @@ const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','
 // Local-time YYYY-MM-DD. toISOString() converts to UTC and at 11pm Geneva returns tomorrow.
 const toLocalDateStr = (d) => d.toLocaleDateString('en-CA')
 
-export default function BookingScreen({ navigation }) {
+export default function BookingScreen({ navigation, route }) {
   const { t } = useTranslation()
-  const [tab, setTab] = useState('agenda')
+  const initialTabParam = route?.params?.initialTab
+  const [tab, setTab] = useState(initialTabParam && ['agenda','horaires','préférences'].includes(initialTabParam) ? initialTabParam : 'agenda')
+
+  useEffect(() => {
+    if (initialTabParam && ['agenda','horaires','préférences'].includes(initialTabParam)) {
+      setTab(initialTabParam)
+    }
+  }, [initialTabParam])
   const [workHours, setWorkHours] = useState([])
   const [collectifs, setCollectifs] = useState([])
   const [prefs, setPrefs] = useState({ default_duration: 60, max_group_size: 4, private_price: 120, group_price: 25 })
@@ -26,8 +33,9 @@ export default function BookingScreen({ navigation }) {
   const [loading, setLoading] = useState(true)
   const [weekOffset, setWeekOffset] = useState(0)
   const [userId, setUserId] = useState(null)
-  const [newWH, setNewWH] = useState({ day_of_week: 0, start_time: '08:00', end_time: '12:00' })
+  const [newWH, setNewWH] = useState({ selected_days: [0], start_time: '08:00', end_time: '12:00' })
   const [newCol, setNewCol] = useState({ day_of_week: 1, start_time: '17:00', duration_minutes: 60, max_players: 3 })
+  const [whConfirm, setWhConfirm] = useState(null)
   
   // Add lesson modal
   const [showAddLesson, setShowAddLesson] = useState(false)
@@ -49,7 +57,7 @@ export default function BookingScreen({ navigation }) {
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     setUserId(user.id)
-    const { data: wh } = await supabase.from('work_hours').select('*').eq('coach_id', user.id).order('day_of_week')
+    const { data: wh } = await supabase.from('work_hours').select('*').eq('coach_id', user.id).order('day_of_week').order('start_time')
     const { data: col } = await supabase.from('availabilities').select('*').eq('coach_id', user.id).order('day_of_week')
     const { data: p } = await supabase.from('coach_preferences').select('*').eq('coach_id', user.id).single()
     const { data: l } = await supabase.from('lessons').select('*, players(full_name, current_handicap)').eq('coach_id', user.id).gte('lesson_date', toLocalDateStr(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)))
@@ -65,13 +73,53 @@ export default function BookingScreen({ navigation }) {
         group_price: String(p.group_price ?? 25),
       })
     }
+    // Sort by day, then start_time (extra safety; the query already orders)
+    const sortedWh = (wh || []).slice().sort((a, b) => {
+      if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week
+      return (a.start_time || '').localeCompare(b.start_time || '')
+    })
+    setWorkHours(sortedWh)
     setLessons(l || [])
     setPlayers(pl || [])
     setLoading(false)
   }
 
+  const toggleWHDay = (idx) => {
+    setNewWH(prev => {
+      const set = new Set(prev.selected_days)
+      if (set.has(idx)) set.delete(idx)
+      else set.add(idx)
+      return { ...prev, selected_days: Array.from(set).sort((a, b) => a - b) }
+    })
+  }
+
   const addWorkHour = async () => {
-    await supabase.from('work_hours').insert({ coach_id: userId, day_of_week: newWH.day_of_week, start_time: newWH.start_time + ':00', end_time: newWH.end_time + ':00' })
+    if (!newWH.selected_days.length || !newWH.start_time || !newWH.end_time) return
+    const startFull = newWH.start_time + ':00'
+    const endFull = newWH.end_time + ':00'
+    if (endFull <= startFull) {
+      Alert.alert('Horaire invalide', "L'heure de fin doit être après l'heure de début.")
+      return
+    }
+    // Dedup: skip days where an identical row already exists
+    const toInsert = newWH.selected_days
+      .filter(dow => !workHours.some(w => w.day_of_week === dow && w.start_time === startFull && w.end_time === endFull))
+      .map(dow => ({ coach_id: userId, day_of_week: dow, start_time: startFull, end_time: endFull }))
+    if (toInsert.length === 0) {
+      setWhConfirm({ msg: 'Aucun nouvel horaire (doublons ignorés)', isError: true })
+      setTimeout(() => setWhConfirm(null), 3000)
+      return
+    }
+    const { error } = await supabase.from('work_hours').insert(toInsert)
+    if (error) {
+      Alert.alert('Erreur', error.message)
+      return
+    }
+    const skipped = newWH.selected_days.length - toInsert.length
+    setWhConfirm({ msg: skipped > 0
+      ? `Horaire ajouté ✓ (${toInsert.length} jour${toInsert.length > 1 ? 's' : ''}, ${skipped} doublon${skipped > 1 ? 's' : ''} ignoré${skipped > 1 ? 's' : ''})`
+      : `Horaire ajouté ✓ (${toInsert.length} jour${toInsert.length > 1 ? 's' : ''})`, isError: false })
+    setTimeout(() => setWhConfirm(null), 3000)
     fetchAll()
   }
 
@@ -315,16 +363,19 @@ export default function BookingScreen({ navigation }) {
         <ScrollView style={s.scroll}>
           <View style={s.section}>
             <Text style={s.sectionTitle}>Mes horaires de travail</Text>
-            <Text style={s.sectionSub}>Créneaux générés automatiquement</Text>
+            <Text style={s.sectionSub}>Sélectionne un ou plusieurs jours pour créer plusieurs créneaux d'un coup</Text>
             <View style={{ marginBottom: 12 }}>
-              <Text style={s.label}>Jour</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((d, i) => (
-                  <TouchableOpacity key={i} onPress={() => setNewWH({...newWH, day_of_week: i})} style={[s.chip, newWH.day_of_week === i && s.chipActive]}>
-                    <Text style={[s.chipTxt, newWH.day_of_week === i && { color: colors.textInverse }]}>{d}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <Text style={s.label}>Jours</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((d, i) => {
+                  const selected = newWH.selected_days.includes(i)
+                  return (
+                    <TouchableOpacity key={i} onPress={() => toggleWHDay(i)} style={[s.chip, selected && s.chipActive]}>
+                      <Text style={[s.chipTxt, selected && { color: colors.textInverse }]}>{d}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={s.label}>Début</Text>
@@ -334,10 +385,15 @@ export default function BookingScreen({ navigation }) {
                   <Text style={s.label}>Fin</Text>
                   <TextInput style={s.input} value={newWH.end_time} onChangeText={v => setNewWH({...newWH, end_time: v})} placeholder="12:00" placeholderTextColor={colors.textTertiary} />
                 </View>
-                <TouchableOpacity style={[s.addBtn, { alignSelf: 'flex-end' }]} onPress={addWorkHour}>
-                  <Text style={s.addBtnTxt}>+ Ajouter</Text>
+                <TouchableOpacity style={[s.addBtn, { alignSelf: 'flex-end' }, newWH.selected_days.length === 0 && { opacity: 0.5 }]} onPress={addWorkHour} disabled={newWH.selected_days.length === 0}>
+                  <Text style={s.addBtnTxt}>+ Ajouter{newWH.selected_days.length > 1 ? ` (${newWH.selected_days.length})` : ''}</Text>
                 </TouchableOpacity>
               </View>
+              {whConfirm && (
+                <View style={{ marginTop: 10, padding: 10, borderRadius: 8, backgroundColor: whConfirm.isError ? colors.warningLight : colors.primaryLight, borderWidth: 0.5, borderColor: whConfirm.isError ? colors.warning : colors.primary }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: whConfirm.isError ? colors.warning : colors.primary }}>{whConfirm.msg}</Text>
+                </View>
+              )}
             </View>
             {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((day, i) => {
               const wh = workHours.filter(w => w.day_of_week === i)

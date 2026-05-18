@@ -39,16 +39,16 @@ function QuickModeScreen({ onSave, onBack }) {
         <View style={{ width: 50 }} />
       </View>
       <ScrollView style={{ padding: 20 }}>
-        <Text style={s.label}>COURSE</Text>
+        <Text style={s.label}>PARCOURS</Text>
         <TextInput style={s.input} value={course} onChangeText={setCourse} placeholder="Golf de Lausanne..." placeholderTextColor={colors.textTertiary} />
         <Text style={s.label}>DATE</Text>
         <TextInput style={s.input} value={date} onChangeText={setDate} placeholderTextColor={colors.textTertiary} />
-        <Text style={s.label}>TOTAL SCORE</Text>
+        <Text style={s.label}>SCORE TOTAL</Text>
         <TextInput style={s.input} value={score} onChangeText={setScore} placeholder="82" keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
-        <Text style={s.label}>NEW HANDICAP (optionnel)</Text>
+        <Text style={s.label}>NOUVEAU HANDICAP (optionnel)</Text>
         <TextInput style={s.input} value={newHcp} onChangeText={setNewHcp} placeholder="8.4" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
         <TouchableOpacity style={[s.saveBtn, saving && { opacity: 0.7 }]} onPress={save} disabled={saving}>
-          <Text style={s.saveBtnTxt}>{saving ? "Saving..." : "Save"}</Text>
+          <Text style={s.saveBtnTxt}>{saving ? "Enregistrement..." : "Enregistrer"}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -63,25 +63,25 @@ function DetailedSetupScreen({ onStart, onBack }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
       <View style={s.modalHead}>
-        <TouchableOpacity onPress={onBack}><Text style={s.backTxt}>‹ Back</Text></TouchableOpacity>
-        <Text style={s.modalTitle}>Detailed mode</Text>
+        <TouchableOpacity onPress={onBack}><Text style={s.backTxt}>‹ Retour</Text></TouchableOpacity>
+        <Text style={s.modalTitle}>Mode détaillé</Text>
         <View style={{ width: 50 }} />
       </View>
       <View style={{ padding: 20 }}>
-        <Text style={s.label}>COURSE</Text>
+        <Text style={s.label}>PARCOURS</Text>
         <TextInput style={s.input} value={course} onChangeText={setCourse} placeholder="Golf de Lausanne..." placeholderTextColor={colors.textTertiary} />
         <Text style={s.label}>DATE</Text>
         <TextInput style={s.input} value={date} onChangeText={setDate} placeholderTextColor={colors.textTertiary} />
-        <Text style={s.label}>NUMBER OF HOLES</Text>
+        <Text style={s.label}>NOMBRE DE TROUS</Text>
         <View style={{ flexDirection: "row", gap: 12, marginTop: 4 }}>
           {[9, 18].map(h => (
             <TouchableOpacity key={h} onPress={() => setHoles(h)} style={[s.holeBtn, holes === h && s.holeBtnActive]}>
-              <Text style={[s.holeBtnTxt, holes === h && s.holeBtnTxtActive]}>{h} holes</Text>
+              <Text style={[s.holeBtnTxt, holes === h && s.holeBtnTxtActive]}>{h} trous</Text>
             </TouchableOpacity>
           ))}
         </View>
         <TouchableOpacity style={[s.saveBtn, { marginTop: 24 }]} onPress={() => onStart({ course, date, holes })}>
-          <Text style={s.saveBtnTxt}>Start →</Text>
+          <Text style={s.saveBtnTxt}>Commencer →</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -106,7 +106,7 @@ function HoleScreen({ hole, total, holeData, onUpdate, onNext, onFinish, onBack,
           <TouchableOpacity onPress={() => Alert.alert('Quitter ?', 'Ton round ne sera pas sauvegardé.', [{ text: 'Annuler', style: 'cancel' }, { text: 'Quitter', style: 'destructive', onPress: onBack }])} style={{ marginRight: 12 }}>
             <Text style={{ color: colors.textInverse, fontSize: 22, fontWeight: '300' }}>✕</Text>
           </TouchableOpacity>
-          <Text style={[s.holeTitle, { flex: 1 }]}>Hole {hole}</Text>
+          <Text style={[s.holeTitle, { flex: 1 }]}>Trou {hole}</Text>
           <Text style={{ color: colors.textInverse, fontSize: 14, fontWeight: '700' }}>Score: {totalScore}</Text>
         </View>
         <View style={{ flex: 1 }}>

@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
 import { supabase } from './supabase'
 import { colors } from './theme'
+import { formatDate, formatCurrency } from './lib/format'
 import RelanceModal from './components/RelanceModal'
 
 export default function PlayerDetailScreen({ route, navigation }) {
@@ -26,6 +27,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
   const [newHcpDate, setNewHcpDate] = useState(new Date().toISOString().split("T")[0])
   const [showHcpInput, setShowHcpInput] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [editingHcp, setEditingHcp] = useState(null)
   const [uploadingVideo, setUploadingVideo] = useState(false)
   const [showRelance, setShowRelance] = useState(false)
   const [coachId, setCoachId] = useState(null)
@@ -70,11 +72,43 @@ export default function PlayerDetailScreen({ route, navigation }) {
 
   const addHcpEntry = async () => {
     if (!newHcp) return
-    await supabase.from("handicap_history").insert({ player_id: player.id, handicap: parseFloat(newHcp), date: newHcpDate })
-    await supabase.from("players").update({ current_handicap: parseFloat(newHcp) }).eq("id", player.id)
+    const value = parseFloat(newHcp)
+    if (editingHcp) {
+      await supabase.from("handicap_history").update({ handicap: value, date: newHcpDate }).eq("id", editingHcp.id)
+    } else {
+      await supabase.from("handicap_history").insert({ player_id: player.id, handicap: value, date: newHcpDate })
+    }
+    // Refresh current_handicap from the latest entry by date
+    const { data: latest } = await supabase.from("handicap_history").select("handicap").eq("player_id", player.id).order("date", { ascending: false }).limit(1).single()
+    if (latest?.handicap !== undefined && latest?.handicap !== null) {
+      await supabase.from("players").update({ current_handicap: latest.handicap }).eq("id", player.id)
+      setPlayer({ ...player, current_handicap: latest.handicap })
+    }
     setNewHcp("")
     setShowHcpInput(false)
+    setEditingHcp(null)
     fetchAll()
+  }
+
+  const deleteHcpEntry = async (entry) => {
+    Alert.alert(
+      "Supprimer cette entrée ?",
+      formatDate(entry.date) + " · HCP " + entry.handicap,
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Supprimer", style: "destructive", onPress: async () => {
+          await supabase.from("handicap_history").delete().eq("id", entry.id)
+          fetchAll()
+        }},
+      ]
+    )
+  }
+
+  const startEditHcp = (entry) => {
+    setEditingHcp(entry)
+    setNewHcp(String(entry.handicap))
+    setNewHcpDate(entry.date)
+    setShowHcpInput(true)
   }
 
   const generateAIPlan = async (session) => {
@@ -94,7 +128,11 @@ export default function PlayerDetailScreen({ route, navigation }) {
       for (const ex of exercises) {
         await supabase.from('exercises').insert({ player_id: player.id, coach_id: user.id, title: ex.title, description: ex.description, completed: false })
       }
-      Alert.alert('✓ Plan généré!', '3 exercices ajoutés pour ' + player.full_name)
+      // Mark first AI plan timestamp for onboarding (idempotent)
+      if (!user.user_metadata?.first_ai_plan_at) {
+        try { await supabase.auth.updateUser({ data: { first_ai_plan_at: new Date().toISOString() } }) } catch {}
+      }
+      Alert.alert('✓ Plan généré !', '3 exercices ajoutés pour ' + player.full_name)
     fetchAll()
     } catch(e) { Alert.alert('Erreur', e.message) }
     setGenerating(null)
@@ -102,7 +140,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
 
   const uploadVideo = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
-    if (status !== "granted") { Alert.alert("Permission needed", "Allow camera access"); return }
+    if (status !== "granted") { Alert.alert("Permission requise", "Autorise l'accès à la caméra"); return }
     const result = await ImagePicker.launchCameraAsync({ mediaTypes: ["videos"], allowsEditing: false, quality: 1, videoMaxDuration: 60 })
     if (result.canceled) return
     setUploadingVideo(true)
@@ -115,10 +153,10 @@ export default function PlayerDetailScreen({ route, navigation }) {
       const { error } = await supabase.storage.from("swing-videos").upload(fileName, arrayBuffer, { contentType: "video/mp4", upsert: false })
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from("swing-videos").getPublicUrl(fileName)
-      await supabase.from("swing_videos").insert({ player_id: player.id, coach_id: user.id, video_url: publicUrl, title: "Swing " + new Date().toLocaleDateString("fr-FR") })
-      Alert.alert("Video uploaded!")
+      await supabase.from("swing_videos").insert({ player_id: player.id, coach_id: user.id, video_url: publicUrl, title: "Swing " + formatDate(new Date()) })
+      Alert.alert("Vidéo enregistrée !")
       fetchAll()
-    } catch(e) { Alert.alert("Error", e.message) }
+    } catch(e) { Alert.alert("Erreur", e.message) }
     setUploadingVideo(false)
   }
 
@@ -130,7 +168,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
   if (loading) return <View style={s.loading}><ActivityIndicator color={colors.primary} size="large" /></View>
 
   const renderHcpChart = () => {
-    if (hcpEntries.length < 2) return <Text style={s.empty}>Add at least 2 entries to see the chart</Text>
+    if (hcpEntries.length < 2) return null
     const data = hcpEntries.slice(-8)
     const values = data.map(e => e.handicap)
     const maxV = Math.max(...values) + 0.5
@@ -176,13 +214,30 @@ export default function PlayerDetailScreen({ route, navigation }) {
           <SvgText x={pts[0]?.x} y={H} fontSize="9" fill={colors.textTertiary} textAnchor="start">{pts[0]?.date}</SvgText>
           <SvgText x={pts[pts.length-1]?.x} y={H} fontSize="9" fill={colors.textTertiary} textAnchor="end">{pts[pts.length-1]?.date}</SvgText>
         </Svg>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-          {data.map((e, i) => (
-            <View key={i} style={{ backgroundColor: colors.surfaceElevated, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 0.5, borderColor: colors.borderStrong }}>
-              <Text style={{ fontSize: 11, color: colors.textSecondary }}>{e.date} — <Text style={{ fontWeight: "700", color: colors.primary }}>{e.handicap}</Text></Text>
+      </View>
+    )
+  }
+
+  const renderHcpEntries = () => {
+    if (hcpEntries.length === 0) return null
+    const sorted = [...hcpEntries].sort((a, b) => new Date(b.date) - new Date(a.date))
+    return (
+      <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textTertiary, letterSpacing: 0.2, marginBottom: 8, marginTop: 4 }}>HISTORIQUE</Text>
+        {sorted.map(entry => (
+          <View key={entry.id} style={s.hcpEntryRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.hcpEntryDate}>{formatDate(entry.date)}</Text>
+              <Text style={s.hcpEntryValue}>HCP <Text style={{ fontWeight: '800', color: colors.primary }}>{entry.handicap}</Text></Text>
             </View>
-          ))}
-        </View>
+            <TouchableOpacity onPress={() => startEditHcp(entry)} style={s.hcpActionBtn}>
+              <Ionicons name="pencil" size={13} color={colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => deleteHcpEntry(entry)} style={[s.hcpActionBtn, { marginLeft: 6 }]}>
+              <Ionicons name="trash-outline" size={13} color={colors.error} />
+            </TouchableOpacity>
+          </View>
+        ))}
       </View>
     )
   }
@@ -191,7 +246,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Text style={s.backTxt}>‹ Back</Text>
+          <Text style={s.backTxt}>‹ Retour</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>{player.full_name}</Text>
         <TouchableOpacity onPress={() => setShowRelance(true)} style={s.relanceBtn}>
@@ -207,9 +262,9 @@ export default function PlayerDetailScreen({ route, navigation }) {
         <View style={s.statsRow}>
           {[
             { label: "HANDICAP", value: player.current_handicap },
-            { label: "REVENUE", value: revenue + "€" },
-            { label: "SESSIONS", value: sessions.length },
-            { label: "LAST", value: days !== null ? "J-" + days : "Never" },
+            { label: "REVENU", value: formatCurrency(revenue) },
+            { label: "SÉANCES", value: sessions.length },
+            { label: "DERNIÈRE", value: days !== null ? "J-" + days : "Jamais" },
           ].map((stat, i) => (
             <View key={i} style={s.stat}>
               <Text style={s.statLabel}>{stat.label}</Text>
@@ -220,9 +275,9 @@ export default function PlayerDetailScreen({ route, navigation }) {
 
         <View style={s.section}>
           <View style={s.sectionHead}>
-            <Text style={s.sectionTitle}>Handicap evolution</Text>
-            <TouchableOpacity onPress={() => setShowHcpInput(!showHcpInput)} style={s.aiBtn}>
-              <Text style={s.aiBtnTxt}>+ Add</Text>
+            <Text style={s.sectionTitle}>Évolution du handicap</Text>
+            <TouchableOpacity onPress={() => { if (showHcpInput) { setEditingHcp(null); setNewHcp(''); } setShowHcpInput(!showHcpInput) }} style={s.aiBtn}>
+              <Text style={s.aiBtnTxt}>{showHcpInput ? 'Fermer' : '+ Ajouter'}</Text>
             </TouchableOpacity>
           </View>
           {showHcpInput && (
@@ -230,7 +285,7 @@ export default function PlayerDetailScreen({ route, navigation }) {
               <View style={{ flexDirection: "row", gap: 10 }}>
                 <TextInput style={[s.hcpInput, { flex: 1 }]} value={newHcp} onChangeText={setNewHcp} placeholder="HCP (ex: 8.2)" keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
                 <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[s.hcpInput, { flex: 1.5, justifyContent: "center" }]}>
-                  <Text style={{ color: colors.textPrimary, fontSize: 15 }}>{newHcpDate}</Text>
+                  <Text style={{ color: colors.textPrimary, fontSize: 15 }}>{formatDate(newHcpDate)}</Text>
                 </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker
@@ -245,29 +300,36 @@ export default function PlayerDetailScreen({ route, navigation }) {
                 )}
               </View>
               <TouchableOpacity onPress={addHcpEntry} style={[s.aiBtn, { alignItems: "center" }]}>
-                <Text style={s.aiBtnTxt}>Save</Text>
+                <Text style={s.aiBtnTxt}>{editingHcp ? 'Enregistrer' : 'Ajouter'}</Text>
               </TouchableOpacity>
             </View>
           )}
+          {hcpEntries.length < 2 && (
+            <View style={{ paddingHorizontal: 16, paddingVertical: 20, alignItems: 'center' }}>
+              <Ionicons name="trending-up" size={28} color={colors.textTertiary} />
+              <Text style={{ fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginTop: 8, lineHeight: 18 }}>Entrez au moins 2 données pour voir le graphique d'évolution</Text>
+            </View>
+          )}
           {renderHcpChart()}
+          {renderHcpEntries()}
         </View>
 
         <View style={s.section}>
           <View style={s.sectionHead}>
-            <Text style={s.sectionTitle}>Session history</Text>
-            <Text style={s.sectionSub}>{sessions.length} sessions</Text>
+            <Text style={s.sectionTitle}>Historique des séances</Text>
+            <Text style={s.sectionSub}>{sessions.length} séance{sessions.length > 1 ? 's' : ''}</Text>
           </View>
           {sessions.length === 0 ? (
-            <Text style={s.empty}>No sessions yet</Text>
+            <Text style={s.empty}>Aucune séance pour l'instant</Text>
           ) : sessions.map(session => (
             <View key={session.id} style={s.sessionRow}>
               <View style={s.sessionInfo}>
-                <Text style={s.sessionDate}>{session.session_date}</Text>
+                <Text style={s.sessionDate}>{formatDate(session.session_date)}</Text>
                 {session.notes ? <Text style={s.sessionNotes}>{session.notes}</Text> : null}
               </View>
-              <Text style={s.sessionPrice}>{session.price}€</Text>
+              <Text style={s.sessionPrice}>{formatCurrency(session.price)}</Text>
               <TouchableOpacity onPress={() => generateAIPlan(session)} disabled={generating === session.id} style={[s.aiBtn, generating === session.id && s.aiBtnLoading]}>
-                <Text style={[s.aiBtnTxt, generating === session.id && { color: colors.primary }]}>{generating === session.id ? "..." : "✦ AI Plan"}</Text>
+                <Text style={[s.aiBtnTxt, generating === session.id && { color: colors.primary }]}>{generating === session.id ? "..." : "✦ Plan IA"}</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -275,21 +337,21 @@ export default function PlayerDetailScreen({ route, navigation }) {
 
         <View style={s.section}>
           <View style={s.sectionHead}>
-            <Text style={s.sectionTitle}>Swing Videos</Text>
+            <Text style={s.sectionTitle}>Vidéos de swing</Text>
             <TouchableOpacity onPress={uploadVideo} disabled={uploadingVideo} style={[s.aiBtn, uploadingVideo && { backgroundColor: colors.primaryLight }]}>
-              <Text style={[s.aiBtnTxt, uploadingVideo && { color: colors.primary }]}>{uploadingVideo ? "..." : "+ Film"}</Text>
+              <Text style={[s.aiBtnTxt, uploadingVideo && { color: colors.primary }]}>{uploadingVideo ? "..." : "+ Filmer"}</Text>
             </TouchableOpacity>
           </View>
           {videos.length === 0 ? (
-            <Text style={s.empty}>No videos yet</Text>
+            <Text style={s.empty}>Aucune vidéo pour l'instant</Text>
           ) : videos.map(v => (
             <View key={v.id} style={s.sessionRow}>
               <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: colors.primaryLight, alignItems: "center", justifyContent: "center", marginRight: 8 }}>
                 <Ionicons name="videocam-outline" size={20} color={colors.primary} />
               </View>
               <View style={s.sessionInfo}>
-                <Text style={s.sessionDate}>{v.title || "Swing video"}</Text>
-                <Text style={{ fontSize: 11, color: colors.textTertiary }}>{new Date(v.created_at).toLocaleDateString("fr-FR")}</Text>
+                <Text style={s.sessionDate}>{v.title || "Vidéo de swing"}</Text>
+                <Text style={{ fontSize: 11, color: colors.textTertiary }}>{formatDate(v.created_at)}</Text>
               </View>
             </View>
           ))}
@@ -297,11 +359,11 @@ export default function PlayerDetailScreen({ route, navigation }) {
 
         <View style={s.section}>
           <View style={s.sectionHead}>
-            <Text style={s.sectionTitle}>Assigned exercises</Text>
-            <Text style={s.sectionSub}>{exercises.filter(e => e.completed).length}/{exercises.length} done</Text>
+            <Text style={s.sectionTitle}>Exercices assignés</Text>
+            <Text style={s.sectionSub}>{exercises.filter(e => e.completed).length}/{exercises.length} faits</Text>
           </View>
           {exercises.length === 0 ? (
-            <Text style={s.empty}>No exercises assigned</Text>
+            <Text style={s.empty}>Aucun exercice assigné</Text>
           ) : exercises.map(ex => (
             <TouchableOpacity key={ex.id} style={s.exRow} onPress={async () => { await supabase.from("exercises").update({ completed: !ex.completed }).eq("id", ex.id); fetchAll() }}>
               <View style={[s.exDot, ex.completed && s.exDotDone]} />
@@ -323,8 +385,8 @@ export default function PlayerDetailScreen({ route, navigation }) {
           ) : rounds.map(r => (
             <View key={r.id} style={s.sessionRow}>
               <View style={s.sessionInfo}>
-                <Text style={s.sessionDate}>{r.course_name || "Golf course"}</Text>
-                <Text style={{ fontSize: 11, color: colors.textTertiary }}>{r.played_at}</Text>
+                <Text style={s.sessionDate}>{r.course_name || "Parcours"}</Text>
+                <Text style={{ fontSize: 11, color: colors.textTertiary }}>{formatDate(r.played_at)}</Text>
               </View>
               <View style={{ alignItems: "center", marginRight: 8 }}>
                 <Text style={{ fontSize: 22, fontWeight: "800", color: colors.primary }}>{r.score}</Text>
@@ -376,4 +438,8 @@ const s = StyleSheet.create({
   exTitleDone: { color: colors.textTertiary, textDecorationLine: "line-through" },
   exDesc: { fontSize: 11, color: colors.textTertiary, marginTop: 2, lineHeight: 16 },
   hcpInput: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 10, padding: 10, fontSize: 15, color: colors.textPrimary },
+  hcpEntryRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10, backgroundColor: colors.surfaceElevated, marginTop: 6 },
+  hcpEntryDate: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
+  hcpEntryValue: { fontSize: 13, color: colors.textPrimary, marginTop: 2 },
+  hcpActionBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 0.5, borderColor: colors.borderStrong },
 })

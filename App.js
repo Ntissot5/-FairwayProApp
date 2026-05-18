@@ -34,6 +34,7 @@ import CoachOnboardingFirstPlayerScreen from "./src/CoachOnboardingFirstPlayerSc
 import CoachOnboardingTutorialScreen from "./src/CoachOnboardingTutorialScreen"
 import PlayerVideoReplayScreen from "./src/PlayerVideoReplayScreen"
 import { supabase } from "./src/supabase"
+import { loadFormatPrefs } from "./src/lib/format"
 import { OnboardingProvider } from "./src/OnboardingContext"
 import * as Notifications from "expo-notifications"
 import { useEffect, useRef, useState } from "react"
@@ -92,6 +93,7 @@ export default function App() {
     // Check existing auth session
     const checkSession = async () => {
       try {
+        await loadFormatPrefs()
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
           // Check if user is a coach (has players assigned)
