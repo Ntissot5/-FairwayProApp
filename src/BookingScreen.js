@@ -26,8 +26,8 @@ export default function BookingScreen({ navigation, route }) {
   }, [initialTabParam])
   const [workHours, setWorkHours] = useState([])
   const [collectifs, setCollectifs] = useState([])
-  const [prefs, setPrefs] = useState({ default_duration: 60, max_group_size: 4, private_price: 120, group_price: 25 })
-  const [prefsDraft, setPrefsDraft] = useState({ default_duration: '60', max_group_size: '4', private_price: '120', group_price: '25' })
+  const [prefs, setPrefs] = useState({ max_group_size: 4, private_price: 120, group_price: 25 })
+  const [prefsDraft, setPrefsDraft] = useState({ max_group_size: '4', private_price: '120', group_price: '25' })
   const [lessons, setLessons] = useState([])
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -67,7 +67,6 @@ export default function BookingScreen({ navigation, route }) {
     if (p) {
       setPrefs(p)
       setPrefsDraft({
-        default_duration: String(p.default_duration ?? 60),
         max_group_size: String(p.max_group_size ?? 4),
         private_price: String(p.private_price ?? 120),
         group_price: String(p.group_price ?? 25),
@@ -142,7 +141,6 @@ export default function BookingScreen({ navigation, route }) {
   const savePrefs = async () => {
     try {
       const parsed = {
-        default_duration: parseFloat(prefsDraft.default_duration) || 60,
         max_group_size: parseInt(prefsDraft.max_group_size) || 4,
         private_price: parseFloat(prefsDraft.private_price) || 120,
         group_price: parseFloat(prefsDraft.group_price) || 25,
@@ -172,7 +170,7 @@ export default function BookingScreen({ navigation, route }) {
       lesson_date: selectedSlot.date,
       start_time: selectedSlot.time + ':00',
       end_time: selectedSlot.time + ':00',
-      duration_minutes: prefs.default_duration || 60,
+      duration_minutes: 60,
       is_group: lessonType === 'group',
       is_private_event: lessonType === 'event',
       event_type: lessonType,
@@ -463,10 +461,6 @@ export default function BookingScreen({ navigation, route }) {
             <Text style={s.sectionTitle}>Préférences de cours & tarifs</Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>
-                <Text style={s.label}>Durée par défaut (min)</Text>
-                <TextInput style={s.input} value={prefsDraft.default_duration} onChangeText={v => setPrefsDraft({...prefsDraft, default_duration: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
-              </View>
-              <View style={{ flex: 1 }}>
                 <Text style={s.label}>Max cours collectif</Text>
                 <TextInput style={s.input} value={prefsDraft.max_group_size} onChangeText={v => setPrefsDraft({...prefsDraft, max_group_size: v})} keyboardType="decimal-pad" placeholderTextColor={colors.textTertiary} />
               </View>
@@ -483,7 +477,7 @@ export default function BookingScreen({ navigation, route }) {
             </View>
             <View style={{ backgroundColor: colors.primaryLight, borderRadius: 12, padding: 14, marginTop: 12 }}>
               <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 22 }}>
-                {"• Cours de "}<Text style={{ fontWeight: '700' }}>{prefs.default_duration || 60} min</Text>{"\n• Privé : "}<Text style={{ fontWeight: '700' }}>{prefs.private_price || 120}€</Text>{" · Collectif : "}<Text style={{ fontWeight: '700' }}>{prefs.group_price || 25}€/élève</Text>{"\n• Revenus collectif max : "}<Text style={{ fontWeight: '700' }}>{(prefs.group_price || 25) * (prefs.max_group_size || 4)}€</Text>
+                {"• Privé : "}<Text style={{ fontWeight: '700' }}>{prefs.private_price || 120}€</Text>{" · Collectif : "}<Text style={{ fontWeight: '700' }}>{prefs.group_price || 25}€/élève</Text>{"\n• Revenus collectif max : "}<Text style={{ fontWeight: '700' }}>{(prefs.group_price || 25) * (prefs.max_group_size || 4)}€</Text>
               </Text>
             </View>
             <TouchableOpacity style={[s.addBtn, { marginTop: 16 }]} onPress={savePrefs}>
