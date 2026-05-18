@@ -49,7 +49,7 @@ export default function RevenueScreen({ navigation }) {
     })
     try {
       await Share.share({ message: lines.join('\n'), title: 'FairwayPro Revenue' })
-    } catch(e) { Alert.alert('Error', e.message) }
+    } catch(e) { Alert.alert('Erreur', e.message) }
   }
 
   const addSession = async () => {

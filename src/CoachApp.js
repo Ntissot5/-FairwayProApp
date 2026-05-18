@@ -12,6 +12,7 @@ import PermissionPushModal from './components/PermissionPushModal'
 import DailyBriefingCard from './components/DailyBriefingCard'
 import RelanceModal from './components/RelanceModal'
 import { colors } from './theme'
+import { formatDate, formatCurrency } from './lib/format'
 
 // Local-time YYYY-MM-DD. toISOString() converts to UTC and at 11pm Geneva returns tomorrow.
 const toLocalDateStr = (d) => d.toLocaleDateString('en-CA')
@@ -195,7 +196,7 @@ export default function CoachApp({ navigation }) {
           )}
 
           <HeroCard icon="wallet-outline" iconColor={colors.info} bgColor={colors.surface} borderColor={colors.border} title={t('home.revenue_this_month')} delay={300}>
-            <Text style={[styles.heroMainText, { fontSize: 28, color: colors.textPrimary, letterSpacing: -1 }]}>{revenueThisMonth}€</Text>
+            <Text style={[styles.heroMainText, { fontSize: 28, color: colors.textPrimary, letterSpacing: -1 }]}>{formatCurrency(revenueThisMonth)}</Text>
           </HeroCard>
         </View>
 
@@ -226,22 +227,63 @@ export default function CoachApp({ navigation }) {
           })}
         </View>
 
-        {/* Recent sessions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('home.last_sessions')}</Text>
-          {sessions.slice(0, 5).map(s => {
-            const player = players.find(p => p.id === s.player_id)
-            return (
-              <TouchableOpacity key={s.id} style={styles.row} onPress={() => player && navigation.navigate("PlayerDetail", { player })}>
-                <View style={styles.rowInfo}>
-                  <Text style={styles.rowName}>{player?.full_name || '—'}</Text>
-                  <Text style={styles.rowSub}>{s.session_date}</Text>
-                </View>
-                <Text style={styles.price}>{s.price}€</Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
+        {/* Upcoming sessions */}
+        {(() => {
+          const todayStr = toLocalDateStr(new Date())
+          const upcoming = sessions
+            .filter(s => s.session_date > todayStr)
+            .sort((a, b) => new Date(a.session_date) - new Date(b.session_date))
+            .slice(0, 5)
+          const past = sessions
+            .filter(s => s.session_date <= todayStr)
+            .slice(0, 5)
+          return (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Prochaines séances</Text>
+                {upcoming.length === 0 ? (
+                  <Text style={styles.empty}>Aucune séance à venir</Text>
+                ) : upcoming.map(s => {
+                  const player = players.find(p => p.id === s.player_id)
+                  return (
+                    <TouchableOpacity key={s.id} style={styles.row} onPress={() => player && navigation.navigate("PlayerDetail", { player })}>
+                      <View style={styles.rowInfo}>
+                        <Text style={[styles.rowName, { color: colors.textPrimary }]}>{player?.full_name || '—'}</Text>
+                        <Text style={styles.rowSub}>{formatDate(s.session_date)}</Text>
+                      </View>
+                      <View style={[styles.statusBadge, { backgroundColor: colors.primaryLight }]}>
+                        <Text style={[styles.statusBadgeTxt, { color: colors.primary }]}>À venir</Text>
+                      </View>
+                      <Text style={[styles.price, { marginLeft: 8 }]}>{formatCurrency(s.price)}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+
+              {/* Past sessions */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Dernières séances</Text>
+                {past.length === 0 ? (
+                  <Text style={styles.empty}>Aucune séance passée</Text>
+                ) : past.map(s => {
+                  const player = players.find(p => p.id === s.player_id)
+                  return (
+                    <TouchableOpacity key={s.id} style={[styles.row, { opacity: 0.7 }]} onPress={() => player && navigation.navigate("PlayerDetail", { player })}>
+                      <View style={styles.rowInfo}>
+                        <Text style={[styles.rowName, { color: colors.textSecondary }]}>{player?.full_name || '—'}</Text>
+                        <Text style={styles.rowSub}>{formatDate(s.session_date)}</Text>
+                      </View>
+                      <View style={[styles.statusBadge, { backgroundColor: colors.surfaceElevated, borderWidth: 0.5, borderColor: colors.borderStrong }]}>
+                        <Text style={[styles.statusBadgeTxt, { color: colors.textTertiary }]}>Accomplie</Text>
+                      </View>
+                      <Text style={[styles.price, { marginLeft: 8, color: colors.textSecondary }]}>{formatCurrency(s.price)}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </>
+          )
+        })()}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -288,4 +330,6 @@ const styles = StyleSheet.create({
   badgeAmber: { backgroundColor: colors.warningLight },
   badgeTxt: { fontSize: 10, fontWeight: '600' },
   price: { fontSize: 15, fontWeight: '700', color: colors.primary },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
+  statusBadgeTxt: { fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
 })

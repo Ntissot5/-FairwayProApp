@@ -47,7 +47,7 @@ export default function PlayerVideosScreen() {
 
   const recordVideo = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
-    if (status !== 'granted') { Alert.alert('Permission needed'); return }
+    if (status !== 'granted') { Alert.alert('Permission requise'); return }
     const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 60 })
     if (result.canceled) return
     setUploading(true)
@@ -62,7 +62,7 @@ export default function PlayerVideosScreen() {
       await supabase.from('swing_videos').insert({ player_id: playerId, video_url: publicUrl, title: 'Swing ' + new Date().toLocaleDateString('fr-FR') })
       Alert.alert(t('player_videos.uploaded'))
       fetchAll()
-    } catch(e) { Alert.alert('Error', e.message) }
+    } catch(e) { Alert.alert('Erreur', e.message) }
     setUploading(false)
   }
 
@@ -82,8 +82,8 @@ export default function PlayerVideosScreen() {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>Swing Videos</Text>
-          <Text style={s.sub}>Your recordings</Text>
+          <Text style={s.title}>Vidéos de swing</Text>
+          <Text style={s.sub}>Tes enregistrements</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={recordVideo} disabled={uploading}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="videocam-outline" size={14} color="#fff" /><Text style={s.addBtnTxt}>{uploading ? '...' : t('player_videos.film')}</Text></View>
@@ -96,7 +96,7 @@ export default function PlayerVideosScreen() {
         {videos.length === 0 ? (
           <View style={{ padding: 40, alignItems: 'center' }}>
             <Ionicons name="videocam-outline" size={40} color={colors.primary} style={{ marginBottom: 16 }} />
-            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>No videos yet</Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>Aucune vidéo pour l'instant</Text>
             <Text style={{ fontSize: 13, color: colors.textTertiary, textAlign: 'center', marginBottom: 24 }}>{t('player_videos.empty_sub')}</Text>
             <TouchableOpacity style={s.addBtn} onPress={recordVideo}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="videocam-outline" size={16} color="#fff" /><Text style={s.addBtnTxt}>{t('player_videos.film_swing')}</Text></View>
@@ -110,7 +110,7 @@ export default function PlayerVideosScreen() {
                   <Ionicons name="play-circle-outline" size={28} color="#fff" />
                 </TouchableOpacity>
                 <View style={s.videoInfo}>
-                  <Text style={s.videoTitle}>{v.title || 'Swing video'}</Text>
+                  <Text style={s.videoTitle}>{v.title || 'Vidéo de swing'}</Text>
                   <Text style={s.videoDate}>{new Date(v.created_at).toLocaleDateString('fr-FR')}</Text>
                   <TouchableOpacity onPress={() => setPlayingVideo(v.video_url)} style={s.watchBtn}>
                     <Text style={s.watchBtnTxt}>▶ {t('player_videos.watch')}</Text>

@@ -6,8 +6,9 @@ import { deleteCoachSession } from './lib/sessions'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { colors } from './theme'
-import { Calendar as CalendarIcon } from 'lucide-react-native'
+import { Calendar as CalendarIcon, Package as PackageIcon } from 'lucide-react-native'
 import EmptyState from './components/EmptyState'
+import { formatDate, formatCurrency } from './lib/format'
 
 export default function SessionsScreen({ navigation }) {
   const { t } = useTranslation()
@@ -228,10 +229,10 @@ export default function SessionsScreen({ navigation }) {
                       <Text style={s.avTxt}>{player?.full_name?.charAt(0) || '?'}</Text>
                     </View>
                     <View style={s.info}>
-                      <Text style={s.name}>{player?.full_name || 'Unknown'}</Text>
-                      <Text style={s.date}>{session.session_date}</Text>
+                      <Text style={s.name}>{player?.full_name || 'Inconnu'}</Text>
+                      <Text style={s.date}>{formatDate(session.session_date)}</Text>
                     </View>
-                    <Text style={s.price}>{session.price}€</Text>
+                    <Text style={s.price}>{formatCurrency(session.price)}</Text>
                     <TouchableOpacity onPress={() => { setEditSession(session); setEditPrice(String(session.price)); setEditDate(session.session_date) }} style={{ backgroundColor: colors.surfaceElevated, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, borderWidth: 0.5, borderColor: colors.borderStrong }}>
                       <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary }}>{t('common.edit')}</Text>
                     </TouchableOpacity>
@@ -254,7 +255,7 @@ export default function SessionsScreen({ navigation }) {
         {tab === 'packages' && (
           <>
             {packages.length === 0 ? (
-              <Text style={s.empty}>No packages yet</Text>
+              <EmptyState icon={PackageIcon} title="Aucun forfait" description="Crée ton premier forfait pour proposer des packs de séances à tes élèves" ctaLabel="+ Créer un forfait" onCtaPress={() => setShowAddPackage(true)} />
             ) : packages.map(pkg => {
               const pct = Math.round((pkg.used_sessions / pkg.total_sessions) * 100)
               const remaining = pkg.total_sessions - pkg.used_sessions
@@ -269,7 +270,7 @@ export default function SessionsScreen({ navigation }) {
                       <Text style={s.name}>{pkg.name}</Text>
                       <Text style={s.date}>{pkg.players?.full_name}</Text>
                     </View>
-                    <Text style={s.price}>{pkg.price}€</Text>
+                    <Text style={s.price}>{formatCurrency(pkg.price)}</Text>
                   </View>
                   <View style={{ marginTop: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -382,7 +383,7 @@ export default function SessionsScreen({ navigation }) {
       <Modal visible={showAddPackage} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={s.modal}>
           <View style={s.modalHeader}>
-            <Text style={s.modalTitle}>Nouveau package</Text>
+            <Text style={s.modalTitle}>Nouveau forfait</Text>
             <TouchableOpacity onPress={() => setShowAddPackage(false)}>
               <Text style={s.modalClose}>Annuler</Text>
             </TouchableOpacity>
@@ -420,7 +421,7 @@ export default function SessionsScreen({ navigation }) {
               ))}
             </View>
             <TouchableOpacity style={[s.btn, saving && { opacity: 0.7 }]} onPress={addPackage} disabled={saving}>
-              <Text style={s.btnTxt}>{saving ? 'Creating...' : '+ Créer le package'}</Text>
+              <Text style={s.btnTxt}>{saving ? 'Création...' : '+ Créer le forfait'}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
