@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 import { getBriefingSettings, saveBriefingSettings } from './utils/briefingSettings'
 import { colors } from './theme'
+import { DATE_FORMATS, CURRENCIES, getDateFormat, getCurrency, setDateFormatPref, setCurrencyPref, formatDate } from './lib/format'
 
 const LANGUAGES = [
   { code: 'fr', label: 'Français', enabled: true },
@@ -27,6 +28,10 @@ export default function SettingsScreen({ navigation }) {
   const [briefSettings, setBriefSettings] = useState({ enabled: true, time: '06:30', paused_until: null })
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [showPausePicker, setShowPausePicker] = useState(false)
+  const [dateFormat, setDateFormat] = useState(getDateFormat())
+  const [currency, setCurrency] = useState(getCurrency())
+  const [showDateFormatPicker, setShowDateFormatPicker] = useState(false)
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
@@ -40,6 +45,21 @@ export default function SettingsScreen({ navigation }) {
   }, [briefSettings])
 
   const isPaused = briefSettings.paused_until && new Date(briefSettings.paused_until) > new Date()
+
+  const updateDateFormat = async (value) => {
+    setDateFormat(value)
+    await setDateFormatPref(value)
+    setShowDateFormatPicker(false)
+  }
+
+  const updateCurrency = async (value) => {
+    setCurrency(value)
+    await setCurrencyPref(value)
+    setShowCurrencyPicker(false)
+  }
+
+  const dateFormatLabel = (DATE_FORMATS.find(f => f.value === dateFormat) || DATE_FORMATS[0]).example
+  const currencyLabel = (CURRENCIES.find(c => c.value === currency) || CURRENCIES[0]).label
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -163,6 +183,24 @@ export default function SettingsScreen({ navigation }) {
           )}
         </View>
 
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>AFFICHAGE</Text>
+          <TouchableOpacity style={s.infoRow} onPress={() => setShowDateFormatPicker(true)}>
+            <Text style={s.infoLabel}>Format de date</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={s.infoValue}>{dateFormatLabel}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.infoRow, { borderBottomWidth: 0 }]} onPress={() => setShowCurrencyPicker(true)}>
+            <Text style={s.infoLabel}>Devise</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={s.infoValue}>{currencyLabel}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity style={s.signOutBtn} onPress={signOut}>
           <Text style={s.signOutTxt}>{t('settings.logout')}</Text>
         </TouchableOpacity>
@@ -180,6 +218,36 @@ export default function SettingsScreen({ navigation }) {
                 <TouchableOpacity key={time} style={[s.modalRow, briefSettings.time === time && { backgroundColor: colors.primaryLight }]} onPress={() => { updateBriefSettings({ time }); setShowTimePicker(false) }}>
                   <Text style={[s.modalRowTxt, briefSettings.time === time && { color: colors.primary, fontWeight: '700' }]}>{time}</Text>
                   {briefSettings.time === time && <Ionicons name="checkmark" size={18} color={colors.primary} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Date Format Picker Modal */}
+        <Modal visible={showDateFormatPicker} transparent animationType="fade">
+          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowDateFormatPicker(false)}>
+            <View style={s.modalCard}>
+              <Text style={s.modalTitle}>Format de date</Text>
+              {DATE_FORMATS.map((fmt) => (
+                <TouchableOpacity key={fmt.value} style={[s.modalRow, dateFormat === fmt.value && { backgroundColor: colors.primaryLight }]} onPress={() => updateDateFormat(fmt.value)}>
+                  <Text style={[s.modalRowTxt, dateFormat === fmt.value && { color: colors.primary, fontWeight: '700' }]}>{fmt.example}</Text>
+                  {dateFormat === fmt.value && <Ionicons name="checkmark" size={18} color={colors.primary} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Currency Picker Modal */}
+        <Modal visible={showCurrencyPicker} transparent animationType="fade">
+          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowCurrencyPicker(false)}>
+            <View style={s.modalCard}>
+              <Text style={s.modalTitle}>Devise</Text>
+              {CURRENCIES.map((cur) => (
+                <TouchableOpacity key={cur.value} style={[s.modalRow, currency === cur.value && { backgroundColor: colors.primaryLight }]} onPress={() => updateCurrency(cur.value)}>
+                  <Text style={[s.modalRowTxt, currency === cur.value && { color: colors.primary, fontWeight: '700' }]}>{cur.label}</Text>
+                  {currency === cur.value && <Ionicons name="checkmark" size={18} color={colors.primary} />}
                 </TouchableOpacity>
               ))}
             </View>
