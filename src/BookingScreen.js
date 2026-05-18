@@ -14,9 +14,16 @@ const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','
 // Local-time YYYY-MM-DD. toISOString() converts to UTC and at 11pm Geneva returns tomorrow.
 const toLocalDateStr = (d) => d.toLocaleDateString('en-CA')
 
-export default function BookingScreen({ navigation }) {
+export default function BookingScreen({ navigation, route }) {
   const { t } = useTranslation()
-  const [tab, setTab] = useState('agenda')
+  const initialTabParam = route?.params?.initialTab
+  const [tab, setTab] = useState(initialTabParam && ['agenda','horaires','préférences'].includes(initialTabParam) ? initialTabParam : 'agenda')
+
+  useEffect(() => {
+    if (initialTabParam && ['agenda','horaires','préférences'].includes(initialTabParam)) {
+      setTab(initialTabParam)
+    }
+  }, [initialTabParam])
   const [workHours, setWorkHours] = useState([])
   const [collectifs, setCollectifs] = useState([])
   const [prefs, setPrefs] = useState({ default_duration: 60, max_group_size: 4, private_price: 120, group_price: 25 })

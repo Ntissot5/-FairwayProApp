@@ -128,7 +128,11 @@ export default function PlayerDetailScreen({ route, navigation }) {
       for (const ex of exercises) {
         await supabase.from('exercises').insert({ player_id: player.id, coach_id: user.id, title: ex.title, description: ex.description, completed: false })
       }
-      Alert.alert('✓ Plan généré!', '3 exercices ajoutés pour ' + player.full_name)
+      // Mark first AI plan timestamp for onboarding (idempotent)
+      if (!user.user_metadata?.first_ai_plan_at) {
+        try { await supabase.auth.updateUser({ data: { first_ai_plan_at: new Date().toISOString() } }) } catch {}
+      }
+      Alert.alert('✓ Plan généré !', '3 exercices ajoutés pour ' + player.full_name)
     fetchAll()
     } catch(e) { Alert.alert('Erreur', e.message) }
     setGenerating(null)

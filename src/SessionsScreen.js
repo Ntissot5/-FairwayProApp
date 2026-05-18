@@ -10,7 +10,7 @@ import { Calendar as CalendarIcon, Package as PackageIcon } from 'lucide-react-n
 import EmptyState from './components/EmptyState'
 import { formatDate, formatCurrency } from './lib/format'
 
-export default function SessionsScreen({ navigation }) {
+export default function SessionsScreen({ navigation, route }) {
   const { t } = useTranslation()
   const [players, setPlayers] = useState([])
   const [sessions, setSessions] = useState([])
@@ -19,7 +19,13 @@ export default function SessionsScreen({ navigation }) {
   const [selectedPackage, setSelectedPackage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [tab, setTab] = useState('sessions')
+  const [tab, setTab] = useState(route?.params?.initialTab === 'packages' ? 'packages' : 'sessions')
+
+  useEffect(() => {
+    if (route?.params?.initialTab && (route.params.initialTab === 'sessions' || route.params.initialTab === 'packages')) {
+      setTab(route.params.initialTab)
+    }
+  }, [route?.params?.initialTab])
   const [showAddSession, setShowAddSession] = useState(false)
   const [showAddPackage, setShowAddPackage] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -116,6 +122,10 @@ export default function SessionsScreen({ navigation }) {
       const exercises = JSON.parse(clean)
       for (const ex of exercises) {
         await supabase.from('exercises').insert({ player_id: player.id, coach_id: user.id, title: ex.title, description: ex.description, completed: false })
+      }
+      // Mark first AI plan timestamp for onboarding (idempotent)
+      if (!user.user_metadata?.first_ai_plan_at) {
+        try { await supabase.auth.updateUser({ data: { first_ai_plan_at: new Date().toISOString() } }) } catch {}
       }
       Alert.alert(t('sessions.plan_generated'), t('sessions.plan_generated_desc', { name: player.full_name }))
     } catch(e) { Alert.alert('Erreur', e.message) }

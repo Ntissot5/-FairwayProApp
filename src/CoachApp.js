@@ -11,6 +11,7 @@ import { registerForPushNotifications, savePushToken } from './notifications'
 import PermissionPushModal from './components/PermissionPushModal'
 import DailyBriefingCard from './components/DailyBriefingCard'
 import RelanceModal from './components/RelanceModal'
+import CoachOnboardingChecklist from './components/CoachOnboardingChecklist'
 import { colors } from './theme'
 import { formatDate, formatCurrency } from './lib/format'
 
@@ -51,6 +52,10 @@ export default function CoachApp({ navigation }) {
   const [showRelanceModal, setShowRelanceModal] = useState(false)
   const [relanceTarget, setRelanceTarget] = useState(null)
   const [userId, setUserId] = useState(null)
+  const [user, setUser] = useState(null)
+  const [packagesCount, setPackagesCount] = useState(0)
+  const [workHoursCount, setWorkHoursCount] = useState(0)
+  const [exercisesCount, setExercisesCount] = useState(0)
   const briefingRef = useRef(null)
 
   useEffect(() => { fetchAll() }, [])
@@ -99,19 +104,37 @@ export default function CoachApp({ navigation }) {
 
   const fetchAll = async () => {
     const { data: { user } } = await supabase.auth.getUser()
+    setUser(user)
     setUserId(user.id)
     const today = toLocalDateStr(new Date())
-    const [pRes, sRes, lRes] = await Promise.all([
+    const [pRes, sRes, lRes, pkgRes, whRes, exRes] = await Promise.all([
       supabase.from('players').select('*').eq('coach_id', user.id),
       supabase.from('sessions').select('*').eq('coach_id', user.id).order('session_date', { ascending: false }),
       supabase.from('lessons').select('*, players(full_name)').eq('coach_id', user.id).eq('lesson_date', today).order('start_time', { ascending: true }),
+      supabase.from('packages').select('id', { count: 'exact', head: true }).eq('coach_id', user.id),
+      supabase.from('work_hours').select('id', { count: 'exact', head: true }).eq('coach_id', user.id),
+      supabase.from('exercises').select('id', { count: 'exact', head: true }).eq('coach_id', user.id),
     ])
     setPlayers(pRes.data || [])
     setSessions(sRes.data || [])
     setLessons(lRes.data || [])
+    setPackagesCount(pkgRes.count || 0)
+    setWorkHoursCount(whRes.count || 0)
+    setExercisesCount(exRes.count || 0)
     setLoading(false)
     setRefreshing(false)
   }
+
+  const handleOnboardingNavigate = (action) => {
+    if (!action?.tab) return
+    if (action.tab === 'Settings') {
+      navigation.navigate('Settings')
+      return
+    }
+    navigation.navigate(action.tab, action.subTab ? { initialTab: action.subTab } : undefined)
+  }
+
+  const hasAIPlan = Boolean(user?.user_metadata?.first_ai_plan_at) || exercisesCount > 0
 
   const now = new Date()
   const revenueThisMonth = sessions.filter(s => {
@@ -157,6 +180,18 @@ export default function CoachApp({ navigation }) {
       <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll(); if (briefingRef.current) briefingRef.current() }} tintColor={colors.primary} />}>
 
         {userId && <DailyBriefingCard userId={userId} ref={briefingRef} />}
+
+        {user && (
+          <CoachOnboardingChecklist
+            mode="card"
+            user={user}
+            players={players}
+            packagesCount={packagesCount}
+            workHoursCount={workHoursCount}
+            hasAIPlan={hasAIPlan}
+            onNavigate={handleOnboardingNavigate}
+          />
+        )}
 
         {/* Hero Cards */}
         <View style={styles.heroSection}>
@@ -289,6 +324,17 @@ export default function CoachApp({ navigation }) {
       </ScrollView>
       <PermissionPushModal visible={showPushModal} onEnable={handleEnablePush} onLater={handleLaterPush} />
       <RelanceModal visible={showRelanceModal} player={relanceTarget} coachId={userId} sessions={sessions} onClose={() => { setShowRelanceModal(false); setRelanceTarget(null) }} />
+      {user && (
+        <CoachOnboardingChecklist
+          mode="overlay"
+          user={user}
+          players={players}
+          packagesCount={packagesCount}
+          workHoursCount={workHoursCount}
+          hasAIPlan={hasAIPlan}
+          onNavigate={handleOnboardingNavigate}
+        />
+      )}
     </SafeAreaView>
   )
 }
