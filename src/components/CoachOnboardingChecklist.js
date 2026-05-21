@@ -12,12 +12,21 @@ const STEP_DEFS = [
   { id: 'ai',       icon: 'sparkles-outline',      title: 'Générer mon premier plan IA',  desc: "Laisse l'IA créer un plan d'entraînement personnalisé", action: { tab: 'Sessions', subTab: 'sessions' } },
 ]
 
-export default function CoachOnboardingChecklist({ user, players, packagesCount, workHoursCount, hasAIPlan, onNavigate, mode = 'card' }) {
+export default function CoachOnboardingChecklist({ user, players, packagesCount, workHoursCount, hasAIPlan, onNavigate, onUserUpdate, mode = 'card' }) {
   const meta = user?.user_metadata || {}
   const [started, setStarted] = useState(meta.onboarding_started === true)
   const [dismissed, setDismissed] = useState(meta.onboarding_dismissed === true)
   const [completed, setCompleted] = useState(meta.onboarding_completed === true)
   const [celebrating, setCelebrating] = useState(false)
+
+  // Sync local state when the user prop changes (e.g. when the sibling instance
+  // — card vs overlay — writes metadata and the parent refreshes the user).
+  // Without this, useState's initial value sticks and the two instances drift.
+  useEffect(() => {
+    setStarted(meta.onboarding_started === true)
+    setDismissed(meta.onboarding_dismissed === true)
+    setCompleted(meta.onboarding_completed === true)
+  }, [meta.onboarding_started, meta.onboarding_dismissed, meta.onboarding_completed])
 
   const profileDone = Boolean((meta.full_name || meta.name) && meta.club)
 
@@ -37,14 +46,20 @@ export default function CoachOnboardingChecklist({ user, players, packagesCount,
   const allDone = doneCount === totalCount
 
   const persist = async (patch) => {
-    try { await supabase.auth.updateUser({ data: patch }) } catch {}
+    try {
+      const { data } = await supabase.auth.updateUser({ data: patch })
+      if (data?.user && onUserUpdate) onUserUpdate(data.user)
+    } catch {}
   }
 
   useEffect(() => {
     if (!allDone || completed) return
     setCelebrating(true)
     supabase.auth.updateUser({ data: { onboarding_completed: true } })
-      .then(() => setTimeout(() => setCompleted(true), 4000))
+      .then(({ data }) => {
+        if (data?.user && onUserUpdate) onUserUpdate(data.user)
+        setTimeout(() => setCompleted(true), 4000)
+      })
       .catch(() => setCelebrating(false))
   }, [allDone, completed])
 

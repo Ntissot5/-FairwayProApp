@@ -190,6 +190,7 @@ export default function CoachApp({ navigation }) {
             workHoursCount={workHoursCount}
             hasAIPlan={hasAIPlan}
             onNavigate={handleOnboardingNavigate}
+            onUserUpdate={setUser}
           />
         )}
 
@@ -333,6 +334,7 @@ export default function CoachApp({ navigation }) {
           workHoursCount={workHoursCount}
           hasAIPlan={hasAIPlan}
           onNavigate={handleOnboardingNavigate}
+          onUserUpdate={setUser}
         />
       )}
     </SafeAreaView>
