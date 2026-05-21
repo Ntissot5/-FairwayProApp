@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal, Alert, TextInput, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -32,9 +32,24 @@ export default function SettingsScreen({ navigation }) {
   const [currency, setCurrency] = useState(getCurrency())
   const [showDateFormatPicker, setShowDateFormatPicker] = useState(false)
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false)
+  const [profileName, setProfileName] = useState('')
+  const [profileClub, setProfileClub] = useState('')
+  const [initialName, setInitialName] = useState('')
+  const [initialClub, setInitialClub] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileMsg, setProfileMsg] = useState(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+      const m = user?.user_metadata || {}
+      const n = m.full_name || m.name || ''
+      const c = m.club || ''
+      setProfileName(n)
+      setProfileClub(c)
+      setInitialName(n)
+      setInitialClub(c)
+    })
     getBriefingSettings().then(setBriefSettings)
   }, [])
 
@@ -60,6 +75,30 @@ export default function SettingsScreen({ navigation }) {
 
   const dateFormatLabel = (DATE_FORMATS.find(f => f.value === dateFormat) || DATE_FORMATS[0]).example
   const currencyLabel = (CURRENCIES.find(c => c.value === currency) || CURRENCIES[0]).label
+
+  const nameTrimmed = profileName.trim()
+  const clubTrimmed = profileClub.trim()
+  const profileChanged = nameTrimmed !== initialName.trim() || clubTrimmed !== initialClub.trim()
+  const profileValid = nameTrimmed.length > 0 && clubTrimmed.length > 0
+  const canSaveProfile = profileChanged && profileValid && !savingProfile
+
+  const saveProfile = async () => {
+    if (!canSaveProfile) return
+    setSavingProfile(true)
+    try {
+      const { data, error } = await supabase.auth.updateUser({ data: { full_name: nameTrimmed, club: clubTrimmed } })
+      if (error) throw error
+      if (data?.user) setUser(data.user)
+      setInitialName(nameTrimmed)
+      setInitialClub(clubTrimmed)
+      setProfileMsg({ msg: 'Profil mis à jour ✓', isError: false })
+      setTimeout(() => setProfileMsg(null), 3000)
+    } catch (e) {
+      Alert.alert('Erreur', 'Impossible de mettre à jour le profil. Réessaie.')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -184,6 +223,52 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         <View style={s.section}>
+          <Text style={s.sectionTitle}>MON PROFIL</Text>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={s.fieldLabel}>Nom complet</Text>
+            <TextInput
+              style={s.input}
+              value={profileName}
+              onChangeText={setProfileName}
+              placeholder="Votre nom complet"
+              placeholderTextColor={colors.textTertiary}
+              autoCapitalize="words"
+              returnKeyType="next"
+            />
+          </View>
+          <View style={{ marginBottom: 14 }}>
+            <Text style={s.fieldLabel}>Club / Académie</Text>
+            <TextInput
+              style={s.input}
+              value={profileClub}
+              onChangeText={setProfileClub}
+              placeholder="Nom de votre club ou académie"
+              placeholderTextColor={colors.textTertiary}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={saveProfile}
+            />
+          </View>
+          <TouchableOpacity
+            style={[s.saveBtn, !canSaveProfile && s.saveBtnDisabled]}
+            onPress={saveProfile}
+            disabled={!canSaveProfile}
+            activeOpacity={0.85}
+          >
+            {savingProfile ? (
+              <ActivityIndicator size="small" color={colors.textInverse} />
+            ) : (
+              <Text style={s.saveBtnTxt}>Enregistrer</Text>
+            )}
+          </TouchableOpacity>
+          {profileMsg && (
+            <View style={{ marginTop: 10, padding: 10, borderRadius: 8, backgroundColor: profileMsg.isError ? colors.warningLight : colors.primaryLight, borderWidth: 0.5, borderColor: profileMsg.isError ? colors.warning : colors.primary }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: profileMsg.isError ? colors.warning : colors.primary }}>{profileMsg.msg}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={s.section}>
           <Text style={s.sectionTitle}>AFFICHAGE</Text>
           <TouchableOpacity style={s.infoRow} onPress={() => setShowDateFormatPicker(true)}>
             <Text style={s.infoLabel}>Format de date</Text>
@@ -298,6 +383,11 @@ const s = StyleSheet.create({
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: colors.border },
   infoLabel: { fontSize: 14, color: colors.textPrimary },
   infoValue: { fontSize: 14, color: colors.textTertiary },
+  fieldLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 6 },
+  input: { backgroundColor: colors.surfaceElevated, borderWidth: 0.5, borderColor: colors.borderStrong, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: colors.textPrimary },
+  saveBtn: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 13, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', minHeight: 44 },
+  saveBtnDisabled: { backgroundColor: colors.borderStrong },
+  saveBtnTxt: { color: colors.textInverse, fontSize: 15, fontWeight: '700' },
   signOutBtn: { margin: 16, backgroundColor: colors.errorLight, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: colors.error },
   signOutTxt: { color: colors.error, fontSize: 16, fontWeight: '700' },
   deleteBtn: { marginHorizontal: 16, marginBottom: 32, padding: 16, alignItems: 'center' },
